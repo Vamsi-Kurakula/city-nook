@@ -1,0 +1,14 @@
+# List of city crawls
+crawls:
+  - id: '1'
+    name: Historic Downtown Crawl
+    description: Explore the city's oldest landmarks.
+  - id: '2'
+    name: Foodie Adventure
+    description: Taste the best local cuisine.
+  - id: '3'
+    name: Art & Culture Walk
+    description: Visit galleries and street art spots. 
+  - id: '4'
+    name: Taste Quest
+    description: A Quest through Ravenswood 
