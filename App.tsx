@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CrawlList from './components/CrawlList';
 import CrawlDetailPane from './components/CrawlDetailPane';
 import { getHeroImageSource } from './components/ImageLoader';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const { height: screenHeight } = require('react-native').Dimensions.get('window');
 
@@ -80,42 +81,48 @@ export default function App() {
 
   if (loading) {
     return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaView style={styles.container}>
-          <ActivityIndicator size="large" style={{ marginTop: 40 }} />
-        </SafeAreaView>
-      </GestureHandlerRootView>
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaView style={styles.container}>
+            <ActivityIndicator size="large" style={{ marginTop: 40 }} />
+          </SafeAreaView>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
     );
   }
 
   if (crawls.length === 0) {
     return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaView style={styles.container}>
-          <Text style={styles.header}>City Crawls</Text>
-          <Text style={styles.errorText}>No crawls found. Please check your crawls.yml file.</Text>
-        </SafeAreaView>
-      </GestureHandlerRootView>
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaView style={styles.container}>
+            <Text style={styles.header}>City Crawls</Text>
+            <Text style={styles.errorText}>No crawls found. Please check your crawls.yml file.</Text>
+          </SafeAreaView>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.header}>City Crawls</Text>
-        <CrawlList crawls={crawls} onCrawlPress={showDetailPane} />
-        <CrawlDetailPane
-          crawl={selectedCrawl ?? undefined}
-          visible={detailPaneVisible && !!selectedCrawl}
-          slideAnim={slideAnim}
-          onClose={hideDetailPane}
-          onStart={startCrawl}
-          getHeroImageSource={getHeroImageSource}
-          imageLoading={imageLoading}
-          setImageLoading={setImageLoading}
-        />
-      </SafeAreaView>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaView style={styles.container}>
+          <Text style={styles.header}>City Crawls</Text>
+          <CrawlList crawls={crawls} onCrawlPress={showDetailPane} />
+          <CrawlDetailPane
+            crawl={selectedCrawl ?? undefined}
+            visible={detailPaneVisible && !!selectedCrawl}
+            slideAnim={slideAnim}
+            onClose={hideDetailPane}
+            onStart={startCrawl}
+            getHeroImageSource={getHeroImageSource}
+            imageLoading={imageLoading}
+            setImageLoading={setImageLoading}
+          />
+        </SafeAreaView>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Animated, ActivityIndicator, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, ActivityIndicator, Image, StyleSheet, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Crawl {
   id: string;
@@ -42,55 +43,57 @@ const CrawlDetailPane: React.FC<CrawlDetailPaneProps> = ({
         },
       ]}
     >
-      <View style={styles.detailHeader}>
-        <View style={styles.dragHandle} />
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text style={styles.closeButtonText}>✕</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.detailContent}>
-        <View style={styles.imageContainer}>
-          {getHeroImageSource(crawl.assetFolder) ? (
-            <Image
-              source={getHeroImageSource(crawl.assetFolder)}
-              style={styles.heroImage}
-              resizeMode="cover"
-              onLoadStart={() => setImageLoading(true)}
-              onLoadEnd={() => setImageLoading(false)}
-            />
-          ) : (
-            <View style={styles.placeholderImage}>
-              <Text style={styles.placeholderText}>No Image</Text>
-            </View>
-          )}
-          {imageLoading && (
-            <View style={styles.imageLoadingOverlay}>
-              <ActivityIndicator size="small" color="#007AFF" />
-            </View>
-          )}
-        </View>
-        <View style={styles.detailInfo}>
-          <Text style={styles.detailTitle}>{crawl.name}</Text>
-          <Text style={styles.detailDescription}>{crawl.description}</Text>
-          <View style={styles.detailMeta}>
-            <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Duration</Text>
-              <Text style={styles.metaValue}>{crawl.duration}</Text>
-            </View>
-            <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Distance</Text>
-              <Text style={styles.metaValue}>{crawl.distance}</Text>
-            </View>
-            <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Difficulty</Text>
-              <Text style={styles.metaValue}>{crawl.difficulty}</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.startButton} onPress={onStart}>
-            <Text style={styles.startButtonText}>Start Crawl</Text>
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+        <View style={styles.detailHeader}>
+          <View style={styles.dragHandle} />
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
         </View>
-      </View>
+        <View style={styles.detailContent}>
+          <View style={styles.imageContainer}>
+            {getHeroImageSource(crawl.assetFolder) ? (
+              <Image
+                source={getHeroImageSource(crawl.assetFolder)}
+                style={styles.heroImage}
+                resizeMode="cover"
+                onLoadStart={() => setImageLoading(true)}
+                onLoadEnd={() => setImageLoading(false)}
+              />
+            ) : (
+              <View style={styles.placeholderImage}>
+                <Text style={styles.placeholderText}>No Image</Text>
+              </View>
+            )}
+            {imageLoading && (
+              <View style={styles.imageLoadingOverlay}>
+                <ActivityIndicator size="small" color="#007AFF" />
+              </View>
+            )}
+          </View>
+          <View style={styles.detailInfo}>
+            <Text style={styles.detailTitle}>{crawl.name}</Text>
+            <Text style={styles.detailDescription}>{crawl.description}</Text>
+            <View style={styles.detailMeta}>
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>Duration</Text>
+                <Text style={styles.metaValue}>{crawl.duration}</Text>
+              </View>
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>Distance</Text>
+                <Text style={styles.metaValue}>{crawl.distance}</Text>
+              </View>
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>Difficulty</Text>
+                <Text style={styles.metaValue}>{crawl.difficulty}</Text>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.startButton} onPress={onStart}>
+              <Text style={styles.startButtonText}>Start Crawl</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
     </Animated.View>
   );
 };
