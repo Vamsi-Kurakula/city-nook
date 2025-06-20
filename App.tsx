@@ -15,7 +15,7 @@ import {
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import * as yaml from 'js-yaml';
-import { PanGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -38,17 +38,31 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [selectedCrawl, setSelectedCrawl] = useState<Crawl | null>(null);
   const [detailPaneVisible, setDetailPaneVisible] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
   const slideAnim = useState(new Animated.Value(screenHeight))[0];
+
+  const imageMap: { [key: string]: any } = {
+    'historic-downtown-crawl': require('./assets/crawls/historic-downtown-crawl/hero.jpg'),
+    'foodie-adventure': require('./assets/crawls/foodie-adventure/hero.jpg'),
+    'art-culture-walk': require('./assets/crawls/art-culture-walk/hero.jpg'),
+    'taste-quest': require('./assets/crawls/taste-quest/hero.jpg'),
+  };
 
   useEffect(() => {
     const loadCrawls = async () => {
       try {
+        console.log('Starting to load crawls...');
         // Load the asset (YAML file) from the bundled assets
         const asset = Asset.fromModule(require('./assets/crawls/crawls.yml'));
+        console.log('Asset loaded:', asset);
         await asset.downloadAsync();
+        console.log('Asset downloaded');
         const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
+        console.log('YAML string loaded, length:', yamlString.length);
         const data = yaml.load(yamlString) as CrawlData;
+        console.log('YAML parsed:', data);
         if (data && Array.isArray(data.crawls)) {
+          console.log('Setting crawls:', data.crawls.length, 'items');
           setCrawls(data.crawls);
         } else {
           console.error('Invalid YAML structure or no crawls found');
@@ -64,14 +78,26 @@ export default function App() {
     loadCrawls();
   }, []);
 
+  const getHeroImageSource = (assetFolder: string) => {
+    return imageMap[assetFolder] || require('./assets/crawls/default/hero.jpg');
+  };
+
   const showDetailPane = (crawl: Crawl) => {
     console.log('Showing detail pane for:', crawl.name);
     setSelectedCrawl(crawl);
     setDetailPaneVisible(true);
+    setImageLoading(true);
     Animated.spring(slideAnim, {
       toValue: 0,
       useNativeDriver: true,
     }).start();
+  };
+
+  const handleCrawlPress = (crawl: Crawl) => {
+    console.log('Crawl pressed:', crawl.name);
+    // Add visual feedback - you can remove this later
+    alert(`Pressed: ${crawl.name}`);
+    showDetailPane(crawl);
   };
 
   const hideDetailPane = () => {
@@ -82,25 +108,8 @@ export default function App() {
     }).start(() => {
       setDetailPaneVisible(false);
       setSelectedCrawl(null);
+      setImageLoading(false);
     });
-  };
-
-  const onGestureEvent = Animated.event(
-    [{ nativeEvent: { translationY: slideAnim } }],
-    { useNativeDriver: true }
-  );
-
-  const onHandlerStateChange = (event: any) => {
-    if (event.nativeEvent.state === State.END) {
-      if (event.nativeEvent.translationY > 100) {
-        hideDetailPane();
-      } else {
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          useNativeDriver: true,
-        }).start();
-      }
-    }
   };
 
   const startCrawl = () => {
@@ -143,7 +152,7 @@ export default function App() {
           renderItem={({ item }) => (
             <TouchableOpacity 
               style={styles.crawlCard}
-              onPress={() => showDetailPane(item)}
+              onPress={() => handleCrawlPress(item)}
               activeOpacity={0.7}
             >
               <Text style={styles.crawlTitle}>{item.name}</Text>
@@ -160,66 +169,76 @@ export default function App() {
         />
 
         {detailPaneVisible && selectedCrawl && (
-          <PanGestureHandler
-            onGestureEvent={onGestureEvent}
-            onHandlerStateChange={onHandlerStateChange}
+          <Animated.View
+            style={[
+              styles.detailPane,
+              {
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
           >
-            <Animated.View
-              style={[
-                styles.detailPane,
-                {
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              <View style={styles.detailHeader}>
-                <View style={styles.dragHandle} />
+            <View style={styles.detailHeader}>
+              <View style={styles.dragHandle} />
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={hideDetailPane}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.detailContent}>
+              <View style={styles.imageContainer}>
+                {getHeroImageSource(selectedCrawl.assetFolder) ? (
+                  <Image
+                    source={getHeroImageSource(selectedCrawl.assetFolder)}
+                    style={styles.heroImage}
+                    resizeMode="cover"
+                    onLoadStart={() => setImageLoading(true)}
+                    onLoadEnd={() => setImageLoading(false)}
+                  />
+                ) : (
+                  <View style={styles.placeholderImage}>
+                    <Text style={styles.placeholderText}>No Image</Text>
+                  </View>
+                )}
+                {imageLoading && (
+                  <View style={styles.imageLoadingOverlay}>
+                    <ActivityIndicator size="small" color="#007AFF" />
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.detailInfo}>
+                <Text style={styles.detailTitle}>{selectedCrawl.name}</Text>
+                <Text style={styles.detailDescription}>
+                  {selectedCrawl.description}
+                </Text>
+
+                <View style={styles.detailMeta}>
+                  <View style={styles.metaItem}>
+                    <Text style={styles.metaLabel}>Duration</Text>
+                    <Text style={styles.metaValue}>{selectedCrawl.duration}</Text>
+                  </View>
+                  <View style={styles.metaItem}>
+                    <Text style={styles.metaLabel}>Distance</Text>
+                    <Text style={styles.metaValue}>{selectedCrawl.distance}</Text>
+                  </View>
+                  <View style={styles.metaItem}>
+                    <Text style={styles.metaLabel}>Difficulty</Text>
+                    <Text style={styles.metaValue}>{selectedCrawl.difficulty}</Text>
+                  </View>
+                </View>
+
                 <TouchableOpacity 
-                  style={styles.closeButton}
-                  onPress={hideDetailPane}
+                  style={styles.startButton}
+                  onPress={startCrawl}
                 >
-                  <Text style={styles.closeButtonText}>✕</Text>
+                  <Text style={styles.startButtonText}>Start Crawl</Text>
                 </TouchableOpacity>
               </View>
-
-              <View style={styles.detailContent}>
-                <View style={styles.imageContainer}>
-                  <View style={styles.placeholderImage}>
-                    <Text style={styles.placeholderText}>Image</Text>
-                  </View>
-                </View>
-
-                <View style={styles.detailInfo}>
-                  <Text style={styles.detailTitle}>{selectedCrawl.name}</Text>
-                  <Text style={styles.detailDescription}>
-                    {selectedCrawl.description}
-                  </Text>
-
-                  <View style={styles.detailMeta}>
-                    <View style={styles.metaItem}>
-                      <Text style={styles.metaLabel}>Duration</Text>
-                      <Text style={styles.metaValue}>{selectedCrawl.duration}</Text>
-                    </View>
-                    <View style={styles.metaItem}>
-                      <Text style={styles.metaLabel}>Distance</Text>
-                      <Text style={styles.metaValue}>{selectedCrawl.distance}</Text>
-                    </View>
-                    <View style={styles.metaItem}>
-                      <Text style={styles.metaLabel}>Difficulty</Text>
-                      <Text style={styles.metaValue}>{selectedCrawl.difficulty}</Text>
-                    </View>
-                  </View>
-
-                  <TouchableOpacity 
-                    style={styles.startButton}
-                    onPress={startCrawl}
-                  >
-                    <Text style={styles.startButtonText}>Start Crawl</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Animated.View>
-          </PanGestureHandler>
+            </View>
+          </Animated.View>
         )}
       </SafeAreaView>
     </GestureHandlerRootView>
@@ -337,6 +356,11 @@ const styles = StyleSheet.create({
   imageContainer: {
     height: 200,
     backgroundColor: '#f0f0f0',
+    position: 'relative',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
   },
   placeholderImage: {
     flex: 1,
@@ -347,6 +371,16 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: 18,
     color: '#999',
+  },
+  imageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
   detailInfo: {
     padding: 20,
