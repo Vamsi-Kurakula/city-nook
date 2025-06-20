@@ -55,6 +55,7 @@ export default function App() {
   }, []);
 
   const showDetailPane = (crawl: Crawl) => {
+    slideAnim.setValue(screenHeight);
     setSelectedCrawl(crawl);
     setDetailPaneVisible(true);
     setImageLoading(true);
@@ -72,6 +73,7 @@ export default function App() {
       setDetailPaneVisible(false);
       setSelectedCrawl(null);
       setImageLoading(false);
+      slideAnim.setValue(screenHeight);
     });
   };
 
