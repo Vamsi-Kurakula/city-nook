@@ -7,4 +7,4 @@ set -e
 node scripts/generateImageMap.js
 
 # Start Expo
-npx expo start 
+npx expo start -c
