@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "city_crawler",
-    "slug": "city_crawler",
+    "slug": "city-crawler",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -24,6 +24,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f0e3027e-7d53-46eb-83e7-7a51334fa601"
+      }
+    },
+    "owner": "vamsikurakula"
   }
 }
