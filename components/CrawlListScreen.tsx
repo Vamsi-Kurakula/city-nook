@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Text, StyleSheet, StatusBar, ActivityIndicator, Animated, Platform } from 'react-native';
+import { Text, StyleSheet, StatusBar, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import * as yaml from 'js-yaml';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import CrawlList from './CrawlList';
-import CrawlDetailPane from './CrawlDetailPane';
-import { getHeroImageSource } from './ImageLoader';
-
-const { height: screenHeight } = require('react-native').Dimensions.get('window');
+import { useCrawlContext } from './CrawlContext';
+import { RootTabParamList } from '../types/navigation';
 
 interface Crawl {
   id: string;
@@ -24,13 +23,18 @@ interface CrawlData {
   crawls: Crawl[];
 }
 
-const CrawlListScreen: React.FC = () => {
+type CrawlListScreenNavigationProp = BottomTabNavigationProp<RootTabParamList, 'Crawls'>;
+
+interface CrawlListScreenProps {
+  navigation: CrawlListScreenNavigationProp;
+}
+
+const CrawlListScreen: React.FC<CrawlListScreenProps> = ({ navigation }) => {
   const [crawls, setCrawls] = useState<Crawl[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCrawl, setSelectedCrawl] = useState<Crawl | null>(null);
-  const [detailPaneVisible, setDetailPaneVisible] = useState(false);
-  const [imageLoading, setImageLoading] = useState(false);
-  const slideAnim = useState(new Animated.Value(screenHeight))[0];
+  const [isStartingCrawl, setIsStartingCrawl] = useState(false);
+  
+  const { startCrawlWithNavigation } = useCrawlContext();
 
   useEffect(() => {
     const loadCrawls = async () => {
@@ -53,31 +57,21 @@ const CrawlListScreen: React.FC = () => {
     loadCrawls();
   }, []);
 
-  const showDetailPane = (crawl: Crawl) => {
-    slideAnim.setValue(screenHeight);
-    setSelectedCrawl(crawl);
-    setDetailPaneVisible(true);
-    setImageLoading(true);
-    Animated.spring(slideAnim, {
-      toValue: 0,
-      useNativeDriver: true,
-    }).start();
+  const handleCrawlPress = (crawl: Crawl) => {
+    // This can be used for future functionality like showing more details
+    // Currently just handles the expand/collapse functionality
   };
 
-  const hideDetailPane = () => {
-    Animated.spring(slideAnim, {
-      toValue: screenHeight,
-      useNativeDriver: true,
-    }).start(() => {
-      setDetailPaneVisible(false);
-      setSelectedCrawl(null);
-      setImageLoading(false);
-      slideAnim.setValue(screenHeight);
-    });
-  };
-
-  const startCrawl = () => {
-    hideDetailPane();
+  const handleCrawlStart = (crawl: Crawl) => {
+    if (!isStartingCrawl) {
+      setIsStartingCrawl(true);
+      
+      // Use the context function to handle state updates and navigation
+      startCrawlWithNavigation(crawl, () => {
+        navigation.navigate('Current Crawl');
+        setIsStartingCrawl(false);
+      });
+    }
   };
 
   if (loading) {
@@ -100,16 +94,10 @@ const CrawlListScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>City Crawls</Text>
-      <CrawlList crawls={crawls} onCrawlPress={showDetailPane} />
-      <CrawlDetailPane
-        crawl={selectedCrawl ?? undefined}
-        visible={detailPaneVisible && !!selectedCrawl}
-        slideAnim={slideAnim}
-        onClose={hideDetailPane}
-        onStart={startCrawl}
-        getHeroImageSource={getHeroImageSource}
-        imageLoading={imageLoading}
-        setImageLoading={setImageLoading}
+      <CrawlList 
+        crawls={crawls} 
+        onCrawlPress={handleCrawlPress}
+        onCrawlStart={handleCrawlStart}
       />
     </SafeAreaView>
   );
