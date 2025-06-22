@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCrawlContext } from './CrawlContext';
 import { getHeroImageSource } from './ImageLoader';
@@ -16,6 +16,21 @@ const CurrentCrawl: React.FC = () => {
     nextStep,
     getCurrentStep
   } = useCrawlContext();
+
+  // Extract location name from Google Maps URL
+  const extractLocationName = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      const query = urlObj.searchParams.get('q');
+      if (query) {
+        // Replace + with spaces and decode URI components
+        return decodeURIComponent(query.replace(/\+/g, ' '));
+      }
+      return 'View Location';
+    } catch {
+      return 'View Location';
+    }
+  };
 
   const endCrawl = () => {
     Alert.alert(
@@ -141,6 +156,45 @@ const CurrentCrawl: React.FC = () => {
               </Text>
             </View>
 
+            {/* Last Reward Location */}
+            {currentProgress?.completed_steps && currentProgress.completed_steps.length > 0 && (
+              <View style={styles.lastRewardSection}>
+                <Text style={styles.lastRewardTitle}>Last Reward</Text>
+                <View style={styles.locationDisplay}>
+                  <View style={styles.locationIcon}>
+                    <Text style={styles.locationIconText}>📍</Text>
+                  </View>
+                  <View style={styles.locationInfo}>
+                    <Text style={styles.locationName}>
+                      {(() => {
+                        const lastCompletedStep = currentProgress.completed_steps
+                          .sort((a, b) => b.step_number - a.step_number)[0];
+                        const stepIndex = lastCompletedStep.step_number - 1;
+                        const step = currentCrawl.steps?.[stepIndex];
+                        return step?.reward_location ? extractLocationName(step.reward_location) : 'Unknown Location';
+                      })()}
+                    </Text>
+                    <Text style={styles.locationSubtext}>Tap to open in Maps</Text>
+                  </View>
+                </View>
+                <TouchableOpacity 
+                  style={styles.rewardButton}
+                  onPress={() => {
+                    if (!currentProgress?.completed_steps) return;
+                    const lastCompletedStep = currentProgress.completed_steps
+                      .sort((a, b) => b.step_number - a.step_number)[0];
+                    const stepIndex = lastCompletedStep.step_number - 1;
+                    const step = currentCrawl.steps?.[stepIndex];
+                    if (step?.reward_location) {
+                      Linking.openURL(step.reward_location);
+                    }
+                  }}
+                >
+                  <Text style={styles.rewardButtonText}>📍 Open in Maps</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {isCrawlCompleted && (
               <View style={styles.completionSection}>
                 <Text style={styles.completionTitle}>🎉 Crawl Completed!</Text>
@@ -204,6 +258,21 @@ const CurrentCrawl: React.FC = () => {
                       isCompleted={true}
                       userAnswer={userAnswer}
                     />
+                    
+                    {/* Reward Location */}
+                    {step.reward_location && (
+                      <View style={styles.rewardSection}>
+                        <Text style={styles.rewardLabel}>Reward:</Text>
+                        <TouchableOpacity 
+                          style={styles.rewardLink}
+                          onPress={() => Linking.openURL(step.reward_location)}
+                        >
+                          <Text style={styles.rewardLinkText}>
+                            📍 {extractLocationName(step.reward_location)}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
                   </View>
                 ))}
             </View>
@@ -393,6 +462,79 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  lastRewardSection: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  lastRewardTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#333',
+  },
+  rewardButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  rewardButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  rewardSection: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  rewardLabel: {
+    fontSize: 14,
+    color: '#888',
+    fontWeight: '500',
+  },
+  rewardLink: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  rewardLinkText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  locationDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  locationIconText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  locationInfo: {
+    flex: 1,
+  },
+  locationName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  locationSubtext: {
+    fontSize: 14,
+    color: '#666',
   },
 });
 
