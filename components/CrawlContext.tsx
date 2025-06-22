@@ -97,6 +97,7 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
     // Check if crawl is completed
     if (updatedProgress.current_step > (currentCrawl.steps?.length || 0)) {
       updatedProgress.completed = true;
+      updatedProgress.current_step = currentCrawl.steps?.length || 0; // Keep at last step
       addToHistory(updatedProgress);
     }
     
