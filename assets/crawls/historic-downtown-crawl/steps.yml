@@ -1,0 +1,37 @@
+steps:
+  - step_number: 1
+    step_type: "location"
+    reward_location: "https://maps.google.com/?q=Wall+Street+New+York"
+    step_components:
+      location_name: "Wall Street Bull"
+      coordinates: "40.7064,-74.0093"
+      description: "Find the iconic Charging Bull statue, symbol of financial prosperity"
+  
+  - step_number: 2
+    step_type: "riddle"
+    reward_location: "https://maps.google.com/?q=Federal+Hall+New+York"
+    step_components:
+      riddle: "I'm a building where Washington was sworn in, the first capital of a new nation. I stand where history was made, with columns that tell stories of democracy. What am I?"
+      answer: "federal hall"
+  
+  - step_number: 3
+    step_type: "photo"
+    reward_location: "https://maps.google.com/?q=Trinity+Church+New+York"
+    step_components:
+      photo_target: "Trinity Church"
+      photo_instructions: "Take a photo of the historic Trinity Church with its famous cemetery"
+  
+  - step_number: 4
+    step_type: "riddle"
+    reward_location: "https://maps.google.com/?q=World+Trade+Center+New+York"
+    step_components:
+      riddle: "I'm a tower that reaches for the sky, built where tragedy once struck. I'm the tallest in the city, a symbol of resilience and hope. What am I?"
+      answer: "one world trade center"
+  
+  - step_number: 5
+    step_type: "location"
+    reward_location: "https://maps.google.com/?q=South+Street+Seaport+New+York"
+    step_components:
+      location_name: "South Street Seaport"
+      coordinates: "40.7067,-74.0033"
+      description: "Find the historic seaport where tall ships dock and maritime history comes alive" 

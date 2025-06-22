@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
 import { FlatList, View, StyleSheet } from 'react-native';
 import CrawlCard from './CrawlCard';
-
-interface Crawl {
-  id: string;
-  name: string;
-  description: string;
-  assetFolder: string;
-  duration: string;
-  difficulty: string;
-  distance: string;
-}
+import { Crawl } from '../types/crawl';
 
 interface CrawlListProps {
   crawls: Crawl[];

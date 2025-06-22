@@ -8,16 +8,8 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import CrawlList from './CrawlList';
 import { useCrawlContext } from './CrawlContext';
 import { RootTabParamList } from '../types/navigation';
-
-interface Crawl {
-  id: string;
-  name: string;
-  description: string;
-  assetFolder: string;
-  duration: string;
-  difficulty: string;
-  distance: string;
-}
+import { Crawl, CrawlSteps } from '../types/crawl';
+import { loadCrawlSteps } from '../utils/crawlAssetLoader';
 
 interface CrawlData {
   crawls: Crawl[];
@@ -39,16 +31,40 @@ const CrawlListScreen: React.FC<CrawlListScreenProps> = ({ navigation }) => {
   useEffect(() => {
     const loadCrawls = async () => {
       try {
+        console.log('Loading crawls...');
+        // Load main crawls list
         const asset = Asset.fromModule(require('../assets/crawls/crawls.yml'));
         await asset.downloadAsync();
         const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
         const data = yaml.load(yamlString) as CrawlData;
+        
         if (data && Array.isArray(data.crawls)) {
-          setCrawls(data.crawls);
+          console.log(`Found ${data.crawls.length} crawls, loading steps...`);
+          
+          // Load steps for each crawl using the utility
+          const crawlsWithSteps = await Promise.all(
+            data.crawls.map(async (crawl) => {
+              try {
+                console.log(`Loading steps for ${crawl.name} (${crawl.assetFolder})...`);
+                const stepsData = await loadCrawlSteps(crawl.assetFolder);
+                return {
+                  ...crawl,
+                  steps: stepsData?.steps || [],
+                };
+              } catch (error) {
+                console.warn(`Could not load steps for ${crawl.name}:`, error);
+                return crawl;
+              }
+            })
+          );
+          console.log('All crawls loaded successfully:', crawlsWithSteps.map(c => ({ name: c.name, steps: c.steps?.length || 0 })));
+          setCrawls(crawlsWithSteps);
         } else {
+          console.error('No crawls found in data');
           setCrawls([]);
         }
       } catch (e) {
+        console.error('Error loading crawls:', e);
         setCrawls([]);
       } finally {
         setLoading(false);

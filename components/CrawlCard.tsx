@@ -1,15 +1,6 @@
 import React, { useState } from 'react';
 import { TouchableOpacity, Text, View, StyleSheet, Animated } from 'react-native';
-
-interface Crawl {
-  id: string;
-  name: string;
-  description: string;
-  assetFolder: string;
-  duration: string;
-  difficulty: string;
-  distance: string;
-}
+import { Crawl } from '../types/crawl';
 
 interface CrawlCardProps {
   crawl: Crawl;
@@ -44,6 +35,9 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
           <View style={styles.crawlMeta}>
             <Text style={styles.metaText}>{crawl.duration}</Text>
             <Text style={styles.metaText}>{crawl.distance}</Text>
+            {crawl.steps && (
+              <Text style={styles.metaText}>{crawl.steps.length} steps</Text>
+            )}
           </View>
         </View>
         

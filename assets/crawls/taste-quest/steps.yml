@@ -1,0 +1,42 @@
+steps:
+  - step_number: 1
+    step_type: "riddle"
+    reward_location: "https://maps.google.com/?q=Serendipity+3+New+York"
+    step_components:
+      riddle: "I'm a frozen treat that's rich and sweet, served in a golden goblet so fine. A movie made me famous, and people wait in line. What am I?"
+      answer: "frozen hot chocolate"
+  
+  - step_number: 2
+    step_type: "riddle"
+    reward_location: "https://maps.google.com/?q=Magnolia+Bakery+New+York"
+    step_components:
+      riddle: "I'm a cupcake shop that's pink and sweet, where Sex and the City made me famous. My frosting is piled high, and my flavors are endless. What am I?"
+      answer: "magnolia bakery"
+  
+  - step_number: 3
+    step_type: "riddle"
+    reward_location: "https://maps.google.com/?q=Ladurée+New+York"
+    step_components:
+      riddle: "I'm a French pastry that's light and airy, with flavors that are bright and cheery. I come in many colors, and I'm a macaron. What am I?"
+      answer: "macaron"
+  
+  - step_number: 4
+    step_type: "riddle"
+    reward_location: "https://maps.google.com/?q=Levain+Bakery+New+York"
+    step_components:
+      riddle: "I'm a cookie that's thick and chewy, with chocolate chips that are gooey. I'm the size of a muffin, and I'm worth the wait. What am I?"
+      answer: "levain cookie"
+  
+  - step_number: 5
+    step_type: "riddle"
+    reward_location: "https://maps.google.com/?q=Dominique+Ansel+Bakery+New+York"
+    step_components:
+      riddle: "I'm a pastry that's shaped like a flower, with layers that take hours to make. I'm flaky and buttery, and I'm a croissant. What am I?"
+      answer: "croissant"
+  
+  - step_number: 6
+    step_type: "riddle"
+    reward_location: "https://maps.google.com/?q=Big+Gay+Ice+Cream+New+York"
+    step_components:
+      riddle: "I'm an ice cream shop that's fun and bright, with flavors that are out of sight. I'm gay-owned and proud, and my cones are rainbow. What am I?"
+      answer: "big gay ice cream" 
