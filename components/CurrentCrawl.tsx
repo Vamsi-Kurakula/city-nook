@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCrawlContext } from './CrawlContext';
-import { getHeroImageSource } from './ImageLoader';
+import { getHeroImageSource } from './auto-generated/ImageLoader';
 import { StepComponent } from './StepComponents';
 
 const CurrentCrawl: React.FC = () => {

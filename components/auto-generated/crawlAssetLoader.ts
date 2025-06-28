@@ -9,11 +9,11 @@ import { CrawlSteps } from '../types/crawl';
 // This object maps crawl folder names to their corresponding steps.yml assets
 // Auto-generated from crawl folders in assets/crawls/
 const STEPS_ASSET_MAP: { [key: string]: any } = {
-  'art-culture-walk': require('../assets/crawls/art-culture-walk/steps.yml'),
-  'default': require('../assets/crawls/default/steps.yml'),
-  'foodie-adventure': require('../assets/crawls/foodie-adventure/steps.yml'),
-  'historic-downtown-crawl': require('../assets/crawls/historic-downtown-crawl/steps.yml'),
-  'taste-quest': require('../assets/crawls/taste-quest/steps.yml'),
+  'art-culture-walk': require('../../assets/crawls/art-culture-walk/steps.yml'),
+  'default': require('../../assets/crawls/default/steps.yml'),
+  'foodie-adventure': require('../../assets/crawls/foodie-adventure/steps.yml'),
+  'historic-downtown-crawl': require('../../assets/crawls/historic-downtown-crawl/steps.yml'),
+  'taste-quest': require('../../assets/crawls/taste-quest/steps.yml'),
 };
 
 /**

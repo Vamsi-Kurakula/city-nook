@@ -3,13 +3,13 @@ import { Text, StyleSheet, StatusBar, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
-import * as yaml from 'js-yaml';
+import yaml from 'js-yaml';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import CrawlList from './CrawlList';
 import { useCrawlContext } from './CrawlContext';
 import { RootTabParamList } from '../types/navigation';
 import { Crawl, CrawlSteps } from '../types/crawl';
-import { loadCrawlSteps } from '../utils/crawlAssetLoader';
+import { loadCrawlSteps } from './auto-generated/crawlAssetLoader';
 
 interface CrawlData {
   crawls: Crawl[];

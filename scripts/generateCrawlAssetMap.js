@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const crawlsDir = path.join(__dirname, '../assets/crawls');
-const outputFile = path.join(__dirname, '../utils/crawlAssetLoader.ts');
+const outputFile = path.join(__dirname, '../components/auto-generated/crawlAssetLoader.ts');
 
 // Read all crawl folders
 const folders = fs.readdirSync(crawlsDir).filter(f => {
@@ -15,7 +15,7 @@ let assetMapEntries = '';
 folders.forEach(folder => {
   const stepsPath = path.join(crawlsDir, folder, 'steps.yml');
   if (fs.existsSync(stepsPath)) {
-    assetMapEntries += `  '${folder}': require('../assets/crawls/${folder}/steps.yml'),\n`;
+    assetMapEntries += `  '${folder}': require('../../assets/crawls/${folder}/steps.yml'),\n`;
   }
 });
 
