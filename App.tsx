@@ -5,9 +5,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import CrawlListScreen from './components/CrawlListScreen';
+import CrawlLibrary from './components/CrawlLibrary';
 import CurrentCrawl from './components/CurrentCrawl';
 import UserProfile from './components/UserProfile';
+import PublicCrawls from './components/PublicCrawls';
 import { CrawlProvider } from './components/CrawlContext';
 import { RootTabParamList } from './types/navigation';
 
@@ -27,9 +28,11 @@ export default function App() {
                   if (route.name === 'Crawls') {
                     iconName = focused ? 'list' : 'list-outline';
                   } else if (route.name === 'Current Crawl') {
-                    iconName = focused ? 'location' : 'location-outline';
+                    iconName = focused ? 'play-circle' : 'play-circle-outline';
                   } else if (route.name === 'Profile') {
                     iconName = focused ? 'person' : 'person-outline';
+                  } else if (route.name === 'PublicCrawls') {
+                    iconName = focused ? 'earth' : 'earth-outline';
                   } else {
                     iconName = 'help-outline';
                   }
@@ -42,17 +45,22 @@ export default function App() {
               })}
             >
               <Tab.Screen 
-                name="Crawls" 
-                component={CrawlListScreen}
-                options={{ title: 'Crawls' }}
+                name="PublicCrawls" 
+                component={PublicCrawls}
+                options={{ title: 'Public Crawls' }}
               />
-              <Tab.Screen 
-                name="Current Crawl" 
+              <Tab.Screen
+                name="Crawls"
+                component={CrawlLibrary}
+                options={{ title: 'Crawl Library' }}
+              />
+              <Tab.Screen
+                name="Current Crawl"
                 component={CurrentCrawl}
                 options={{ title: 'Current Crawl' }}
               />
-              <Tab.Screen 
-                name="Profile" 
+              <Tab.Screen
+                name="Profile"
                 component={UserProfile}
                 options={{ title: 'Profile' }}
               />

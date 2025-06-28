@@ -37,5 +37,6 @@ export interface Crawl {
   duration: string;
   difficulty: string;
   distance: string;
+  'public-crawl': boolean;
   steps?: CrawlStep[];
 } 

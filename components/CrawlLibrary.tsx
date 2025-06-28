@@ -15,13 +15,13 @@ interface CrawlData {
   crawls: Crawl[];
 }
 
-type CrawlListScreenNavigationProp = BottomTabNavigationProp<RootTabParamList, 'Crawls'>;
+type CrawlLibraryNavigationProp = BottomTabNavigationProp<RootTabParamList, 'Crawls'>;
 
-interface CrawlListScreenProps {
-  navigation: CrawlListScreenNavigationProp;
+interface CrawlLibraryProps {
+  navigation: CrawlLibraryNavigationProp;
 }
 
-const CrawlListScreen: React.FC<CrawlListScreenProps> = ({ navigation }) => {
+const CrawlLibrary: React.FC<CrawlLibraryProps> = ({ navigation }) => {
   const [crawls, setCrawls] = useState<Crawl[]>([]);
   const [loading, setLoading] = useState(true);
   const [isStartingCrawl, setIsStartingCrawl] = useState(false);
@@ -58,7 +58,12 @@ const CrawlListScreen: React.FC<CrawlListScreenProps> = ({ navigation }) => {
             })
           );
           console.log('All crawls loaded successfully:', crawlsWithSteps.map(c => ({ name: c.name, steps: c.steps?.length || 0 })));
-          setCrawls(crawlsWithSteps);
+          
+          // Filter to only show private crawls (public-crawl: false) in Crawl Library
+          const privateCrawls = crawlsWithSteps.filter(crawl => crawl['public-crawl'] === false);
+          console.log(`Filtered to ${privateCrawls.length} private crawls`);
+          
+          setCrawls(privateCrawls);
         } else {
           console.error('No crawls found in data');
           setCrawls([]);
@@ -101,7 +106,7 @@ const CrawlListScreen: React.FC<CrawlListScreenProps> = ({ navigation }) => {
   if (crawls.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.header}>City Crawls</Text>
+        <Text style={styles.header}>Crawl Library</Text>
         <Text style={styles.errorText}>No crawls found. Please check your crawls.yml file.</Text>
       </SafeAreaView>
     );
@@ -109,7 +114,7 @@ const CrawlListScreen: React.FC<CrawlListScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>City Crawls</Text>
+      <Text style={styles.header}>Crawl Library</Text>
       <CrawlList 
         crawls={crawls} 
         onCrawlPress={handleCrawlPress}
@@ -139,4 +144,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CrawlListScreen; 
+export default CrawlLibrary; 

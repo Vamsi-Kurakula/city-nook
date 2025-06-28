@@ -1,4 +1,3 @@
-# List of city crawls
 crawls:
   - id: '1'
     name: Historic Downtown Crawl
@@ -7,6 +6,7 @@ crawls:
     duration: '2-3 hours'
     difficulty: 'Easy'
     distance: '1.5 miles'
+    public-crawl: false
     
   - id: '2'
     name: Foodie Adventure
@@ -15,6 +15,7 @@ crawls:
     duration: '3-4 hours'
     difficulty: 'Easy'
     distance: '2.0 miles'
+    public-crawl: true
     
   - id: '3'
     name: Art & Culture Walk
@@ -22,7 +23,8 @@ crawls:
     assetFolder: 'art-culture-walk'
     duration: '2-2.5 hours'
     difficulty: 'Easy'
-    distance: '1.8 miles' 
+    distance: '1.8 miles'
+    public-crawl: false
 
   - id: '4'
     name: Taste Quest
@@ -30,4 +32,14 @@ crawls:
     assetFolder: 'taste-quest'
     duration: '2-2.5 hours'
     difficulty: 'Easy'
-    distance: '1.8 miles' 
+    distance: '1.8 miles'
+    public-crawl: false 
+
+  - id: '5'
+    name: Brewery Crawl
+    description: A Quest through Ravenswood 
+    assetFolder: 'taste-quest'
+    duration: '2-2.5 hours'
+    difficulty: 'Easy'
+    distance: '1.8 miles'
+    public-crawl: true 

@@ -86,7 +86,7 @@ const CurrentCrawl: React.FC = () => {
           <Text style={styles.title}>Current Crawl</Text>
           <Text style={styles.subtitle}>No active crawl</Text>
           <Text style={styles.instruction}>
-            Select a crawl from the Crawls tab to get started!
+            Select a crawl from the Crawl Library tab to get started!
           </Text>
         </View>
       </SafeAreaView>
