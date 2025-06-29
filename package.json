@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "generate-crawl-assets": "node scripts/generateCrawlAssetMap.js"
+    "generate-crawl-assets": "node scripts/generateCrawlAssetMap.js",
+    "generate-image-map": "node scripts/generateImageMap.js"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.13.0",

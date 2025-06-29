@@ -33,7 +33,7 @@ const CrawlLibrary: React.FC<CrawlLibraryProps> = ({ navigation }) => {
       try {
         console.log('Loading crawls...');
         // Load main crawls list
-        const asset = Asset.fromModule(require('../assets/crawls/crawls.yml'));
+        const asset = Asset.fromModule(require('../assets/crawl-library/crawls.yml'));
         await asset.downloadAsync();
         const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
         const data = yaml.load(yamlString) as CrawlData;
@@ -44,6 +44,11 @@ const CrawlLibrary: React.FC<CrawlLibraryProps> = ({ navigation }) => {
           // Load steps for each crawl using the utility
           const crawlsWithSteps = await Promise.all(
             data.crawls.map(async (crawl) => {
+              console.log('About to load steps for assetFolder:', crawl.assetFolder, 'in crawl:', crawl.name);
+              if (!crawl.assetFolder) {
+                console.warn('Skipping crawl with missing assetFolder:', crawl);
+                return crawl;
+              }
               try {
                 console.log(`Loading steps for ${crawl.name} (${crawl.assetFolder})...`);
                 const stepsData = await loadCrawlSteps(crawl.assetFolder);

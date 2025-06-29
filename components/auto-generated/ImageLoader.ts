@@ -1,13 +1,13 @@
 // AUTO-GENERATED FILE. DO NOT EDIT.
 const imageMap: { [key: string]: any } = {
-  'art-culture-walk': require('../../assets/crawls/art-culture-walk/hero.jpg'),
-  'default': require('../../assets/crawls/default/hero.jpg'),
-  'foodie-adventure': require('../../assets/crawls/foodie-adventure/hero.jpg'),
-  'historic-downtown-crawl': require('../../assets/crawls/historic-downtown-crawl/hero.jpg'),
-  'simple-location-crawl': require('../../assets/crawls/simple-location-crawl/hero.jpg'),
-  'taste-quest': require('../../assets/crawls/taste-quest/hero.jpg'),
+  'public-crawls/foodie-adventure': require('../../assets/public-crawls/foodie-adventure/hero.jpg'),
+  'public-crawls/taste-quest': require('../../assets/public-crawls/taste-quest/hero.jpg'),
+  'crawl-library/art-culture-walk': require('../../assets/crawl-library/art-culture-walk/hero.jpg'),
+  'crawl-library/default': require('../../assets/crawl-library/default/hero.jpg'),
+  'crawl-library/historic-downtown-crawl': require('../../assets/crawl-library/historic-downtown-crawl/hero.jpg'),
+  'crawl-library/simple-location-crawl': require('../../assets/crawl-library/simple-location-crawl/hero.jpg'),
 };
 
 export const getHeroImageSource = (assetFolder: string) => {
-  return imageMap[assetFolder] || require('../../assets/crawls/default/hero.jpg');
+  return imageMap[assetFolder] || require('../../assets/crawl-library/default/hero.jpg');
 };

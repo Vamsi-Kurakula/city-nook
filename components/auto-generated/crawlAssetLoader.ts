@@ -7,14 +7,14 @@ import yaml from 'js-yaml';
 import { CrawlSteps } from '../types/crawl';
 
 // This object maps crawl folder names to their corresponding steps.yml assets
-// Auto-generated from crawl folders in assets/crawls/
+// Auto-generated from crawl folders in assets/public-crawls/ and assets/crawl-library/
 const STEPS_ASSET_MAP: { [key: string]: any } = {
-  'art-culture-walk': require('../../assets/crawls/art-culture-walk/steps.yml'),
-  'default': require('../../assets/crawls/default/steps.yml'),
-  'foodie-adventure': require('../../assets/crawls/foodie-adventure/steps.yml'),
-  'historic-downtown-crawl': require('../../assets/crawls/historic-downtown-crawl/steps.yml'),
-  'simple-location-crawl': require('../../assets/crawls/simple-location-crawl/steps.yml'),
-  'taste-quest': require('../../assets/crawls/taste-quest/steps.yml'),
+  'public-crawls/foodie-adventure': require('../../assets/public-crawls/foodie-adventure/steps.yml'),
+  'public-crawls/taste-quest': require('../../assets/public-crawls/taste-quest/steps.yml'),
+  'crawl-library/art-culture-walk': require('../../assets/crawl-library/art-culture-walk/steps.yml'),
+  'crawl-library/default': require('../../assets/crawl-library/default/steps.yml'),
+  'crawl-library/historic-downtown-crawl': require('../../assets/crawl-library/historic-downtown-crawl/steps.yml'),
+  'crawl-library/simple-location-crawl': require('../../assets/crawl-library/simple-location-crawl/steps.yml'),
 };
 
 /**

@@ -1,21 +1,42 @@
 const fs = require('fs');
 const path = require('path');
 
-const crawlsDir = path.join(__dirname, '../assets/crawls');
+const publicCrawlsDir = path.join(__dirname, '../assets/public-crawls');
+const crawlLibraryDir = path.join(__dirname, '../assets/crawl-library');
 const outputFile = path.join(__dirname, '../components/auto-generated/crawlAssetLoader.ts');
 
-// Read all crawl folders
-const folders = fs.readdirSync(crawlsDir).filter(f => {
-  const fullPath = path.join(crawlsDir, f);
-  return fs.statSync(fullPath).isDirectory();
-});
+// Function to get crawl folders from a directory
+function getCrawlFolders(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    return [];
+  }
+  
+  return fs.readdirSync(dirPath).filter(f => {
+    const fullPath = path.join(dirPath, f);
+    return fs.statSync(fullPath).isDirectory();
+  });
+}
+
+// Get folders from both directories
+const publicFolders = getCrawlFolders(publicCrawlsDir);
+const libraryFolders = getCrawlFolders(crawlLibraryDir);
 
 // Generate asset map entries for folders that have steps.yml
 let assetMapEntries = '';
-folders.forEach(folder => {
-  const stepsPath = path.join(crawlsDir, folder, 'steps.yml');
+
+// Process public crawls
+publicFolders.forEach(folder => {
+  const stepsPath = path.join(publicCrawlsDir, folder, 'steps.yml');
   if (fs.existsSync(stepsPath)) {
-    assetMapEntries += `  '${folder}': require('../../assets/crawls/${folder}/steps.yml'),\n`;
+    assetMapEntries += `  'public-crawls/${folder}': require('../../assets/public-crawls/${folder}/steps.yml'),\n`;
+  }
+});
+
+// Process library crawls
+libraryFolders.forEach(folder => {
+  const stepsPath = path.join(crawlLibraryDir, folder, 'steps.yml');
+  if (fs.existsSync(stepsPath)) {
+    assetMapEntries += `  'crawl-library/${folder}': require('../../assets/crawl-library/${folder}/steps.yml'),\n`;
   }
 });
 
@@ -28,7 +49,7 @@ import yaml from 'js-yaml';
 import { CrawlSteps } from '../types/crawl';
 
 // This object maps crawl folder names to their corresponding steps.yml assets
-// Auto-generated from crawl folders in assets/crawls/
+// Auto-generated from crawl folders in assets/public-crawls/ and assets/crawl-library/
 const STEPS_ASSET_MAP: { [key: string]: any } = {
 ${assetMapEntries}};
 
@@ -78,4 +99,5 @@ export const hasCrawlSteps = (assetFolder: string): boolean => {
 
 fs.writeFileSync(outputFile, fileContent);
 console.log('crawlAssetLoader.ts generated successfully!');
-console.log(`Found ${folders.length} crawl folders, ${assetMapEntries.split('\n').filter(line => line.includes(':')).length} with steps.yml files`); 
+console.log(`Found ${publicFolders.length} public crawl folders, ${libraryFolders.length} library crawl folders`);
+console.log(`${assetMapEntries.split('\n').filter(line => line.includes(':')).length} total folders with steps.yml files`); 

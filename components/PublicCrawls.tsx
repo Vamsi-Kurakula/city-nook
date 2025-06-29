@@ -21,7 +21,7 @@ const PublicCrawls: React.FC = () => {
       try {
         console.log('Loading public crawls...');
         // Load main crawls list
-        const asset = Asset.fromModule(require('../assets/crawls/crawls.yml'));
+        const asset = Asset.fromModule(require('../assets/public-crawls/crawls.yml'));
         await asset.downloadAsync();
         const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
         const data = yaml.load(yamlString) as CrawlData;
