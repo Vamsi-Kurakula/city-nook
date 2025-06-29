@@ -165,6 +165,60 @@ export const PhotoStep: React.FC<PhotoStepProps> = ({ step, onComplete, isComple
   );
 };
 
+interface ButtonStepProps {
+  step: CrawlStep;
+  onComplete: (userAnswer: string) => void;
+  isCompleted: boolean;
+  userAnswer?: string;
+}
+
+export const ButtonStep: React.FC<ButtonStepProps> = ({ step, onComplete, isCompleted, userAnswer }) => {
+  const openMaps = () => {
+    if (step.reward_location) {
+      Linking.openURL(step.reward_location);
+    }
+  };
+
+  const handleButtonPress = () => {
+    onComplete('Button pressed');
+    Alert.alert('Step Complete!', 'Great! You\'ve completed this step.');
+  };
+
+  if (isCompleted) {
+    return (
+      <View style={styles.completedStep}>
+        <Text style={styles.stepTitle}>✓ Step {step.step_number}</Text>
+        <Text style={styles.stepDescription}>{step.step_components.description || step.step_components.location_name || ''}</Text>
+        <View style={styles.answerSection}>
+          <Text style={styles.answerLabel}>Status:</Text>
+          <Text style={styles.userAnswer}>{userAnswer}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>Step {step.step_number}</Text>
+      <Text style={styles.stepDescription}>{step.step_components.description || step.step_components.location_name || ''}</Text>
+      
+      <View style={styles.buttonSection}>
+        {step.reward_location && (
+          <TouchableOpacity style={styles.mapsButton} onPress={openMaps}>
+            <Text style={styles.mapsButtonText}>📍 Open in Maps</Text>
+          </TouchableOpacity>
+        )}
+        
+        <TouchableOpacity style={styles.completeButton} onPress={handleButtonPress}>
+          <Text style={styles.completeButtonText}>
+            {step.step_components.button_text || '✅ Complete Step'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
 interface StepComponentProps {
   step: CrawlStep;
   onComplete: (userAnswer: string) => void;
@@ -180,6 +234,8 @@ export const StepComponent: React.FC<StepComponentProps> = ({ step, onComplete, 
       return <LocationStep step={step} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} />;
     case 'photo':
       return <PhotoStep step={step} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} />;
+    case 'button':
+      return <ButtonStep step={step} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} />;
     default:
       return (
         <View style={styles.stepContainer}>
@@ -258,6 +314,9 @@ const styles = StyleSheet.create({
   locationSection: {
     marginTop: 8,
   },
+  buttonSection: {
+    marginTop: 8,
+  },
   mapsButton: {
     backgroundColor: '#34C759',
     paddingVertical: 12,
@@ -279,6 +338,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   arrivedButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  completeButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  completeButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',

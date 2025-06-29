@@ -7,6 +7,14 @@ steps:
       answer: "katz"
   
   - step_number: 2
+    step_type: "button"
+    reward_location: "https://maps.google.com/?q=Katz's+Delicatessen+New+York"
+    step_components:
+      location_name: "Katz's Delicatessen"
+      description: "Order and enjoy the famous pastrami sandwich at Katz's Delicatessen"
+      button_text: "🥪 Ate the Pastrami"
+  
+  - step_number: 3
     step_type: "location"
     reward_location: "https://maps.google.com/?q=Chinatown+New+York"
     step_components:
@@ -14,24 +22,32 @@ steps:
       coordinates: "40.7158,-73.9970"
       description: "Find the bustling dumpling house where locals line up for fresh xiao long bao"
   
-  - step_number: 3
+  - step_number: 4
     step_type: "photo"
     reward_location: "https://maps.google.com/?q=Little+Italy+New+York"
     step_components:
       photo_target: "Italian Restaurant Sign"
       photo_instructions: "Take a photo of a classic Italian restaurant sign in Little Italy"
   
-  - step_number: 4
+  - step_number: 5
     step_type: "riddle"
     reward_location: "https://maps.google.com/?q=Brooklyn+Bridge+New+York"
     step_components:
       riddle: "I connect two boroughs over water, where food trucks gather and tourists walk. I'm made of steel and stone, and offer the best pizza views. What am I?"
       answer: "brooklyn bridge"
   
-  - step_number: 5
+  - step_number: 6
     step_type: "location"
     reward_location: "https://maps.google.com/?q=Grimaldi's+Pizza+Brooklyn"
     step_components:
       location_name: "Grimaldi's Pizza"
       coordinates: "40.7026,-73.9937"
-      description: "Find the legendary coal-fired pizza place under the Brooklyn Bridge" 
+      description: "Find the legendary coal-fired pizza place under the Brooklyn Bridge"
+  
+  - step_number: 7
+    step_type: "button"
+    reward_location: "https://maps.google.com/?q=Grimaldi's+Pizza+Brooklyn"
+    step_components:
+      location_name: "Grimaldi's Pizza"
+      description: "Order and enjoy the famous coal-fired pizza at Grimaldi's"
+      button_text: "🍕 Ate the Pizza" 

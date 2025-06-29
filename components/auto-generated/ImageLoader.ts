@@ -4,6 +4,7 @@ const imageMap: { [key: string]: any } = {
   'default': require('../../assets/crawls/default/hero.jpg'),
   'foodie-adventure': require('../../assets/crawls/foodie-adventure/hero.jpg'),
   'historic-downtown-crawl': require('../../assets/crawls/historic-downtown-crawl/hero.jpg'),
+  'simple-location-crawl': require('../../assets/crawls/simple-location-crawl/hero.jpg'),
   'taste-quest': require('../../assets/crawls/taste-quest/hero.jpg'),
 };
 

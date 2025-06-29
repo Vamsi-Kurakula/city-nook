@@ -4,7 +4,7 @@ export interface StepComponent {
 
 export interface CrawlStep {
   step_number: number;
-  step_type: 'riddle' | 'location' | 'photo';
+  step_type: 'riddle' | 'location' | 'photo' | 'button';
   reward_location: string;
   step_components: StepComponent;
 }

@@ -13,6 +13,7 @@ const STEPS_ASSET_MAP: { [key: string]: any } = {
   'default': require('../../assets/crawls/default/steps.yml'),
   'foodie-adventure': require('../../assets/crawls/foodie-adventure/steps.yml'),
   'historic-downtown-crawl': require('../../assets/crawls/historic-downtown-crawl/steps.yml'),
+  'simple-location-crawl': require('../../assets/crawls/simple-location-crawl/steps.yml'),
   'taste-quest': require('../../assets/crawls/taste-quest/steps.yml'),
 };
 
