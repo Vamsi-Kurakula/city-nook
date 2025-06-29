@@ -1,53 +1,56 @@
 steps:
   - step_number: 1
-    step_type: "riddle"
-    reward_location: "https://maps.google.com/?q=Katz's+Delicatessen+New+York"
-    step_components:
-      riddle: "I'm a Jewish deli famous worldwide, where pastrami is piled high. A movie made me even more famous, with a famous line about orgasms. What am I?"
-      answer: "katz"
-  
-  - step_number: 2
-    step_type: "button"
+    step_type: "time"
     reward_location: "https://maps.google.com/?q=Katz's+Delicatessen+New+York"
     step_components:
       location_name: "Katz's Delicatessen"
-      description: "Order and enjoy the famous pastrami sandwich at Katz's Delicatessen"
-      button_text: "🥪 Ate the Pastrami"
+      description: "Meet your group at Katz's Delicatessen. Wait for the scheduled time before ordering."
+      target_time: "18:15"
+  
+  - step_number: 2
+    step_type: "time"
+    reward_location: "https://maps.google.com/?q=Katz's+Delicatessen+New+York"
+    step_components:
+      location_name: "Katz's Delicatessen"
+      description: "Order and enjoy the famous pastrami sandwich together. Take your time to savor the experience."
+      target_time: "18:45"
   
   - step_number: 3
-    step_type: "location"
+    step_type: "time"
     reward_location: "https://maps.google.com/?q=Chinatown+New+York"
     step_components:
       location_name: "Chinatown Dumpling House"
-      coordinates: "40.7158,-73.9970"
-      description: "Find the bustling dumpling house where locals line up for fresh xiao long bao"
+      description: "Walk together to Chinatown. Find the bustling dumpling house where locals line up for fresh xiao long bao."
+      target_time: "19:30"
   
   - step_number: 4
-    step_type: "photo"
+    step_type: "time"
     reward_location: "https://maps.google.com/?q=Little+Italy+New+York"
     step_components:
-      photo_target: "Italian Restaurant Sign"
-      photo_instructions: "Take a photo of a classic Italian restaurant sign in Little Italy"
+      location_name: "Little Italy"
+      description: "Explore Little Italy together. Take group photos of classic Italian restaurant signs."
+      target_time: "20:15"
   
   - step_number: 5
-    step_type: "riddle"
+    step_type: "time"
     reward_location: "https://maps.google.com/?q=Brooklyn+Bridge+New+York"
     step_components:
-      riddle: "I connect two boroughs over water, where food trucks gather and tourists walk. I'm made of steel and stone, and offer the best pizza views. What am I?"
-      answer: "brooklyn bridge"
+      location_name: "Brooklyn Bridge"
+      description: "Walk across the Brooklyn Bridge together. Enjoy the sunset views and take group photos."
+      target_time: "21:00"
   
   - step_number: 6
-    step_type: "location"
+    step_type: "time"
     reward_location: "https://maps.google.com/?q=Grimaldi's+Pizza+Brooklyn"
     step_components:
       location_name: "Grimaldi's Pizza"
-      coordinates: "40.7026,-73.9937"
-      description: "Find the legendary coal-fired pizza place under the Brooklyn Bridge"
+      description: "Find the legendary coal-fired pizza place under the Brooklyn Bridge."
+      target_time: "21:30"
   
   - step_number: 7
-    step_type: "button"
+    step_type: "time"
     reward_location: "https://maps.google.com/?q=Grimaldi's+Pizza+Brooklyn"
     step_components:
       location_name: "Grimaldi's Pizza"
-      description: "Order and enjoy the famous coal-fired pizza at Grimaldi's"
-      button_text: "🍕 Ate the Pizza" 
+      description: "Order and enjoy the famous coal-fired pizza together. Celebrate the end of your food adventure!"
+      target_time: "22:00" 

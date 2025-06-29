@@ -4,7 +4,7 @@ export interface StepComponent {
 
 export interface CrawlStep {
   step_number: number;
-  step_type: 'riddle' | 'location' | 'photo' | 'button';
+  step_type: 'riddle' | 'location' | 'photo' | 'button' | 'time';
   reward_location: string;
   step_components: StepComponent;
 }
@@ -38,5 +38,6 @@ export interface Crawl {
   difficulty: string;
   distance: string;
   'public-crawl': boolean;
+  start_time?: string; // Format: "YYYY-MM-DD HH:MM" or "HH:MM" for today
   steps?: CrawlStep[];
 } 

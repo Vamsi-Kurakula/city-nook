@@ -18,15 +18,6 @@ crawls:
     public-crawl: false
 
   - id: '3'
-    name: Taste Quest
-    description: A Quest through Ravenswood 
-    assetFolder: 'crawl-library/taste-quest'
-    duration: '2-2.5 hours'
-    difficulty: 'Easy'
-    distance: '1.8 miles'
-    public-crawl: false 
-
-  - id: '4'
     name: Simple Location Crawl
     description: A straightforward journey through Central Park's most iconic locations. Perfect for beginners or those who prefer simple navigation.
     assetFolder: 'crawl-library/simple-location-crawl'

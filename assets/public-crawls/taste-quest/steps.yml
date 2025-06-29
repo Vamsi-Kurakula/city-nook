@@ -1,42 +1,48 @@
 steps:
   - step_number: 1
-    step_type: "riddle"
-    reward_location: "https://maps.google.com/?q=Serendipity+3+New+York"
+    step_type: "time"
+    reward_location: "https://maps.google.com/?q=Ravenswood+Chicago"
     step_components:
-      riddle: "I'm a frozen treat that's rich and sweet, served in a golden goblet so fine. A movie made me famous, and people wait in line. What am I?"
-      answer: "frozen hot chocolate"
+      location_name: "Ravenswood Starting Point"
+      description: "Meet your group at the starting point in Ravenswood. Get ready for a brewery adventure!"
+      target_time: "14:15"
   
   - step_number: 2
-    step_type: "riddle"
-    reward_location: "https://maps.google.com/?q=Magnolia+Bakery+New+York"
+    step_type: "time"
+    reward_location: "https://maps.google.com/?q=Dovetail+Brewery+Chicago"
     step_components:
-      riddle: "I'm a cupcake shop that's pink and sweet, where Sex and the City made me famous. My frosting is piled high, and my flavors are endless. What am I?"
-      answer: "magnolia bakery"
+      location_name: "Dovetail Brewery"
+      description: "Visit Dovetail Brewery together. Sample their traditional European-style lagers."
+      target_time: "14:30"
   
   - step_number: 3
-    step_type: "riddle"
-    reward_location: "https://maps.google.com/?q=Ladurée+New+York"
+    step_type: "time"
+    reward_location: "https://maps.google.com/?q=Begyle+Brewing+Chicago"
     step_components:
-      riddle: "I'm a French pastry that's light and airy, with flavors that are bright and cheery. I come in many colors, and I'm a macaron. What am I?"
-      answer: "macaron"
+      location_name: "Begyle Brewing"
+      description: "Walk to Begyle Brewing. Try their community-focused craft beers."
+      target_time: "15:15"
   
   - step_number: 4
-    step_type: "riddle"
-    reward_location: "https://maps.google.com/?q=Levain+Bakery+New+York"
+    step_type: "time"
+    reward_location: "https://maps.google.com/?q=Half+Acre+Brewery+Chicago"
     step_components:
-      riddle: "I'm a cookie that's thick and chewy, with chocolate chips that are gooey. I'm the size of a muffin, and I'm worth the wait. What am I?"
-      answer: "levain cookie"
+      location_name: "Half Acre Brewery"
+      description: "Continue to Half Acre Brewery. Enjoy their bold and innovative brews."
+      target_time: "16:00"
   
   - step_number: 5
-    step_type: "riddle"
-    reward_location: "https://maps.google.com/?q=Dominique+Ansel+Bakery+New+York"
+    step_type: "time"
+    reward_location: "https://maps.google.com/?q=Spiteful+Brewing+Chicago"
     step_components:
-      riddle: "I'm a pastry that's shaped like a flower, with layers that take hours to make. I'm flaky and buttery, and I'm a croissant. What am I?"
-      answer: "croissant"
+      location_name: "Spiteful Brewing"
+      description: "Visit Spiteful Brewing. Sample their unique and experimental beers."
+      target_time: "16:45"
   
   - step_number: 6
-    step_type: "riddle"
-    reward_location: "https://maps.google.com/?q=Big+Gay+Ice+Cream+New+York"
+    step_type: "time"
+    reward_location: "https://maps.google.com/?q=Ravenswood+Chicago"
     step_components:
-      riddle: "I'm an ice cream shop that's fun and bright, with flavors that are out of sight. I'm gay-owned and proud, and my cones are rainbow. What am I?"
-      answer: "big gay ice cream" 
+      location_name: "Ravenswood Final Stop"
+      description: "Return to Ravenswood. Share your favorite beers and experiences with the group!"
+      target_time: "17:30" 

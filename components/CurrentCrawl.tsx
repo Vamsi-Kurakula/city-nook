@@ -17,6 +17,24 @@ const CurrentCrawl: React.FC = () => {
     getCurrentStep
   } = useCrawlContext();
 
+  // Helper function to calculate step durations
+  const calculateStepDurations = () => {
+    if (!currentCrawl?.steps) return {};
+    
+    const durationMatch = currentCrawl.duration.match(/(\d+(?:\.\d+)?)/);
+    const durationHours = durationMatch ? parseFloat(durationMatch[1]) : 2;
+    const totalMinutes = durationHours * 60;
+    const minutesPerStep = Math.floor(totalMinutes / currentCrawl.steps.length);
+    const remainingMinutes = totalMinutes % currentCrawl.steps.length;
+    
+    const stepDurations: { [stepNumber: number]: number } = {};
+    currentCrawl.steps.forEach((step, index) => {
+      stepDurations[step.step_number] = minutesPerStep + (index < remainingMinutes ? 1 : 0);
+    });
+    
+    return stepDurations;
+  };
+
   // Extract location name from Google Maps URL
   const extractLocationName = (url: string): string => {
     try {
@@ -220,9 +238,12 @@ const CurrentCrawl: React.FC = () => {
                   
                   <StepComponent
                     key={`current-step-${currentStepNumber}`}
-                    step={currentCrawl.steps[currentStepNumber - 1]}
+                    step={currentCrawl.steps![currentStepNumber - 1]}
                     onComplete={handleStepComplete}
                     isCompleted={false}
+                    crawlStartTime={currentCrawl.start_time}
+                    stepDurations={calculateStepDurations()}
+                    currentStepIndex={currentStepNumber - 1}
                   />
                 </View>
               )}
@@ -257,6 +278,9 @@ const CurrentCrawl: React.FC = () => {
                       onComplete={() => {}}
                       isCompleted={true}
                       userAnswer={userAnswer}
+                      crawlStartTime={currentCrawl.start_time}
+                      stepDurations={calculateStepDurations()}
+                      currentStepIndex={stepNumber - 1}
                     />
                     
                     {/* Reward Location */}

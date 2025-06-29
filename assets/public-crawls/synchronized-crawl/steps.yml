@@ -1,0 +1,55 @@
+steps:
+  - step_number: 1
+    step_type: "button"
+    reward_location: "https://maps.google.com/?q=Central+Park+New+York"
+    step_components:
+      location_name: "Central Park - Starting Point"
+      description: "Meet your group at the Central Park entrance. Everyone should arrive here to begin the synchronized crawl."
+      button_text: "👥 Group Assembled"
+  
+  - step_number: 2
+    step_type: "time"
+    reward_location: "https://maps.google.com/?q=Central+Park+New+York"
+    step_components:
+      location_name: "Central Park - Group Photo"
+      description: "Take a group photo together. Wait for the scheduled time before moving to the next location."
+      target_time: "14:30"
+  
+  - step_number: 3
+    step_type: "button"
+    reward_location: "https://maps.google.com/?q=Bethesda+Fountain+Central+Park+New+York"
+    step_components:
+      location_name: "Bethesda Fountain"
+      description: "Walk together to Bethesda Fountain. This is a great spot for group activities."
+      button_text: "⛲ Arrived at Fountain"
+  
+  - step_number: 4
+    step_type: "time"
+    reward_location: "https://maps.google.com/?q=Bethesda+Fountain+Central+Park+New+York"
+    step_components:
+      location_name: "Bethesda Fountain - Social Time"
+      description: "Spend time socializing with your group. Enjoy the fountain and wait for the next scheduled move."
+      target_time: "15:15"
+  
+  - step_number: 5
+    step_type: "photo"
+    reward_location: "https://maps.google.com/?q=Belvedere+Castle+Central+Park+New+York"
+    step_components:
+      photo_target: "Group at Belvedere Castle"
+      photo_instructions: "Take a group photo at Belvedere Castle with the city skyline in the background"
+  
+  - step_number: 6
+    step_type: "time"
+    reward_location: "https://maps.google.com/?q=Belvedere+Castle+Central+Park+New+York"
+    step_components:
+      location_name: "Belvedere Castle - Sunset View"
+      description: "Enjoy the sunset view from the castle. Wait for the golden hour before proceeding."
+      target_time: "16:45"
+  
+  - step_number: 7
+    step_type: "button"
+    reward_location: "https://maps.google.com/?q=Strawberry+Fields+Central+Park+New+York"
+    step_components:
+      location_name: "Strawberry Fields - Final Stop"
+      description: "End your synchronized crawl at Strawberry Fields. Reflect on the journey together."
+      button_text: "🌹 Journey Complete" 

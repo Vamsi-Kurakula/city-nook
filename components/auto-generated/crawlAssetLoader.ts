@@ -10,6 +10,7 @@ import { CrawlSteps } from '../types/crawl';
 // Auto-generated from crawl folders in assets/public-crawls/ and assets/crawl-library/
 const STEPS_ASSET_MAP: { [key: string]: any } = {
   'public-crawls/foodie-adventure': require('../../assets/public-crawls/foodie-adventure/steps.yml'),
+  'public-crawls/synchronized-crawl': require('../../assets/public-crawls/synchronized-crawl/steps.yml'),
   'public-crawls/taste-quest': require('../../assets/public-crawls/taste-quest/steps.yml'),
   'crawl-library/art-culture-walk': require('../../assets/crawl-library/art-culture-walk/steps.yml'),
   'crawl-library/default': require('../../assets/crawl-library/default/steps.yml'),
