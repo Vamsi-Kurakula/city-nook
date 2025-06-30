@@ -10,22 +10,16 @@ interface CrawlListProps {
 }
 
 const CrawlList: React.FC<CrawlListProps> = ({ crawls, onCrawlPress, onCrawlStart }) => {
-  const [expandedCrawlId, setExpandedCrawlId] = useState<string | null>(null);
+  // Remove expanded state for library context
+  // const [expandedCrawlId, setExpandedCrawlId] = useState<string | null>(null);
 
   const handleCrawlPress = (crawl: Crawl) => {
-    if (expandedCrawlId === crawl.id) {
-      // If already expanded, collapse it
-      setExpandedCrawlId(null);
-    } else {
-      // Expand this crawl and collapse any other
-      setExpandedCrawlId(crawl.id);
-    }
     onCrawlPress(crawl);
   };
 
   const handleCrawlStart = (crawl: Crawl) => {
     onCrawlStart(crawl);
-    setExpandedCrawlId(null); // Collapse after starting
+    // setExpandedCrawlId(null); // No expand/collapse
   };
 
   return (
@@ -37,7 +31,7 @@ const CrawlList: React.FC<CrawlListProps> = ({ crawls, onCrawlPress, onCrawlStar
           crawl={item} 
           onPress={handleCrawlPress}
           onStart={handleCrawlStart}
-          isExpanded={expandedCrawlId === item.id}
+          isExpanded={false}
         />
       )}
       contentContainerStyle={styles.listContent}

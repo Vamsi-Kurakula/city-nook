@@ -10,6 +10,7 @@ import { useCrawlContext } from './CrawlContext';
 import { RootTabParamList } from '../types/navigation';
 import { Crawl, CrawlSteps } from '../types/crawl';
 import { loadCrawlSteps } from './auto-generated/crawlAssetLoader';
+import { useNavigation } from '@react-navigation/native';
 
 interface CrawlData {
   crawls: Crawl[];
@@ -21,12 +22,13 @@ interface CrawlLibraryProps {
   navigation: CrawlLibraryNavigationProp;
 }
 
-const CrawlLibrary: React.FC<CrawlLibraryProps> = ({ navigation }) => {
+const CrawlLibrary: React.FC = () => {
   const [crawls, setCrawls] = useState<Crawl[]>([]);
   const [loading, setLoading] = useState(true);
   const [isStartingCrawl, setIsStartingCrawl] = useState(false);
   
   const { startCrawlWithNavigation } = useCrawlContext();
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     const loadCrawls = async () => {
@@ -84,8 +86,7 @@ const CrawlLibrary: React.FC<CrawlLibraryProps> = ({ navigation }) => {
   }, []);
 
   const handleCrawlPress = (crawl: Crawl) => {
-    // This can be used for future functionality like showing more details
-    // Currently just handles the expand/collapse functionality
+    navigation.navigate('CrawlDetail', { crawl });
   };
 
   const handleCrawlStart = (crawl: Crawl) => {
