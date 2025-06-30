@@ -33,4 +33,48 @@ export interface UserCrawlHistory {
   total_time_minutes: number;
   score?: number;
   created_at: string;
+}
+
+/**
+ * Upsert crawl progress for a user
+ */
+export async function saveCrawlProgress({ userId, crawlId, currentStep, completedSteps, startedAt, completedAt }: {
+  userId: string;
+  crawlId: string;
+  currentStep: number;
+  completedSteps: number[];
+  startedAt: string;
+  completedAt?: string;
+}) {
+  return supabase.from('crawl_progress').upsert([
+    {
+      user_id: userId,
+      crawl_id: crawlId,
+      current_step: currentStep,
+      completed_steps: completedSteps,
+      started_at: startedAt,
+      completed_at: completedAt || null,
+    }
+  ], { onConflict: 'user_id,crawl_id' });
+}
+
+/**
+ * Add a crawl completion record to user_crawl_history
+ */
+export async function addCrawlHistory({ userId, crawlId, completedAt, totalTimeMinutes, score }: {
+  userId: string;
+  crawlId: string;
+  completedAt: string;
+  totalTimeMinutes: number;
+  score?: number;
+}) {
+  return supabase.from('user_crawl_history').insert([
+    {
+      user_id: userId,
+      crawl_id: crawlId,
+      completed_at: completedAt,
+      total_time_minutes: totalTimeMinutes,
+      score: score || null,
+    }
+  ]);
 } 

@@ -5,12 +5,35 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { useCrawlContext } from './CrawlContext';
 import { Crawl } from '../types/crawl';
 import { getHeroImageSource } from './auto-generated/ImageLoader';
+import { useAuthContext } from './AuthContext';
+import { supabase } from '../utils/supabase';
 
 const CrawlDetailScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
   const { crawl } = (route.params as { crawl: Crawl }) || {};
   const { startCrawlWithNavigation } = useCrawlContext();
+  const { user } = useAuthContext();
+  const [resumeProgress, setResumeProgress] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    const fetchProgress = async () => {
+      if (user?.id && crawl?.id) {
+        const { data, error } = await supabase
+          .from('crawl_progress')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('crawl_id', crawl.id)
+          .single();
+        if (data && !data.completed_at) {
+          setResumeProgress(data);
+        } else {
+          setResumeProgress(null);
+        }
+      }
+    };
+    fetchProgress();
+  }, [user, crawl]);
 
   if (!crawl) {
     return (
@@ -23,9 +46,33 @@ const CrawlDetailScreen: React.FC = () => {
     );
   }
 
+  const handleResumeCrawl = () => {
+    if (resumeProgress) {
+      navigation.navigate('CrawlSession', { crawl, resumeProgress });
+    }
+  };
+
   const handleStartCrawl = () => {
     navigation.navigate('CrawlSession', { crawl });
   };
+
+  let resumeInfo = null;
+  if (resumeProgress && crawl?.steps) {
+    const completedCount = resumeProgress.completed_steps?.length || 0;
+    const currentStepNum = resumeProgress.current_step;
+    const currentStep = crawl.steps.find(s => s.step_number === currentStepNum);
+    const locationName = currentStep?.step_components?.location_name || currentStep?.step_components?.description || currentStep?.step_components?.riddle || '';
+    resumeInfo = (
+      <View style={{ marginTop: 16, marginBottom: 4, alignItems: 'flex-start' }}>
+        <Text style={{ color: '#888', fontSize: 15 }}>
+          {`You have completed ${completedCount} step${completedCount === 1 ? '' : 's'}.`}
+        </Text>
+        <Text style={{ color: '#888', fontSize: 15 }}>
+          {`Current step: ${currentStepNum}${locationName ? ` - ${locationName}` : ''}`}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -43,6 +90,12 @@ const CrawlDetailScreen: React.FC = () => {
         <TouchableOpacity style={styles.startButton} onPress={handleStartCrawl}>
           <Text style={styles.startButtonText}>Start Crawl</Text>
         </TouchableOpacity>
+        {resumeInfo}
+        {resumeProgress && (
+          <TouchableOpacity style={[styles.startButton, { backgroundColor: '#888', marginTop: 12 }]} onPress={handleResumeCrawl}>
+            <Text style={[styles.startButtonText, { color: '#fff' }]}>Resume Crawl</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
       <TouchableOpacity style={styles.backButtonBottom} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonBottomText}>Back to Crawl Library</Text>

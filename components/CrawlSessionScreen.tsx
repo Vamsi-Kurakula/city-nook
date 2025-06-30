@@ -6,11 +6,13 @@ import { useCrawlContext } from './CrawlContext';
 import { Crawl, CrawlStep } from '../types/crawl';
 import { loadCrawlSteps } from './auto-generated/crawlAssetLoader';
 import { StepComponent } from './StepComponents';
+import { useAuthContext } from './AuthContext';
+import { saveCrawlProgress, addCrawlHistory } from '../utils/supabase';
 
 const CrawlSessionScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
-  const { crawl: navCrawl } = (route.params as { crawl: Crawl });
+  const { crawl: navCrawl, resumeProgress } = (route.params as { crawl: Crawl, resumeProgress?: any });
   const {
     currentCrawl,
     setCurrentCrawl,
@@ -23,6 +25,7 @@ const CrawlSessionScreen: React.FC = () => {
     getCurrentStep,
     clearCrawlSession,
   } = useCrawlContext();
+  const { user } = useAuthContext();
 
   const [loading, setLoading] = useState(false);
   const [steps, setSteps] = useState<CrawlStep[]>(navCrawl.steps || []);
@@ -46,16 +49,32 @@ const CrawlSessionScreen: React.FC = () => {
     if (!isCrawlActive || !currentCrawl || currentCrawl.id !== navCrawl.id) {
       setCurrentCrawl({ ...navCrawl, steps });
       setIsCrawlActive(true);
-      setCurrentProgress({
-        crawl_id: navCrawl.id,
-        current_step: 1,
-        completed_steps: [],
-        started_at: new Date(),
-        last_updated: new Date(),
-        completed: false,
-      });
+      if (resumeProgress) {
+        setCurrentProgress({
+          crawl_id: navCrawl.id,
+          current_step: resumeProgress.current_step,
+          completed_steps: (resumeProgress.completed_steps || []).map((stepNum: number, idx: number) => ({
+            step_number: stepNum,
+            completed: true,
+            user_answer: '', // If you want to store answers, update this
+            completed_at: undefined,
+          })),
+          started_at: resumeProgress.started_at ? new Date(resumeProgress.started_at) : new Date(),
+          last_updated: resumeProgress.updated_at ? new Date(resumeProgress.updated_at) : new Date(),
+          completed: false,
+        });
+      } else {
+        setCurrentProgress({
+          crawl_id: navCrawl.id,
+          current_step: 1,
+          completed_steps: [],
+          started_at: new Date(),
+          last_updated: new Date(),
+          completed: false,
+        });
+      }
     }
-  }, [isCrawlActive, currentCrawl, navCrawl, setCurrentCrawl, setIsCrawlActive, setCurrentProgress, steps]);
+  }, [isCrawlActive, currentCrawl, navCrawl, setCurrentCrawl, setIsCrawlActive, setCurrentProgress, steps, resumeProgress]);
 
   const currentStepNumber = getCurrentStep();
   const totalSteps = steps.length;
@@ -65,20 +84,38 @@ const CrawlSessionScreen: React.FC = () => {
   const handleExit = useCallback(() => {
     Alert.alert(
       'Exit Crawl',
-      'Are you sure you want to exit? Your progress will be saved.',
+      'Do you want to save your progress before exiting?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Exit',
+          text: 'Exit Without Saving',
           style: 'destructive',
           onPress: async () => {
             await clearCrawlSession();
             navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
           },
         },
+        {
+          text: 'Save and Exit',
+          style: 'default',
+          onPress: async () => {
+            if (user?.id && currentProgress) {
+              await saveCrawlProgress({
+                userId: user.id,
+                crawlId: currentProgress.crawl_id,
+                currentStep: currentProgress.current_step,
+                completedSteps: currentProgress.completed_steps.map(s => s.step_number),
+                startedAt: new Date(currentProgress.started_at).toISOString(),
+                completedAt: currentProgress.completed ? new Date().toISOString() : undefined,
+              });
+            }
+            await clearCrawlSession();
+            navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
+          },
+        },
       ]
     );
-  }, [clearCrawlSession, navigation]);
+  }, [clearCrawlSession, navigation, user, currentProgress]);
 
   const handleStepComplete = (userAnswer: string) => {
     completeStep(currentStepNumber, userAnswer);
@@ -88,6 +125,30 @@ const CrawlSessionScreen: React.FC = () => {
   };
 
   const progressPercent = totalSteps > 0 ? Math.round(((currentStepNumber - 1) / totalSteps) * 100) : 0;
+
+  useEffect(() => {
+    if (isCompleted && user?.id && currentProgress && currentCrawl) {
+      const started = new Date(currentProgress.started_at);
+      const completed = new Date();
+      const totalTimeMinutes = Math.round((completed.getTime() - started.getTime()) / 60000);
+      (async () => {
+        await addCrawlHistory({
+          userId: user.id,
+          crawlId: currentCrawl.id,
+          completedAt: completed.toISOString(),
+          totalTimeMinutes,
+        });
+        await saveCrawlProgress({
+          userId: user.id,
+          crawlId: currentCrawl.id,
+          currentStep: currentProgress.current_step,
+          completedSteps: currentProgress.completed_steps.map(s => s.step_number),
+          startedAt: started.toISOString(),
+          completedAt: completed.toISOString(),
+        });
+      })();
+    }
+  }, [isCompleted, user, currentProgress, currentCrawl, clearCrawlSession, navigation]);
 
   if (loading || !steps.length) {
     return (
@@ -102,10 +163,14 @@ const CrawlSessionScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.centered}>
           <Text style={styles.completionTitle}>🎉 Crawl Completed!</Text>
-          <Text style={styles.completionText}>You finished all steps of this crawl.</Text>
-          <TouchableOpacity style={styles.exitButton} onPress={handleExit}>
+          <Text style={styles.completionText}>You finished all steps of this crawl. Your progress has been saved.</Text>
+          <TouchableOpacity style={styles.exitButton} onPress={async () => {
+            await clearCrawlSession();
+            navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
+          }}>
             <Text style={styles.exitButtonText}>Back to Library</Text>
           </TouchableOpacity>
+          <Text style={styles.swipeHint}>Or swipe left to return to the library</Text>
         </View>
       </SafeAreaView>
     );
@@ -217,7 +282,7 @@ const styles = StyleSheet.create({
   stepContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   completionTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 12 },
-  completionText: { fontSize: 16, marginBottom: 24 },
+  completionText: { fontSize: 16, marginBottom: 24, textAlign: 'center' },
   exitButton: { backgroundColor: '#eee', padding: 12, borderRadius: 8 },
   exitButtonText: { color: '#333', fontSize: 16 },
   pastStepsButton: {
@@ -293,6 +358,12 @@ const styles = StyleSheet.create({
   closeModalButtonText: {
     color: '#333',
     fontSize: 16,
+  },
+  swipeHint: {
+    marginTop: 16,
+    color: '#888',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
 
