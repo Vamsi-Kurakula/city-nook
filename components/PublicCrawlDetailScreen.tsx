@@ -12,7 +12,7 @@ const PublicCrawlDetailScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
   const { crawl } = (route.params as { crawl: Crawl });
-  const { user } = useAuthContext();
+  const { user, isSignedIn } = useAuthContext();
 
   const [signups, setSignups] = useState<any[]>([]);
   const [isSignedUp, setIsSignedUp] = useState(false);
@@ -59,6 +59,11 @@ const PublicCrawlDetailScreen: React.FC = () => {
     await supabase.from('public_crawl_signups').delete().eq('user_id', user.id).eq('crawl_id', crawl.id);
     setIsSignedUp(false);
     setSignups(signups.filter(s => s.user_id !== user.id));
+  };
+
+  const handleSignInPrompt = () => {
+    // Navigate to the Profile tab which will show the sign-in screen
+    navigation.navigate('Tabs', { screen: 'Profile' });
   };
 
   // Calculate if crawl is completed
@@ -108,7 +113,11 @@ const PublicCrawlDetailScreen: React.FC = () => {
         />
         {!crawlIsCompleted && (
           <>
-            {isSignedUp ? (
+            {!isSignedIn ? (
+              <TouchableOpacity style={styles.signInPromptButton} onPress={handleSignInPrompt}>
+                <Text style={styles.signInPromptButtonText}>Sign In to Join This Crawl</Text>
+              </TouchableOpacity>
+            ) : isSignedUp ? (
               <TouchableOpacity style={styles.cancelButton} onPress={handleCancelSignUp}>
                 <Text style={styles.cancelButtonText}>Cancel Sign Up</Text>
               </TouchableOpacity>
@@ -155,6 +164,8 @@ const styles = StyleSheet.create({
   backButton: { marginTop: 24, alignItems: 'flex-start' },
   backButtonText: { color: '#888', fontSize: 14, textAlign: 'left' },
   loading: { position: 'absolute', top: '50%', left: 0, right: 0 },
+  signInPromptButton: { backgroundColor: '#007AFF', padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 12 },
+  signInPromptButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
 
 export default PublicCrawlDetailScreen; 

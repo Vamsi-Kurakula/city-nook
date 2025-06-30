@@ -3,10 +3,15 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from './AuthContext';
+import { useOAuth } from '@clerk/clerk-expo';
+import * as WebBrowser from 'expo-web-browser';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const UserProfile: React.FC = () => {
-  const { user, userProfile, signOut, isLoading } = useAuthContext();
+  const { user, userProfile, signOut, isLoading, isSignedIn } = useAuthContext();
   const navigation = useNavigation<any>();
+  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
 
   const handleSignOut = () => {
     Alert.alert(
@@ -17,6 +22,37 @@ const UserProfile: React.FC = () => {
         { text: 'Sign Out', style: 'destructive', onPress: signOut },
       ]
     );
+  };
+
+  const handleSignIn = async () => {
+    try {
+      console.log('Starting OAuth flow...');
+      const { createdSessionId, signIn, signUp, setActive } = await startOAuthFlow();
+
+      if (createdSessionId) {
+        await setActive!({ session: createdSessionId });
+        console.log('Session activated successfully');
+      } else if (signUp && signUp.status === 'missing_requirements') {
+        const email = signUp.emailAddress || '';
+        const username = email ? email.split('@')[0] + Math.floor(Math.random() * 1000) : '';
+        
+        const result = await signUp.upsert({
+          username,
+          emailAddress: email,
+        });
+        
+        if (result.status === 'complete' && result.createdSessionId) {
+          await setActive!({ session: result.createdSessionId });
+        }
+      }
+    } catch (err) {
+      console.error('OAuth error:', err);
+      Alert.alert(
+        'Sign In Error',
+        `Failed to sign in: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   const handleCrawlStats = () => {
@@ -32,6 +68,33 @@ const UserProfile: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.content}>
           <Text style={styles.loadingText}>Loading profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show sign-in screen if user is not authenticated
+  if (!isSignedIn) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.signInContent}>
+          <View style={styles.signInHeader}>
+            <Text style={styles.title}>City Crawler</Text>
+            <Text style={styles.subtitle}>Sign in to track your crawl progress and view your history</Text>
+          </View>
+
+          <View style={styles.authSection}>
+            <TouchableOpacity 
+              style={styles.googleButton} 
+              onPress={handleSignIn}
+            >
+              <Text style={styles.googleButtonText}>Continue with Google</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.termsText}>
+              By continuing, you agree to our Terms of Service and Privacy Policy
+            </Text>
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -199,6 +262,55 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+    maxWidth: 280,
+    marginBottom: 40,
+  },
+  authSection: {
+    width: '100%',
+    maxWidth: 300,
+    alignItems: 'center',
+  },
+  googleButton: {
+    backgroundColor: '#4285F4',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  googleButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  termsText: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  signInContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  signInHeader: {
+    alignItems: 'center',
+    marginBottom: 60,
   },
 });
 
