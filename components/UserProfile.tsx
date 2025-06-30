@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from './AuthContext';
 
 const UserProfile: React.FC = () => {
   const { user, userProfile, signOut, isLoading } = useAuthContext();
+  const navigation = useNavigation<any>();
 
   const handleSignOut = () => {
     Alert.alert(
@@ -15,6 +17,14 @@ const UserProfile: React.FC = () => {
         { text: 'Sign Out', style: 'destructive', onPress: signOut },
       ]
     );
+  };
+
+  const handleCrawlStats = () => {
+    navigation.navigate('CrawlStats');
+  };
+
+  const handleCrawlHistory = () => {
+    navigation.navigate('CrawlHistory');
   };
 
   if (isLoading) {
@@ -66,13 +76,23 @@ const UserProfile: React.FC = () => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Account Actions</Text>
-            <TouchableOpacity style={styles.actionButton} onPress={handleSignOut}>
-              <Text style={styles.actionButtonText}>Sign Out</Text>
+            <Text style={styles.sectionTitle}>Crawl Activity</Text>
+            <TouchableOpacity style={styles.activityButton} onPress={handleCrawlStats}>
+              <Text style={styles.activityButtonText}>📊 Crawl Statistics</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.activityButton} onPress={handleCrawlHistory}>
+              <Text style={styles.activityButtonText}>📋 Crawl History</Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
+      
+      {/* Sign Out Button at Bottom */}
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+          <Text style={styles.signOutButtonText}>Sign Out</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -156,17 +176,29 @@ const styles = StyleSheet.create({
     flex: 2,
     textAlign: 'right',
   },
-  actionButton: {
-    backgroundColor: '#ff4757',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+  bottomContainer: {
+    padding: 20,
     alignItems: 'center',
   },
-  actionButtonText: {
-    color: '#fff',
+  signOutButton: {
+    padding: 8,
+  },
+  signOutButtonText: {
+    color: '#ff4757',
     fontSize: 16,
     fontWeight: '600',
+  },
+  activityButton: {
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  activityButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
   },
 });
 
