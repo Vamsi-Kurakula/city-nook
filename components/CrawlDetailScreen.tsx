@@ -24,9 +24,7 @@ const CrawlDetailScreen: React.FC = () => {
   }
 
   const handleStartCrawl = () => {
-    startCrawlWithNavigation(crawl, () => {
-      navigation.navigate('CrawlSession');
-    });
+    navigation.navigate('CrawlSession', { crawl });
   };
 
   return (

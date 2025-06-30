@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Crawl, CrawlProgress, UserStepProgress } from '../types/crawl';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface CrawlContextType {
   currentCrawl: Crawl | null;
@@ -19,6 +20,8 @@ interface CrawlContextType {
   crawlHistory: CrawlProgress[];
   addToHistory: (progress: CrawlProgress) => void;
   loadHistory: () => void;
+  
+  clearCrawlSession: () => Promise<void>;
 }
 
 const CrawlContext = createContext<CrawlContextType | undefined>(undefined);
@@ -40,6 +43,40 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
   const [isCrawlActive, setIsCrawlActive] = useState(false);
   const [currentProgress, setCurrentProgress] = useState<CrawlProgress | null>(null);
   const [crawlHistory, setCrawlHistory] = useState<CrawlProgress[]>([]);
+
+  useEffect(() => {
+    // Load persisted session
+    const loadSession = async () => {
+      try {
+        const crawlStr = await AsyncStorage.getItem('currentCrawl');
+        const progressStr = await AsyncStorage.getItem('currentProgress');
+        if (crawlStr) setCurrentCrawl(JSON.parse(crawlStr));
+        if (progressStr) setCurrentProgress(JSON.parse(progressStr));
+      } catch (e) { console.warn('Failed to load crawl session', e); }
+    };
+    loadSession();
+  }, []);
+
+  useEffect(() => {
+    // Persist session
+    const saveSession = async () => {
+      try {
+        if (currentCrawl) await AsyncStorage.setItem('currentCrawl', JSON.stringify(currentCrawl));
+        else await AsyncStorage.removeItem('currentCrawl');
+        if (currentProgress) await AsyncStorage.setItem('currentProgress', JSON.stringify(currentProgress));
+        else await AsyncStorage.removeItem('currentProgress');
+      } catch (e) { console.warn('Failed to save crawl session', e); }
+    };
+    saveSession();
+  }, [currentCrawl, currentProgress]);
+
+  const clearCrawlSession = async () => {
+    setCurrentCrawl(null);
+    setCurrentProgress(null);
+    setIsCrawlActive(false);
+    await AsyncStorage.removeItem('currentCrawl');
+    await AsyncStorage.removeItem('currentProgress');
+  };
 
   const startCrawlWithNavigation = (crawl: Crawl, onComplete: () => void) => {
     setCurrentCrawl(crawl);
@@ -140,6 +177,7 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
       crawlHistory,
       addToHistory,
       loadHistory,
+      clearCrawlSession,
     }}>
       {children}
     </CrawlContext.Provider>

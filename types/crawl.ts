@@ -40,4 +40,8 @@ export interface Crawl {
   'public-crawl': boolean;
   start_time?: string; // Format: "YYYY-MM-DD HH:MM" or "HH:MM" for today
   steps?: CrawlStep[];
+}
+
+export interface CrawlSessionScreenParams {
+  crawl: Crawl;
 } 
