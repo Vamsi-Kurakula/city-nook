@@ -7,6 +7,7 @@ import UserProfile from './components/UserProfile';
 import { Ionicons } from '@expo/vector-icons';
 import CrawlDetailScreen from './components/CrawlDetailScreen';
 import CrawlSessionScreen from './components/CrawlSessionScreen';
+import PublicCrawlDetailScreen from './components/PublicCrawlDetailScreen';
 
 // We'll add these screens in later steps
 // import CrawlDetailScreen from './components/CrawlDetailScreen';
@@ -51,6 +52,7 @@ export default function AppNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Tabs" component={Tabs} />
       <Stack.Screen name="CrawlDetail" component={CrawlDetailScreen} />
+      <Stack.Screen name="PublicCrawlDetail" component={PublicCrawlDetailScreen} />
       <Stack.Screen name="CrawlSession" component={CrawlSessionScreen} options={{ headerShown: false, presentation: 'modal' }} />
       {/* We'll add CrawlSession screens here in later steps */}
     </Stack.Navigator>

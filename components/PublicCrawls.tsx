@@ -7,6 +7,7 @@ import yaml from 'js-yaml';
 import CrawlList from './CrawlList';
 import { Crawl } from '../types/crawl';
 import { loadCrawlSteps } from './auto-generated/crawlAssetLoader';
+import { useNavigation } from '@react-navigation/native';
 
 interface CrawlData {
   crawls: Crawl[];
@@ -15,6 +16,7 @@ interface CrawlData {
 const PublicCrawls: React.FC = () => {
   const [crawls, setCrawls] = useState<Crawl[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     const loadCrawls = async () => {
@@ -67,8 +69,9 @@ const PublicCrawls: React.FC = () => {
   }, []);
 
   const handleCrawlPress = (crawl: Crawl) => {
-    // For now, just log the crawl press
-    console.log('Public crawl pressed:', crawl.name);
+    if (crawl['public-crawl']) {
+      navigation.navigate('PublicCrawlDetail', { crawl });
+    }
   };
 
   const handleCrawlStart = (crawl: Crawl) => {
@@ -99,7 +102,7 @@ const PublicCrawls: React.FC = () => {
       <CrawlList
         crawls={crawls}
         onCrawlPress={handleCrawlPress}
-        onCrawlStart={handleCrawlStart}
+        onCrawlStart={() => {}}
       />
     </SafeAreaView>
   );

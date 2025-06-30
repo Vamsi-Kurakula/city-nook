@@ -199,8 +199,8 @@ const CrawlSessionScreen: React.FC = () => {
           onComplete={handleStepComplete}
           isCompleted={false}
           crawlStartTime={navCrawl.start_time}
-          stepDurations={undefined}
           currentStepIndex={currentStepNumber - 1}
+          allSteps={steps}
         />
       </View>
       {/* Show Past Steps Button */}

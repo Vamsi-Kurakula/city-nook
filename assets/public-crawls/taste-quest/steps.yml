@@ -1,48 +1,48 @@
 steps:
   - step_number: 1
-    step_type: "time"
+    step_type: "button"
     reward_location: "https://maps.google.com/?q=Ravenswood+Chicago"
+    reveal_after_minutes: 0
     step_components:
       location_name: "Ravenswood Starting Point"
       description: "Meet your group at the starting point in Ravenswood. Get ready for a brewery adventure!"
-      target_time: "14:15"
   
   - step_number: 2
-    step_type: "time"
+    step_type: "button"
     reward_location: "https://maps.google.com/?q=Dovetail+Brewery+Chicago"
+    reveal_after_minutes: 15
     step_components:
       location_name: "Dovetail Brewery"
       description: "Visit Dovetail Brewery together. Sample their traditional European-style lagers."
-      target_time: "14:30"
   
   - step_number: 3
-    step_type: "time"
+    step_type: "button"
     reward_location: "https://maps.google.com/?q=Begyle+Brewing+Chicago"
+    reveal_after_minutes: 15
     step_components:
       location_name: "Begyle Brewing"
       description: "Walk to Begyle Brewing. Try their community-focused craft beers."
-      target_time: "15:15"
   
   - step_number: 4
-    step_type: "time"
+    step_type: "button"
     reward_location: "https://maps.google.com/?q=Half+Acre+Brewery+Chicago"
+    reveal_after_minutes: 15
     step_components:
       location_name: "Half Acre Brewery"
       description: "Continue to Half Acre Brewery. Enjoy their bold and innovative brews."
-      target_time: "16:00"
   
   - step_number: 5
-    step_type: "time"
+    step_type: "button"
     reward_location: "https://maps.google.com/?q=Spiteful+Brewing+Chicago"
+    reveal_after_minutes: 15
     step_components:
       location_name: "Spiteful Brewing"
       description: "Visit Spiteful Brewing. Sample their unique and experimental beers."
-      target_time: "16:45"
-  
+
   - step_number: 6
-    step_type: "time"
+    step_type: "button"
     reward_location: "https://maps.google.com/?q=Ravenswood+Chicago"
+    reveal_after_minutes: 15
     step_components:
       location_name: "Ravenswood Final Stop"
       description: "Return to Ravenswood. Share your favorite beers and experiences with the group!"
-      target_time: "17:30" 

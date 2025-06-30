@@ -98,3 +98,19 @@ CREATE TRIGGER update_user_profiles_updated_at
 CREATE TRIGGER update_crawl_progress_updated_at
   BEFORE UPDATE ON crawl_progress
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); 
+
+-- Create public_crawl_signups table
+CREATE TABLE IF NOT EXISTS public_crawl_signups (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+  crawl_id TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, crawl_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_public_crawl_signups_crawl_id ON public_crawl_signups(crawl_id);
+CREATE INDEX IF NOT EXISTS idx_public_crawl_signups_user_id ON public_crawl_signups(user_id);
+
+-- Enable RLS and allow all for now
+ALTER TABLE public_crawl_signups ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations for now" ON public_crawl_signups FOR ALL USING (true);

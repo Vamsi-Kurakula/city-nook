@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
 import { CrawlStep } from '../types/crawl';
 import { validateAnswer } from '../utils/answerValidation';
+import { formatTimeRemaining } from '../utils/crawlStatus';
 
 interface RiddleStepProps {
   step: CrawlStep;
@@ -170,9 +171,65 @@ interface ButtonStepProps {
   onComplete: (userAnswer: string) => void;
   isCompleted: boolean;
   userAnswer?: string;
+  crawlStartTime?: string;
+  currentStepIndex?: number;
+  allSteps?: CrawlStep[];
 }
 
-export const ButtonStep: React.FC<ButtonStepProps> = ({ step, onComplete, isCompleted, userAnswer }) => {
+export const ButtonStep: React.FC<ButtonStepProps> = ({ 
+  step, 
+  onComplete, 
+  isCompleted, 
+  userAnswer,
+  crawlStartTime,
+  currentStepIndex,
+  allSteps
+}) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [timeUntilReveal, setTimeUntilReveal] = useState<number | null>(null);
+
+  // Calculate when this step should be revealed
+  const calculateStepRevealTime = () => {
+    if (!crawlStartTime || currentStepIndex === undefined || !allSteps) {
+      return null;
+    }
+
+    const startTime = new Date(crawlStartTime);
+    let totalMinutes = 0;
+    
+    // Sum up reveal_after_minutes for all steps up to and including the current step
+    for (let i = 0; i <= currentStepIndex; i++) {
+      const stepMinutes = allSteps[i]?.reveal_after_minutes || 0;
+      totalMinutes += stepMinutes;
+    }
+    
+    const revealTime = new Date(startTime.getTime() + totalMinutes * 60 * 1000);
+    return revealTime;
+  };
+
+  const revealTime = calculateStepRevealTime();
+  const isPublicCrawl = crawlStartTime && allSteps && allSteps.some(s => s.reveal_after_minutes !== undefined);
+  const isStepAvailable = !isPublicCrawl || !revealTime || currentTime >= revealTime;
+
+  // Update current time every second
+  useEffect(() => {
+    if (!isPublicCrawl || !revealTime) return;
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(now);
+      
+      if (revealTime && now < revealTime) {
+        const remaining = Math.ceil((revealTime.getTime() - now.getTime()) / 1000);
+        setTimeUntilReveal(remaining);
+      } else {
+        setTimeUntilReveal(null);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isPublicCrawl, revealTime]);
+
   const openMaps = () => {
     if (step.reward_location) {
       Linking.openURL(step.reward_location);
@@ -180,6 +237,7 @@ export const ButtonStep: React.FC<ButtonStepProps> = ({ step, onComplete, isComp
   };
 
   const handleButtonPress = () => {
+    if (!isStepAvailable) return;
     onComplete('Button pressed');
     Alert.alert('Step Complete!', 'Great! You\'ve completed this step.');
   };
@@ -202,6 +260,31 @@ export const ButtonStep: React.FC<ButtonStepProps> = ({ step, onComplete, isComp
       <Text style={styles.stepTitle}>Step {step.step_number}</Text>
       <Text style={styles.stepDescription}>{step.step_components.description || step.step_components.location_name || ''}</Text>
       
+      {isPublicCrawl && revealTime && (
+        <View style={styles.timeSection}>
+          <View style={styles.timeDisplay}>
+            <Text style={styles.timeLabel}>Step Available At:</Text>
+            <Text style={styles.targetTime}>
+              {revealTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </View>
+          {!isStepAvailable && timeUntilReveal !== null && (
+            <View style={styles.timeDisplay}>
+              <Text style={styles.timeLabel}>Time Remaining:</Text>
+              <Text style={styles.timeRemaining}>
+                {formatTimeRemaining(timeUntilReveal)}
+              </Text>
+            </View>
+          )}
+          {isStepAvailable && (
+            <View style={styles.timeDisplay}>
+              <Text style={styles.timeLabel}>Status:</Text>
+              <Text style={[styles.timeReached, { fontWeight: 'bold' }]}>✅ Available Now</Text>
+            </View>
+          )}
+        </View>
+      )}
+      
       <View style={styles.buttonSection}>
         {step.reward_location && (
           <TouchableOpacity style={styles.mapsButton} onPress={openMaps}>
@@ -209,191 +292,22 @@ export const ButtonStep: React.FC<ButtonStepProps> = ({ step, onComplete, isComp
           </TouchableOpacity>
         )}
         
-        <TouchableOpacity style={styles.completeButton} onPress={handleButtonPress}>
-          <Text style={styles.completeButtonText}>
-            {step.step_components.button_text || '✅ Complete Step'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
-
-interface TimeStepProps {
-  step: CrawlStep;
-  onComplete: (userAnswer: string) => void;
-  isCompleted: boolean;
-  userAnswer?: string;
-  crawlStartTime?: string;
-  stepDurations?: { [stepNumber: number]: number };
-  currentStepIndex?: number;
-}
-
-export const TimeStep: React.FC<TimeStepProps> = ({ 
-  step, 
-  onComplete, 
-  isCompleted, 
-  userAnswer,
-  crawlStartTime,
-  stepDurations,
-  currentStepIndex
-}) => {
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [timeRemaining, setTimeRemaining] = useState<string>('');
-  const [isTimeReached, setIsTimeReached] = useState(false);
-  const [stepTiming, setStepTiming] = useState<any>(null);
-
-  // Parse the target time from step components
-  const targetTimeString = step.step_components.target_time || '';
-  const targetTime = new Date();
-  
-  useEffect(() => {
-    // Parse target time (format: "HH:MM" or "HH:MM:SS")
-    const timeParts = targetTimeString.split(':');
-    if (timeParts.length >= 2) {
-      targetTime.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), timeParts.length > 2 ? parseInt(timeParts[2]) : 0, 0);
-    }
-
-    // Calculate step timing if crawl timing is available
-    if (crawlStartTime && stepDurations && currentStepIndex !== undefined) {
-      const { getStepTiming, parseTimeString } = require('../utils/crawlStatus');
-      const crawlStart = parseTimeString(crawlStartTime);
-      const timing = getStepTiming(step.step_number, crawlStart, stepDurations, currentStepIndex);
-      setStepTiming(timing);
-    }
-
-    const timer = setInterval(() => {
-      const now = new Date();
-      setCurrentTime(now);
-      
-      const diff = targetTime.getTime() - now.getTime();
-      
-      if (diff <= 0) {
-        setTimeRemaining('Time reached!');
-        setIsTimeReached(true);
-        clearInterval(timer);
-      } else {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        
-        if (hours > 0) {
-          setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
-        } else if (minutes > 0) {
-          setTimeRemaining(`${minutes}m ${seconds}s`);
-        } else {
-          setTimeRemaining(`${seconds}s`);
-        }
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [targetTimeString, crawlStartTime, stepDurations, currentStepIndex]);
-
-  const openMaps = () => {
-    if (step.reward_location) {
-      Linking.openURL(step.reward_location);
-    }
-  };
-
-  const handleTimeReached = () => {
-    onComplete('Time reached');
-    Alert.alert('Time Reached!', 'Great! You can now proceed to the next step.');
-  };
-
-  if (isCompleted) {
-    return (
-      <View style={styles.completedStep}>
-        <Text style={styles.stepTitle}>✓ Step {step.step_number}</Text>
-        <Text style={styles.stepDescription}>{step.step_components.description || step.step_components.location_name || ''}</Text>
-        <View style={styles.answerSection}>
-          <Text style={styles.answerLabel}>Status:</Text>
-          <Text style={styles.userAnswer}>{userAnswer}</Text>
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Step {step.step_number}</Text>
-      <Text style={styles.stepDescription}>{step.step_components.description || step.step_components.location_name || ''}</Text>
-      
-      <View style={styles.timeSection}>
-        {/* Crawl Timing Information */}
-        {stepTiming && (
-          <View style={styles.crawlTimingInfo}>
-            <View style={styles.timeDisplay}>
-              <Text style={styles.timeLabel}>Step Duration:</Text>
-              <Text style={styles.targetTime}>{stepTiming.duration} minutes</Text>
-            </View>
-            
-            <View style={styles.timeDisplay}>
-              <Text style={styles.timeLabel}>Step Start:</Text>
-              <Text style={styles.currentTime}>
-                {stepTiming.startTime.toLocaleTimeString('en-US', { 
-                  hour12: false, 
-                  hour: '2-digit', 
-                  minute: '2-digit'
-                })}
-              </Text>
-            </View>
-            
-            <View style={styles.timeDisplay}>
-              <Text style={styles.timeLabel}>Step End:</Text>
-              <Text style={styles.currentTime}>
-                {stepTiming.endTime.toLocaleTimeString('en-US', { 
-                  hour12: false, 
-                  hour: '2-digit', 
-                  minute: '2-digit'
-                })}
-              </Text>
-            </View>
-          </View>
-        )}
-        
-        {/* Target Time Countdown */}
-        {targetTimeString && (
-          <>
-            <View style={styles.timeDisplay}>
-              <Text style={styles.timeLabel}>Target Time:</Text>
-              <Text style={styles.targetTime}>{targetTimeString}</Text>
-            </View>
-            
-            <View style={styles.timeDisplay}>
-              <Text style={styles.timeLabel}>Current Time:</Text>
-              <Text style={styles.currentTime}>
-                {currentTime.toLocaleTimeString('en-US', { 
-                  hour12: false, 
-                  hour: '2-digit', 
-                  minute: '2-digit',
-                  second: '2-digit'
-                })}
-              </Text>
-            </View>
-            
-            <View style={styles.timeDisplay}>
-              <Text style={styles.timeLabel}>Time Remaining:</Text>
-              <Text style={[styles.timeRemaining, isTimeReached && styles.timeReached]}>
-                {timeRemaining}
-              </Text>
-            </View>
-          </>
-        )}
-        
-        {step.reward_location && (
-          <TouchableOpacity style={styles.mapsButton} onPress={openMaps}>
-            <Text style={styles.mapsButtonText}>📍 Open in Maps</Text>
-          </TouchableOpacity>
-        )}
-        
         <TouchableOpacity 
-          style={[styles.timeButton, !isTimeReached && styles.timeButtonDisabled]} 
-          onPress={handleTimeReached}
-          disabled={!isTimeReached}
+          style={[
+            styles.completeButton, 
+            !isStepAvailable && styles.timeButtonDisabled
+          ]} 
+          onPress={handleButtonPress}
+          disabled={!isStepAvailable}
         >
-          <Text style={[styles.timeButtonText, !isTimeReached && styles.timeButtonTextDisabled]}>
-            {isTimeReached ? '⏰ Proceed Now' : '⏳ Waiting for Time'}
+          <Text style={[
+            styles.completeButtonText,
+            !isStepAvailable && styles.timeButtonTextDisabled
+          ]}>
+            {!isStepAvailable 
+              ? `⏰ Wait ${timeUntilReveal ? formatTimeRemaining(timeUntilReveal) : ''}`
+              : (step.step_components.button_text || '✅ Complete Step')
+            }
           </Text>
         </TouchableOpacity>
       </View>
@@ -409,6 +323,7 @@ interface StepComponentProps {
   crawlStartTime?: string;
   stepDurations?: { [stepNumber: number]: number };
   currentStepIndex?: number;
+  allSteps?: CrawlStep[];
 }
 
 export const StepComponent: React.FC<StepComponentProps> = ({ 
@@ -418,7 +333,8 @@ export const StepComponent: React.FC<StepComponentProps> = ({
   userAnswer,
   crawlStartTime,
   stepDurations,
-  currentStepIndex
+  currentStepIndex,
+  allSteps
 }) => {
   switch (step.step_type) {
     case 'riddle':
@@ -428,17 +344,7 @@ export const StepComponent: React.FC<StepComponentProps> = ({
     case 'photo':
       return <PhotoStep step={step} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} />;
     case 'button':
-      return <ButtonStep step={step} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} />;
-    case 'time':
-      return <TimeStep 
-        step={step} 
-        onComplete={onComplete} 
-        isCompleted={isCompleted} 
-        userAnswer={userAnswer}
-        crawlStartTime={crawlStartTime}
-        stepDurations={stepDurations}
-        currentStepIndex={currentStepIndex}
-      />;
+      return <ButtonStep step={step} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} crawlStartTime={crawlStartTime} currentStepIndex={currentStepIndex} allSteps={allSteps} />;
     default:
       return (
         <View style={styles.stepContainer}>

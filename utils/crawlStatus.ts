@@ -1,3 +1,30 @@
+/**
+ * Format time remaining in a user-friendly way
+ * - More than 24 hours: shows as "2d 5h 30m" (days, hours, minutes)
+ * - 6 hours or more: shows as "8h 30m" (hours, minutes)
+ * - Less than 6 hours but more than 1 hour: shows as "2h 30m 45s" (hours, minutes, seconds)
+ * - Less than 1 hour but more than 1 minute: shows as "30:45" (minutes:seconds)
+ * - Less than 1 minute: shows as "45s" (just seconds)
+ */
+export const formatTimeRemaining = (seconds: number): string => {
+  const days = Math.floor(seconds / 86400); // 24 * 60 * 60
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+  
+  if (days > 0) {
+    return `${days}d ${hours}h ${minutes}m`;
+  } else if (hours >= 6) {
+    return `${hours}h ${minutes}m`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes}m ${remainingSeconds}s`;
+  } else if (minutes > 0) {
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  } else {
+    return `${remainingSeconds}s`;
+  }
+};
+
 export interface CrawlStatus {
   status: 'upcoming' | 'ongoing' | 'completed' | 'unknown';
   timeUntilStart?: string;
@@ -85,20 +112,12 @@ export const calculateCrawlStatus = (
 
   if (now < startTime) {
     // Crawl hasn't started yet
-    const timeUntilStart = startTime.getTime() - now.getTime();
-    const hours = Math.floor(timeUntilStart / (1000 * 60 * 60));
-    const minutes = Math.floor((timeUntilStart % (1000 * 60 * 60)) / (1000 * 60));
-    
-    let timeString = '';
-    if (hours > 0) {
-      timeString = `${hours}h ${minutes}m until start`;
-    } else {
-      timeString = `${minutes}m until start`;
-    }
+    const timeUntilStartMs = startTime.getTime() - now.getTime();
+    const timeUntilStartSeconds = Math.floor(timeUntilStartMs / 1000);
     
     return {
       status: 'upcoming',
-      timeUntilStart: timeString,
+      timeUntilStart: `${formatTimeRemaining(timeUntilStartSeconds)} until start`,
       estimatedEndTime,
       stepDurations
     };

@@ -4,9 +4,10 @@ export interface StepComponent {
 
 export interface CrawlStep {
   step_number: number;
-  step_type: 'riddle' | 'location' | 'photo' | 'button' | 'time';
+  step_type: 'riddle' | 'location' | 'photo' | 'button';
   reward_location: string;
   step_components: StepComponent;
+  reveal_after_minutes?: number; // For public crawls - relative time from previous step
 }
 
 export interface CrawlSteps {
