@@ -13,7 +13,6 @@ const STEPS_ASSET_MAP: { [key: string]: any } = {
   'public-crawls/synchronized-crawl': require('../../assets/public-crawls/synchronized-crawl/steps.yml'),
   'public-crawls/taste-quest': require('../../assets/public-crawls/taste-quest/steps.yml'),
   'crawl-library/art-culture-walk': require('../../assets/crawl-library/art-culture-walk/steps.yml'),
-  'crawl-library/default': require('../../assets/crawl-library/default/steps.yml'),
   'crawl-library/historic-downtown-crawl': require('../../assets/crawl-library/historic-downtown-crawl/steps.yml'),
   'crawl-library/simple-location-crawl': require('../../assets/crawl-library/simple-location-crawl/steps.yml'),
 };

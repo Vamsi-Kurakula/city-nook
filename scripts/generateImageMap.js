@@ -4,7 +4,7 @@ const path = require('path');
 const publicCrawlsDir = path.join(__dirname, '../assets/public-crawls');
 const crawlLibraryDir = path.join(__dirname, '../assets/crawl-library');
 const outputFile = path.join(__dirname, '../components/auto-generated/ImageLoader.ts');
-const defaultImage = "require('../../assets/crawl-library/default/hero.jpg')";
+const defaultImage = "require('../../assets/crawl-library/historic-downtown-crawl/hero.jpg')";
 
 // Function to get crawl folders from a directory
 function getCrawlFolders(dirPath) {
