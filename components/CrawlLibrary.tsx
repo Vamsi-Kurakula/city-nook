@@ -8,22 +8,15 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import CrawlList from './CrawlList';
 import { useCrawlContext } from './CrawlContext';
 import { RootTabParamList } from '../types/navigation';
-import { Crawl, CrawlSteps } from '../types/crawl';
+import { Crawl } from '../types/crawl';
 import { loadCrawlSteps } from './auto-generated/crawlAssetLoader';
 import { useNavigation, CommonActions } from '@react-navigation/native';
-import { useAuthContext } from './AuthContext';
-import { loadCrawls } from '../utils/crawlAssetLoader';
-import { CrawlContext } from './CrawlContext';
 
 interface CrawlData {
   crawls: Crawl[];
 }
 
-type CrawlLibraryNavigationProp = BottomTabNavigationProp<RootTabParamList, 'Crawls'>;
-
-interface CrawlLibraryProps {
-  navigation: CrawlLibraryNavigationProp;
-}
+type CrawlLibraryNavigationProp = BottomTabNavigationProp<RootTabParamList, 'Crawl Library'>;
 
 const CrawlLibrary: React.FC = () => {
   const [crawls, setCrawls] = useState<Crawl[]>([]);
