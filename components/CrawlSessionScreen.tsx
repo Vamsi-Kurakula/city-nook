@@ -53,7 +53,7 @@ const CrawlSessionScreen: React.FC = () => {
       // This would need to be implemented based on your crawl loading logic
       setLoading(false);
     } else if (routeParams?.crawl) {
-      setCrawlData(routeParams.crawl);
+      // crawlData is already set as a constant from routeParams.crawl
     }
   }, [crawlData, crawlId, routeParams?.crawl]);
 

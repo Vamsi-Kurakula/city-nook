@@ -3,14 +3,16 @@ import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthContext } from './AuthContext';
-import { getCrawlHistory, getCrawlName } from '../utils/supabase';
+import { getCrawlHistory, getCrawlNameMapping } from '../utils/supabase';
 
 interface CrawlHistoryItem {
   id: string;
   crawl_id: string;
   completed_at: string;
   total_time_minutes: number;
-  crawl_name?: string;
+  score?: number;
+  created_at: string;
+  crawlName?: string;
 }
 
 const CrawlHistoryScreen: React.FC = () => {
@@ -25,20 +27,14 @@ const CrawlHistoryScreen: React.FC = () => {
       
       setLoading(true);
       try {
-        const historyData = await getCrawlHistory(user.id);
-        
-        // Load crawl names for each history item
-        const historyWithNames = await Promise.all(
-          historyData.map(async (item) => {
-            const crawlName = await getCrawlName(item.crawl_id);
-            return {
-              ...item,
-              crawl_name: crawlName || item.crawl_id
-            };
-          })
+        const history = await getCrawlHistory(user.id);
+        const crawlNameMapping = await getCrawlNameMapping();
+        setHistory(
+          (history || []).map((item: any) => ({
+            ...item,
+            crawlName: crawlNameMapping[item.crawl_id] || item.crawl_id,
+          }))
         );
-        
-        setHistory(historyWithNames);
       } catch (error) {
         console.error('Error fetching crawl history:', error);
       } finally {
@@ -114,7 +110,7 @@ const CrawlHistoryScreen: React.FC = () => {
               onPress={() => handleHistoryItemPress(item)}
             >
               <View style={styles.historyContent}>
-                <Text style={styles.crawlName}>{item.crawl_name}</Text>
+                <Text style={styles.crawlName}>{item.crawlName}</Text>
                 <Text style={styles.completionDate}>
                   Completed: {formatDate(item.completed_at)}
                 </Text>
