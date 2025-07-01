@@ -33,6 +33,7 @@ interface PublicCrawl {
   start_time: string;
   hero_image: string;
   steps: any[];
+  assetFolder: string;
 }
 
 interface CrawlProgress {
@@ -358,7 +359,7 @@ export default function HomeScreen() {
                 onPress={() => handlePublicCrawlPress(crawl.id)}
               >
                 <Image 
-                  source={getHeroImageSource(`crawl-library/${crawl.id}`)} 
+                  source={getHeroImageSource(crawl.assetFolder)} 
                   style={styles.horizontalCrawlImage}
                   resizeMode="cover"
                   onError={(error) => console.log('Image loading error:', error)}
@@ -408,7 +409,7 @@ export default function HomeScreen() {
               onPress={() => handleFeaturedCrawlPress(crawl.id)}
             >
               <Image 
-                source={getHeroImageSource(`crawl-library/${crawl.id}`)} 
+                source={getHeroImageSource(crawl.assetFolder)} 
                 style={styles.horizontalCrawlImage}
                 resizeMode="cover"
                 onError={(error) => console.log('Image loading error:', error)}

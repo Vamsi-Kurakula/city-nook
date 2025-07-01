@@ -8,6 +8,7 @@ export interface FeaturedCrawl {
   title: string;
   description: string;
   hero_image: string;
+  assetFolder: string;
 }
 
 export interface FeaturedCrawlsData {
@@ -62,7 +63,8 @@ export async function loadFeaturedCrawls(): Promise<FeaturedCrawl[]> {
           id: crawl.id,
           title: crawl.name,
           description: crawl.description,
-          hero_image: `assets/crawl-library/${crawl.id}/hero.jpg`
+          hero_image: `assets/crawl-library/${crawl.id}/hero.jpg`,
+          assetFolder: crawl.assetFolder
         };
       })
       .filter(crawl => crawl !== null) as FeaturedCrawl[];
