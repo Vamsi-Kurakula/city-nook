@@ -1,76 +1,152 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import { supabase } from '../utils/supabase';
 import { useAuthContext } from './AuthContext';
 import { getHeroImageSource } from './auto-generated/ImageLoader';
 import { loadCrawlSteps } from './auto-generated/crawlAssetLoader';
 import { Crawl, CrawlSteps } from '../types/crawl';
+import { loadPublicCrawls } from '../utils/publicCrawlLoader';
 
 const PublicCrawlDetailScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
-  const { crawl } = (route.params as { crawl: Crawl });
-  const { user, isSignedIn } = useAuthContext();
-
+  const { user, isSignedIn, isLoading } = useAuthContext();
+  
+  // Defensive extraction and logging
+  const routeParams = route.params as { crawl?: Crawl; crawlId?: string } | undefined;
+  const crawl = routeParams?.crawl;
+  const crawlId = routeParams?.crawlId;
+  console.log('PublicCrawlDetailScreen route params:', routeParams);
+  
+  const [crawlData, setCrawlData] = useState<Crawl | null>(crawl || null);
+  const [loading, setLoading] = useState(!crawl);
   const [signups, setSignups] = useState<any[]>([]);
   const [isSignedUp, setIsSignedUp] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [crawlStepsData, setCrawlStepsData] = useState<CrawlSteps | null>(null);
-
+  
+  // Load crawl data if we only have crawlId
+  useEffect(() => {
+    const loadCrawlData = async () => {
+      if (!crawl && crawlId) {
+        setLoading(true);
+        try {
+          const publicCrawls = await loadPublicCrawls();
+          const foundCrawl = publicCrawls.find(c => c.id === crawlId);
+          if (foundCrawl) {
+            setCrawlData(foundCrawl);
+          }
+        } catch (error) {
+          console.error('Error loading crawl data:', error);
+        } finally {
+          setLoading(false);
+        }
+      } else if (crawl) {
+        setCrawlData(crawl);
+        setLoading(false);
+      }
+    };
+    
+    loadCrawlData();
+  }, [crawl, crawlId]);
+  
+  // Fetch signups when crawl data is available
   useEffect(() => {
     const fetchSignups = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('public_crawl_signups')
-        .select('user_id, user_profiles (avatar_url, full_name)')
-        .eq('crawl_id', crawl.id);
-      if (data) {
-        setSignups(data);
-        setIsSignedUp(!!data.find((s: any) => s.user_id === user?.id));
+      if (isLoading || !crawlData) return; // Don't fetch if auth is still loading or no crawl data
+      
+      try {
+        const { data, error } = await supabase
+          .from('public_crawl_signups')
+          .select('user_id, user_profiles (avatar_url, full_name)')
+          .eq('crawl_id', crawlData.id);
+        if (data) {
+          setSignups(data);
+          setIsSignedUp(!!data.find((s: any) => s.user_id === user?.id));
+        }
+      } catch (error) {
+        console.error('Error fetching signups:', error);
       }
-      setLoading(false);
     };
     fetchSignups();
-  }, [crawl.id, user?.id]);
-
+  }, [crawlData?.id, user?.id, isLoading]);
+  
+  // Load steps when crawl data is available
   useEffect(() => {
     const loadSteps = async () => {
+      if (!crawlData) return;
+      
       try {
-        const stepsData = await loadCrawlSteps(crawl.assetFolder);
+        const stepsData = await loadCrawlSteps(crawlData.assetFolder);
         setCrawlStepsData(stepsData);
       } catch (error) {
         console.error('Error loading crawl steps:', error);
       }
     };
     loadSteps();
-  }, [crawl.assetFolder]);
+  }, [crawlData?.assetFolder]);
+  
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+          <Text style={styles.loadingText}>Loading crawl...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  
+  if (!crawlData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.title}>No crawl data found (PublicCrawlDetailScreen).</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  // Add debugging
+  console.log('PublicCrawlDetailScreen render:', { 
+    hasRouteParams: !!route.params,
+    hasCrawl: !!crawlData,
+    crawlId: crawlData?.id,
+    user: user ? 'defined' : 'undefined',
+    isLoading 
+  });
 
   const handleSignUp = async () => {
     if (!user?.id) return;
-    await supabase.from('public_crawl_signups').upsert({ user_id: user.id, crawl_id: crawl.id });
+    await supabase.from('public_crawl_signups').upsert({ user_id: user.id, crawl_id: crawlData.id });
     setIsSignedUp(true);
     setSignups([...signups, { user_id: user.id, user_profiles: { avatar_url: user.imageUrl, full_name: user.fullName } }]);
   };
 
   const handleCancelSignUp = async () => {
     if (!user?.id) return;
-    await supabase.from('public_crawl_signups').delete().eq('user_id', user.id).eq('crawl_id', crawl.id);
+    await supabase.from('public_crawl_signups').delete().eq('user_id', user.id).eq('crawl_id', crawlData.id);
     setIsSignedUp(false);
     setSignups(signups.filter(s => s.user_id !== user.id));
   };
 
   const handleSignInPrompt = () => {
     // Navigate to the Profile tab which will show the sign-in screen
-    navigation.navigate('Tabs', { screen: 'Profile' });
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: 'Tabs',
+        params: { screen: 'Profile' },
+      })
+    );
   };
 
   // Calculate if crawl is completed
   const isCrawlCompleted = () => {
-    if (!crawl.start_time || !crawlStepsData?.steps) return false;
+    if (!crawlData.start_time || !crawlStepsData?.steps) return false;
     
-    const startTime = new Date(crawl.start_time);
+    const startTime = new Date(crawlData.start_time);
     const totalDurationMinutes = crawlStepsData.steps.reduce((total, step) => {
       return total + (step.reveal_after_minutes || 0);
     }, 0);
@@ -82,16 +158,28 @@ const PublicCrawlDetailScreen: React.FC = () => {
 
   const crawlIsCompleted = isCrawlCompleted();
 
+  // Show loading if auth is still loading
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Image source={getHeroImageSource(crawl.assetFolder)} style={styles.heroImage} resizeMode="cover" />
-        <Text style={styles.title}>{crawl.name}</Text>
-        <Text style={styles.description}>{crawl.description}</Text>
-        <Text style={styles.meta}>Date: {crawl.start_time || 'TBA'}</Text>
-        <Text style={styles.meta}>Duration: {crawl.duration}</Text>
-        <Text style={styles.meta}>Distance: {crawl.distance}</Text>
-        <Text style={styles.meta}>Difficulty: {crawl.difficulty}</Text>
+        <Image source={getHeroImageSource(crawlData.assetFolder)} style={styles.heroImage} resizeMode="cover" />
+        <Text style={styles.title}>{crawlData.name}</Text>
+        <Text style={styles.description}>{crawlData.description}</Text>
+        <Text style={styles.meta}>Date: {crawlData.start_time || 'TBA'}</Text>
+        <Text style={styles.meta}>Duration: {crawlData.duration}</Text>
+        <Text style={styles.meta}>Distance: {crawlData.distance}</Text>
+        <Text style={styles.meta}>Difficulty: {crawlData.difficulty}</Text>
         {crawlIsCompleted && (
           <Text style={styles.completedText}>This crawl has been completed</Text>
         )}
@@ -127,7 +215,14 @@ const PublicCrawlDetailScreen: React.FC = () => {
               </TouchableOpacity>
             )}
             {isSignedUp && (
-              <TouchableOpacity style={styles.joinButton} onPress={() => navigation.navigate('CrawlSession', { crawl })}>
+              <TouchableOpacity style={styles.joinButton} onPress={() => {
+                navigation.dispatch(
+                  CommonActions.navigate({
+                    name: 'CrawlSession',
+                    params: { crawl: crawlData },
+                  })
+                );
+              }}>
                 <Text style={styles.joinButtonText}>Join Crawl</Text>
               </TouchableOpacity>
             )}
@@ -166,6 +261,16 @@ const styles = StyleSheet.create({
   loading: { position: 'absolute', top: '50%', left: 0, right: 0 },
   signInPromptButton: { backgroundColor: '#007AFF', padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 12 },
   signInPromptButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 16,
+  },
 });
 
 export default PublicCrawlDetailScreen; 

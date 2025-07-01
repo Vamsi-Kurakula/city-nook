@@ -1,109 +1,93 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthContext } from './AuthContext';
-import { getCrawlHistory, getCrawlNameMapping } from '../utils/supabase';
+import { getCrawlHistory, getCrawlName } from '../utils/supabase';
 
 interface CrawlHistoryItem {
   id: string;
   crawl_id: string;
   completed_at: string;
   total_time_minutes: number;
-  score?: number;
-  created_at: string;
+  crawl_name?: string;
 }
 
 const CrawlHistoryScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const { user } = useAuthContext();
+  const { user, isLoading } = useAuthContext();
   const [history, setHistory] = useState<CrawlHistoryItem[]>([]);
-  const [crawlNames, setCrawlNames] = useState<{ [crawlId: string]: string }>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!user?.id) return;
+    const fetchHistory = async () => {
+      if (!user?.id || isLoading) return;
       
       setLoading(true);
-      
-      // Fetch both history and crawl names in parallel
-      const [historyData, crawlNameMapping] = await Promise.all([
-        getCrawlHistory(user.id),
-        getCrawlNameMapping()
-      ]);
-      
-      setHistory(historyData || []);
-      setCrawlNames(crawlNameMapping || {});
-      setLoading(false);
+      try {
+        const historyData = await getCrawlHistory(user.id);
+        
+        // Load crawl names for each history item
+        const historyWithNames = await Promise.all(
+          historyData.map(async (item) => {
+            const crawlName = await getCrawlName(item.crawl_id);
+            return {
+              ...item,
+              crawl_name: crawlName || item.crawl_id
+            };
+          })
+        );
+        
+        setHistory(historyWithNames);
+      } catch (error) {
+        console.error('Error fetching crawl history:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchData();
-  }, [user?.id]);
+    fetchHistory();
+  }, [user?.id, isLoading]);
+
+  const handleHistoryItemPress = (item: CrawlHistoryItem) => {
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: 'CrawlHistoryDetail',
+        params: { crawlId: item.crawl_id },
+      })
+    );
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const formatTime = (minutes: number) => {
+  const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    
+    const mins = minutes % 60;
     if (hours > 0) {
-      return `${hours}h ${remainingMinutes}m`;
-    } else {
-      return `${remainingMinutes}m`;
+      return `${hours}h ${mins}m`;
     }
+    return `${mins}m`;
   };
 
-  const getCrawlDisplayName = (crawlId: string) => {
-    const crawlName = crawlNames[crawlId];
-    return crawlName || `Crawl ${crawlId}`;
-  };
-
-  const renderHistoryItem = ({ item }: { item: CrawlHistoryItem }) => (
-    <TouchableOpacity 
-      style={styles.historyItem}
-      onPress={() => navigation.navigate('CrawlHistoryDetail', {
-        crawlId: item.crawl_id,
-        completedAt: item.completed_at,
-        totalTimeMinutes: item.total_time_minutes,
-        score: item.score,
-      })}
-      activeOpacity={0.7}
-    >
-      <View style={styles.historyHeader}>
-        <Text style={styles.crawlName}>{getCrawlDisplayName(item.crawl_id)}</Text>
-        <Text style={styles.completionDate}>{formatDate(item.completed_at)}</Text>
-      </View>
-      
-      <View style={styles.historyDetails}>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Completion Time:</Text>
-          <Text style={styles.detailValue}>{formatTime(item.total_time_minutes)}</Text>
+  // Show loading if auth is still loading
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
-        
-        {item.score !== null && item.score !== undefined && (
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Score:</Text>
-            <Text style={styles.detailValue}>{item.score}</Text>
-          </View>
-        )}
-      </View>
-      
-      <Text style={styles.tapHint}>Tap to view steps</Text>
-    </TouchableOpacity>
-  );
+      </SafeAreaView>
+    );
+  }
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" />
           <Text style={styles.loadingText}>Loading history...</Text>
         </View>
@@ -113,24 +97,37 @@ const CrawlHistoryScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Crawl History</Text>
-        
-        {history.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No completed crawls yet.</Text>
-            <Text style={styles.emptySubtext}>Complete your first crawl to see it here!</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={history}
-            keyExtractor={(item) => item.id}
-            renderItem={renderHistoryItem}
-            contentContainerStyle={styles.historyList}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-      </View>
+      <Text style={styles.title}>Crawl History</Text>
+      
+      {history.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No crawl history yet.</Text>
+          <Text style={styles.emptySubtext}>Complete your first crawl to see it here!</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={history}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.historyItem}
+              onPress={() => handleHistoryItemPress(item)}
+            >
+              <View style={styles.historyContent}>
+                <Text style={styles.crawlName}>{item.crawl_name}</Text>
+                <Text style={styles.completionDate}>
+                  Completed: {formatDate(item.completed_at)}
+                </Text>
+                <Text style={styles.duration}>
+                  Duration: {formatDuration(item.total_time_minutes)}
+                </Text>
+              </View>
+              <Text style={styles.arrow}>→</Text>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.listContainer}
+        />
+      )}
       
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Back to Profile</Text>
@@ -144,27 +141,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 16,
-  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 30,
+    margin: 20,
     textAlign: 'center',
   },
-  emptyState: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   emptyText: {
     fontSize: 18,
@@ -176,48 +174,42 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
   },
-  historyList: {
-    paddingBottom: 20,
+  listContainer: {
+    padding: 20,
   },
   historyItem: {
     backgroundColor: '#f8f9fa',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e9ecef',
   },
-  historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+  historyContent: {
+    flex: 1,
   },
   crawlName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: '#333',
+    marginBottom: 4,
   },
   completionDate: {
     fontSize: 14,
     color: '#666',
+    marginBottom: 2,
   },
-  historyDetails: {
-    gap: 8,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  detailLabel: {
+  duration: {
     fontSize: 14,
-    color: '#666',
-  },
-  detailValue: {
-    fontSize: 14,
-    color: '#333',
+    color: '#007AFF',
     fontWeight: '500',
+  },
+  arrow: {
+    fontSize: 20,
+    color: '#ccc',
+    marginLeft: 12,
   },
   backButton: {
     padding: 20,
@@ -226,13 +218,6 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: '#888',
     fontSize: 16,
-  },
-  tapHint: {
-    fontSize: 12,
-    color: '#999',
-    textAlign: 'center',
-    marginTop: 8,
-    fontStyle: 'italic',
   },
 });
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import { useCrawlContext } from './CrawlContext';
 import { Crawl } from '../types/crawl';
 import { getHeroImageSource } from './auto-generated/ImageLoader';
@@ -11,14 +11,30 @@ import { supabase } from '../utils/supabase';
 const CrawlDetailScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
-  const { crawl } = (route.params as { crawl: Crawl }) || {};
+  
+  // Defensive extraction and logging
+  const routeParams = route.params as { crawl?: Crawl } | undefined;
+  const crawl = routeParams?.crawl;
+  console.log('CrawlDetailScreen route params:', routeParams);
+  if (!crawl) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.title}>No crawl data found (CrawlDetailScreen).</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+  
   const { startCrawlWithNavigation } = useCrawlContext();
-  const { user } = useAuthContext();
+  const { user, isLoading } = useAuthContext();
   const [resumeProgress, setResumeProgress] = React.useState<any>(null);
 
   React.useEffect(() => {
     const fetchProgress = async () => {
-      if (user?.id && crawl?.id) {
+      if (user?.id && crawl?.id && !isLoading) {
+        console.log('CrawlDetailScreen fetching progress for:', { userId: user.id, crawlId: crawl.id });
         const { data, error } = await supabase
           .from('crawl_progress')
           .select('*')
@@ -33,27 +49,37 @@ const CrawlDetailScreen: React.FC = () => {
       }
     };
     fetchProgress();
-  }, [user, crawl]);
+  }, [user?.id, crawl?.id, isLoading]);
 
-  if (!crawl) {
+  // Show loading if auth is still loading
+  if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.title}>No crawl data found.</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>Back</Text>
-        </TouchableOpacity>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
       </SafeAreaView>
     );
   }
 
   const handleResumeCrawl = () => {
     if (resumeProgress) {
-      navigation.navigate('CrawlSession', { crawl, resumeProgress });
+      navigation.dispatch(
+        CommonActions.navigate({
+          name: 'CrawlSession',
+          params: { crawl, resumeProgress },
+        })
+      );
     }
   };
 
   const handleStartCrawl = () => {
-    navigation.navigate('CrawlSession', { crawl });
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: 'CrawlSession',
+        params: { crawl },
+      })
+    );
   };
 
   let resumeInfo = null;
@@ -126,6 +152,15 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 14,
     textAlign: 'left',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
   },
 });
 

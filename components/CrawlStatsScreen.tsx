@@ -7,13 +7,13 @@ import { getCrawlStats } from '../utils/supabase';
 
 const CrawlStatsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const { user } = useAuthContext();
+  const { user, isLoading } = useAuthContext();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!user?.id) return;
+      if (!user?.id || isLoading) return;
       
       setLoading(true);
       const statsData = await getCrawlStats(user.id);
@@ -22,7 +22,19 @@ const CrawlStatsScreen: React.FC = () => {
     };
 
     fetchStats();
-  }, [user?.id]);
+  }, [user?.id, isLoading]);
+
+  // Show loading if auth is still loading
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <ActivityIndicator size="large" />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (loading) {
     return (

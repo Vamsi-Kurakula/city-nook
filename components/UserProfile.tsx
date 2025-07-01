@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthContext } from './AuthContext';
 import { useOAuth } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
@@ -56,11 +56,19 @@ const UserProfile: React.FC = () => {
   };
 
   const handleCrawlStats = () => {
-    navigation.navigate('CrawlStats');
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: 'CrawlStats',
+      })
+    );
   };
 
   const handleCrawlHistory = () => {
-    navigation.navigate('CrawlHistory');
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: 'CrawlHistory',
+      })
+    );
   };
 
   if (isLoading) {
@@ -111,13 +119,13 @@ const UserProfile: React.FC = () => {
               ) : (
                 <View style={styles.avatarPlaceholder}>
                   <Text style={styles.avatarText}>
-                    {user?.firstName?.charAt(0) || user?.emailAddresses[0]?.emailAddress?.charAt(0) || 'U'}
+                    {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
                   </Text>
                 </View>
               )}
             </View>
-            <Text style={styles.name}>{user?.fullName || user?.emailAddresses[0]?.emailAddress || 'User'}</Text>
-            <Text style={styles.email}>{user?.emailAddresses[0]?.emailAddress}</Text>
+            <Text style={styles.name}>{user?.fullName || user?.emailAddresses?.[0]?.emailAddress || 'User'}</Text>
+            <Text style={styles.email}>{user?.emailAddresses?.[0]?.emailAddress}</Text>
           </View>
 
           <View style={styles.section}>

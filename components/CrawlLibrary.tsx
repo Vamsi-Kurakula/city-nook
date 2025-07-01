@@ -10,7 +10,10 @@ import { useCrawlContext } from './CrawlContext';
 import { RootTabParamList } from '../types/navigation';
 import { Crawl, CrawlSteps } from '../types/crawl';
 import { loadCrawlSteps } from './auto-generated/crawlAssetLoader';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useAuthContext } from './AuthContext';
+import { loadCrawls } from '../utils/crawlAssetLoader';
+import { CrawlContext } from './CrawlContext';
 
 interface CrawlData {
   crawls: Crawl[];
@@ -86,7 +89,12 @@ const CrawlLibrary: React.FC = () => {
   }, []);
 
   const handleCrawlPress = (crawl: Crawl) => {
-    navigation.navigate('CrawlDetail', { crawl });
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: 'CrawlDetail',
+        params: { crawl },
+      })
+    );
   };
 
   const handleCrawlStart = (crawl: Crawl) => {
@@ -95,7 +103,7 @@ const CrawlLibrary: React.FC = () => {
       
       // Use the context function to handle state updates and navigation
       startCrawlWithNavigation(crawl, () => {
-        navigation.navigate('Current Crawl');
+        (navigation as any).navigate('CrawlSession', { crawl });
         setIsStartingCrawl(false);
       });
     }

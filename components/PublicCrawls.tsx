@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, StatusBar, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
@@ -7,7 +7,7 @@ import yaml from 'js-yaml';
 import CrawlList from './CrawlList';
 import { Crawl } from '../types/crawl';
 import { loadCrawlSteps } from './auto-generated/crawlAssetLoader';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 
 interface CrawlData {
   crawls: Crawl[];
@@ -69,9 +69,12 @@ const PublicCrawls: React.FC = () => {
   }, []);
 
   const handleCrawlPress = (crawl: Crawl) => {
-    if (crawl['public-crawl']) {
-      navigation.navigate('PublicCrawlDetail', { crawl });
-    }
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: 'PublicCrawlDetail',
+        params: { crawl },
+      })
+    );
   };
 
   const handleCrawlStart = (crawl: Crawl) => {
@@ -90,7 +93,12 @@ const PublicCrawls: React.FC = () => {
   if (crawls.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.header}>Public Crawls</Text>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.header}>Public Crawls</Text>
+        </View>
         <Text style={styles.errorText}>No public crawls available yet.</Text>
       </SafeAreaView>
     );
@@ -98,7 +106,12 @@ const PublicCrawls: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Public Crawls</Text>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.header}>Public Crawls</Text>
+      </View>
       <CrawlList
         crawls={crawls}
         onCrawlPress={handleCrawlPress}
@@ -114,11 +127,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingTop: StatusBar.currentHeight || 0,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+  },
+  backButton: {
+    padding: 5,
+  },
+  backButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
   header: {
     fontSize: 32,
     fontWeight: 'bold',
-    margin: 20,
-    textAlign: 'center',
+    marginLeft: 10,
   },
   errorText: {
     fontSize: 18,

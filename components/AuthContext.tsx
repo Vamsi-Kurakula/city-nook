@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('user_profiles')
           .insert({
             id: userId,
-            email: user?.emailAddresses[0]?.emailAddress || '',
+            email: user?.emailAddresses?.[0]?.emailAddress || '',
             full_name: user?.fullName || '',
             avatar_url: user?.imageUrl || '',
           })

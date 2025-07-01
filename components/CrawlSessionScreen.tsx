@@ -12,7 +12,21 @@ import { saveCrawlProgress, addCrawlHistory } from '../utils/supabase';
 const CrawlSessionScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
-  const { crawl: navCrawl, resumeProgress } = (route.params as { crawl: Crawl, resumeProgress?: any });
+  // Defensive extraction and logging
+  const routeParams = route.params as { crawl?: any; crawlId?: string; resumeData?: any; resumeProgress?: any } | undefined;
+  const crawlData = routeParams?.crawl;
+  const crawlId = routeParams?.crawlId;
+  console.log('CrawlSessionScreen route params:', routeParams);
+  if (!crawlData && !crawlId) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.title}>No crawl data found (CrawlSessionScreen).</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.exitButton}>
+          <Text style={styles.exitButtonText}>Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
   const {
     currentCrawl,
     setCurrentCrawl,
@@ -28,44 +42,57 @@ const CrawlSessionScreen: React.FC = () => {
   const { user } = useAuthContext();
 
   const [loading, setLoading] = useState(false);
-  const [steps, setSteps] = useState<CrawlStep[]>(navCrawl.steps || []);
+  const [steps, setSteps] = useState<CrawlStep[]>(routeParams?.crawl?.steps || []);
   const [showPastSteps, setShowPastSteps] = useState(false);
+
+  // Load crawl data if we only have crawlId
+  useEffect(() => {
+    if (!crawlData && crawlId) {
+      setLoading(true);
+      // For now, we'll need to load the crawl data based on crawlId
+      // This would need to be implemented based on your crawl loading logic
+      setLoading(false);
+    } else if (routeParams?.crawl) {
+      setCrawlData(routeParams.crawl);
+    }
+  }, [crawlData, crawlId, routeParams?.crawl]);
 
   // Load steps if not present
   useEffect(() => {
-    if (!navCrawl.steps || navCrawl.steps.length === 0) {
+    if (crawlData && (!crawlData.steps || crawlData.steps.length === 0)) {
       setLoading(true);
-      loadCrawlSteps(navCrawl.assetFolder).then(data => {
+      loadCrawlSteps(crawlData.assetFolder).then(data => {
         setSteps(data?.steps || []);
         setLoading(false);
       });
-    } else {
-      setSteps(navCrawl.steps);
+    } else if (crawlData) {
+      setSteps(crawlData.steps || []);
     }
-  }, [navCrawl]);
+  }, [crawlData]);
 
   // Start session if not already
   useEffect(() => {
-    if (!isCrawlActive || !currentCrawl || currentCrawl.id !== navCrawl.id) {
-      setCurrentCrawl({ ...navCrawl, steps });
+    if (crawlData && (!isCrawlActive || !currentCrawl || currentCrawl.id !== crawlData.id)) {
+      setCurrentCrawl({ ...crawlData, steps });
       setIsCrawlActive(true);
-      if (resumeProgress) {
+      const resumeDataToUse = routeParams?.resumeData || routeParams?.resumeProgress;
+      if (resumeDataToUse) {
         setCurrentProgress({
-          crawl_id: navCrawl.id,
-          current_step: resumeProgress.current_step,
-          completed_steps: (resumeProgress.completed_steps || []).map((stepNum: number, idx: number) => ({
+          crawl_id: crawlData.id,
+          current_step: resumeDataToUse.currentStep || resumeDataToUse.current_step,
+          completed_steps: (resumeDataToUse.completedSteps || resumeDataToUse.completed_steps || []).map((stepNum: number, idx: number) => ({
             step_number: stepNum,
             completed: true,
             user_answer: '', // If you want to store answers, update this
             completed_at: undefined,
           })),
-          started_at: resumeProgress.started_at ? new Date(resumeProgress.started_at) : new Date(),
-          last_updated: resumeProgress.updated_at ? new Date(resumeProgress.updated_at) : new Date(),
+          started_at: resumeDataToUse.startTime || resumeDataToUse.started_at ? new Date(resumeDataToUse.startTime || resumeDataToUse.started_at) : new Date(),
+          last_updated: resumeDataToUse.updated_at ? new Date(resumeDataToUse.updated_at) : new Date(),
           completed: false,
         });
       } else {
         setCurrentProgress({
-          crawl_id: navCrawl.id,
+          crawl_id: crawlData.id,
           current_step: 1,
           completed_steps: [],
           started_at: new Date(),
@@ -74,7 +101,7 @@ const CrawlSessionScreen: React.FC = () => {
         });
       }
     }
-  }, [isCrawlActive, currentCrawl, navCrawl, setCurrentCrawl, setIsCrawlActive, setCurrentProgress, steps, resumeProgress]);
+  }, [isCrawlActive, currentCrawl, crawlData, setCurrentCrawl, setIsCrawlActive, setCurrentProgress, steps, routeParams?.resumeData, routeParams?.resumeProgress]);
 
   const currentStepNumber = getCurrentStep();
   const totalSteps = steps.length;
@@ -150,7 +177,7 @@ const CrawlSessionScreen: React.FC = () => {
     }
   }, [isCompleted, user, currentProgress, currentCrawl, clearCrawlSession, navigation]);
 
-  if (loading || !steps.length) {
+  if (loading || !crawlData || !steps.length) {
     return (
       <SafeAreaView style={styles.container}>
         <ActivityIndicator size="large" />
@@ -198,7 +225,7 @@ const CrawlSessionScreen: React.FC = () => {
           step={currentStep}
           onComplete={handleStepComplete}
           isCompleted={false}
-          crawlStartTime={navCrawl.start_time}
+          crawlStartTime={crawlData?.start_time}
           currentStepIndex={currentStepNumber - 1}
           allSteps={steps}
         />
