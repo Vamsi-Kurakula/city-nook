@@ -72,6 +72,11 @@ const CrawlHistoryScreen: React.FC = () => {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" />
           <Text style={styles.loadingText}>Loading...</Text>
@@ -83,6 +88,11 @@ const CrawlHistoryScreen: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" />
           <Text style={styles.loadingText}>Loading history...</Text>
@@ -93,6 +103,11 @@ const CrawlHistoryScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.title}>Crawl History</Text>
       
       {history.length === 0 ? (
@@ -124,10 +139,6 @@ const CrawlHistoryScreen: React.FC = () => {
           contentContainerStyle={styles.listContainer}
         />
       )}
-      
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>Back to Profile</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -136,6 +147,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   title: {
     fontSize: 24,
@@ -207,13 +224,14 @@ const styles = StyleSheet.create({
     color: '#ccc',
     marginLeft: 12,
   },
-  backButton: {
-    padding: 20,
-    alignItems: 'center',
+  backButton: { 
+    paddingVertical: 8, 
+    paddingHorizontal: 12 
   },
-  backButtonText: {
-    color: '#888',
-    fontSize: 16,
+  backButtonText: { 
+    color: '#888', 
+    fontSize: 16, 
+    fontWeight: '600' 
   },
 });
 

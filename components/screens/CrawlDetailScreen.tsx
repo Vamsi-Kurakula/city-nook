@@ -19,10 +19,12 @@ const CrawlDetailScreen: React.FC = () => {
   if (!crawl) {
     return (
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={styles.title}>No crawl data found (CrawlDetailScreen).</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>Back</Text>
-        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -55,6 +57,11 @@ const CrawlDetailScreen: React.FC = () => {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading...</Text>
         </View>
@@ -102,6 +109,11 @@ const CrawlDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Image
           source={getHeroImageSource(crawl.assetFolder)}
@@ -123,15 +135,18 @@ const CrawlDetailScreen: React.FC = () => {
           </TouchableOpacity>
         )}
       </ScrollView>
-      <TouchableOpacity style={styles.backButtonBottom} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonBottomText}>Back to Crawl Library</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
   scrollContent: { padding: 24 },
   heroImage: { width: '100%', height: 200, borderRadius: 12, marginBottom: 16 },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
@@ -139,20 +154,8 @@ const styles = StyleSheet.create({
   meta: { fontSize: 14, color: '#888', marginBottom: 4 },
   startButton: { backgroundColor: '#007AFF', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 24 },
   startButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  backButton: { marginTop: 24, backgroundColor: '#007AFF', padding: 12, borderRadius: 8, alignItems: 'center' },
-  backButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  backButtonBottom: {
-    position: 'absolute',
-    left: 24,
-    bottom: 24,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  backButtonBottomText: {
-    color: '#888',
-    fontSize: 14,
-    textAlign: 'left',
-  },
+  backButton: { paddingVertical: 8, paddingHorizontal: 12 },
+  backButtonText: { color: '#888', fontSize: 16, fontWeight: '600' },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

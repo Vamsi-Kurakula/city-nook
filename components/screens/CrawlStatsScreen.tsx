@@ -28,6 +28,11 @@ const CrawlStatsScreen: React.FC = () => {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.content}>
           <ActivityIndicator size="large" />
           <Text style={styles.loadingText}>Loading...</Text>
@@ -39,6 +44,11 @@ const CrawlStatsScreen: React.FC = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.content}>
           <ActivityIndicator size="large" />
           <Text style={styles.loadingText}>Loading stats...</Text>
@@ -49,6 +59,11 @@ const CrawlStatsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.content}>
         <Text style={styles.title}>Crawl Statistics</Text>
         
@@ -69,10 +84,6 @@ const CrawlStatsScreen: React.FC = () => {
           </View>
         </View>
       </View>
-      
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>Back to Profile</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -81,6 +92,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   content: {
     flex: 1,
@@ -121,13 +138,14 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
-  backButton: {
-    padding: 20,
-    alignItems: 'center',
+  backButton: { 
+    paddingVertical: 8, 
+    paddingHorizontal: 12 
   },
-  backButtonText: {
-    color: '#888',
-    fontSize: 16,
+  backButtonText: { 
+    color: '#888', 
+    fontSize: 16, 
+    fontWeight: '600' 
   },
 });
 
