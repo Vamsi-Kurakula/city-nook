@@ -1,29 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, StatusBar, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Text, StyleSheet, StatusBar, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
+import { Asset } from 'expo-asset';
 import yaml from 'js-yaml';
-import CrawlList from './CrawlList';
-import { Crawl } from '../types/crawl';
-import { loadCrawlSteps } from './auto-generated/crawlAssetLoader';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import CrawlList from '../ui/CrawlList';
+import { useCrawlContext } from '../context/CrawlContext';
+import { RootTabParamList } from '../../types/navigation';
+import { Crawl } from '../../types/crawl';
+import { loadCrawlSteps } from '../auto-generated/crawlAssetLoader';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 
 interface CrawlData {
   crawls: Crawl[];
 }
 
-const PublicCrawls: React.FC = () => {
+type CrawlLibraryNavigationProp = BottomTabNavigationProp<RootTabParamList, 'Crawl Library'>;
+
+const CrawlLibrary: React.FC = () => {
   const [crawls, setCrawls] = useState<Crawl[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isStartingCrawl, setIsStartingCrawl] = useState(false);
+  
+  const { startCrawlWithNavigation } = useCrawlContext();
   const navigation = useNavigation<any>();
 
   useEffect(() => {
     const loadCrawls = async () => {
       try {
-        console.log('Loading public crawls...');
+        console.log('Loading crawls...');
         // Load main crawls list
-        const asset = Asset.fromModule(require('../assets/public-crawls/crawls.yml'));
+        const asset = Asset.fromModule(require('../../assets/crawl-library/crawls.yml'));
         await asset.downloadAsync();
         const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
         const data = yaml.load(yamlString) as CrawlData;
@@ -34,6 +42,11 @@ const PublicCrawls: React.FC = () => {
           // Load steps for each crawl using the utility
           const crawlsWithSteps = await Promise.all(
             data.crawls.map(async (crawl) => {
+              console.log('About to load steps for assetFolder:', crawl.assetFolder, 'in crawl:', crawl.name);
+              if (!crawl.assetFolder) {
+                console.warn('Skipping crawl with missing assetFolder:', crawl);
+                return crawl;
+              }
               try {
                 console.log(`Loading steps for ${crawl.name} (${crawl.assetFolder})...`);
                 const stepsData = await loadCrawlSteps(crawl.assetFolder);
@@ -49,11 +62,11 @@ const PublicCrawls: React.FC = () => {
           );
           console.log('All crawls loaded successfully:', crawlsWithSteps.map(c => ({ name: c.name, steps: c.steps?.length || 0 })));
           
-          // Filter to only show public crawls (public-crawl: true)
-          const publicCrawls = crawlsWithSteps.filter(crawl => crawl['public-crawl'] === true);
-          console.log(`Filtered to ${publicCrawls.length} public crawls`);
+          // Filter to only show private crawls (public-crawl: false) in Crawl Library
+          const privateCrawls = crawlsWithSteps.filter(crawl => crawl['public-crawl'] === false);
+          console.log(`Filtered to ${privateCrawls.length} private crawls`);
           
-          setCrawls(publicCrawls);
+          setCrawls(privateCrawls);
         } else {
           console.error('No crawls found in data');
           setCrawls([]);
@@ -71,15 +84,22 @@ const PublicCrawls: React.FC = () => {
   const handleCrawlPress = (crawl: Crawl) => {
     navigation.dispatch(
       CommonActions.navigate({
-        name: 'PublicCrawlDetail',
+        name: 'CrawlDetail',
         params: { crawl },
       })
     );
   };
 
   const handleCrawlStart = (crawl: Crawl) => {
-    // For now, just log the crawl start
-    console.log('Public crawl started:', crawl.name);
+    if (!isStartingCrawl) {
+      setIsStartingCrawl(true);
+      
+      // Use the context function to handle state updates and navigation
+      startCrawlWithNavigation(crawl, () => {
+        (navigation as any).navigate('CrawlSession', { crawl });
+        setIsStartingCrawl(false);
+      });
+    }
   };
 
   if (loading) {
@@ -93,29 +113,19 @@ const PublicCrawls: React.FC = () => {
   if (crawls.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.header}>Public Crawls</Text>
-        </View>
-        <Text style={styles.errorText}>No public crawls available yet.</Text>
+        <Text style={styles.header}>Crawl Library</Text>
+        <Text style={styles.errorText}>No crawls found. Please check your crawls.yml file.</Text>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.header}>Public Crawls</Text>
-      </View>
-      <CrawlList
-        crawls={crawls}
+      <Text style={styles.header}>Crawl Library</Text>
+      <CrawlList 
+        crawls={crawls} 
         onCrawlPress={handleCrawlPress}
-        onCrawlStart={() => {}}
+        onCrawlStart={handleCrawlStart}
       />
     </SafeAreaView>
   );
@@ -127,22 +137,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingTop: StatusBar.currentHeight || 0,
   },
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-  },
-  backButton: {
-    padding: 5,
-  },
-  backButtonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
   header: {
     fontSize: 32,
     fontWeight: 'bold',
-    marginLeft: 10,
+    margin: 20,
+    textAlign: 'center',
   },
   errorText: {
     fontSize: 18,
@@ -152,4 +151,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PublicCrawls; 
+export default CrawlLibrary; 

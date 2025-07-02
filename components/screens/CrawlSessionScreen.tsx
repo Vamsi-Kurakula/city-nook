@@ -2,12 +2,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Modal, FlatList, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { useCrawlContext } from './CrawlContext';
-import { Crawl, CrawlStep } from '../types/crawl';
-import { loadCrawlSteps } from './auto-generated/crawlAssetLoader';
-import { StepComponent } from './StepComponents';
-import { useAuthContext } from './AuthContext';
-import { saveCrawlProgress, addCrawlHistory } from '../utils/supabase';
+import { useCrawlContext } from '../context/CrawlContext';
+import { Crawl, CrawlStep } from '../../types/crawl';
+import { loadCrawlSteps } from '../auto-generated/crawlAssetLoader';
+import { StepComponent } from '../ui/StepComponents';
+import { useAuthContext } from '../context/AuthContext';
+import { saveCrawlProgress, addCrawlHistory } from '../../utils/supabase';
 
 const CrawlSessionScreen: React.FC = () => {
   const route = useRoute();
@@ -131,7 +131,7 @@ const CrawlSessionScreen: React.FC = () => {
                 userId: user.id,
                 crawlId: currentProgress.crawl_id,
                 currentStep: currentProgress.current_step,
-                completedSteps: currentProgress.completed_steps.map(s => s.step_number),
+                completedSteps: currentProgress.completed_steps.map((s: any) => s.step_number),
                 startedAt: new Date(currentProgress.started_at).toISOString(),
                 completedAt: currentProgress.completed ? new Date().toISOString() : undefined,
               });
@@ -169,13 +169,15 @@ const CrawlSessionScreen: React.FC = () => {
           userId: user.id,
           crawlId: currentCrawl.id,
           currentStep: currentProgress.current_step,
-          completedSteps: currentProgress.completed_steps.map(s => s.step_number),
+          completedSteps: currentProgress.completed_steps.map((s: any) => s.step_number),
           startedAt: started.toISOString(),
           completedAt: completed.toISOString(),
         });
       })();
     }
   }, [isCompleted, user, currentProgress, currentCrawl, clearCrawlSession, navigation]);
+
+  const isPublicCrawl = crawlData?.start_time && steps && steps.some((s: CrawlStep) => s.reveal_after_minutes !== undefined);
 
   if (loading || !crawlData || !steps.length) {
     return (
@@ -242,7 +244,7 @@ const CrawlSessionScreen: React.FC = () => {
             data={completedSteps}
             keyExtractor={item => item.step_number.toString()}
             renderItem={({ item }) => {
-              const step = steps.find(s => s.step_number === item.step_number);
+              const step = steps.find((s: CrawlStep) => s.step_number === item.step_number);
               const question = step?.step_components?.description || step?.step_components?.riddle || step?.step_components?.photo_instructions || step?.step_components?.location_name || step?.step_components?.photo_target || '';
               return (
                 <View style={styles.pastStepItem}>
@@ -392,6 +394,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 12 },
 });
 
 export default CrawlSessionScreen; 

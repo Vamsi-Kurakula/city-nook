@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { Crawl } from '../types/crawl';
-import { calculateCrawlStatus, formatTimeForDisplay, parseTimeString } from '../utils/crawlStatus';
+import { Crawl } from '../../types/crawl';
+import { calculateCrawlStatus, formatTimeForDisplay, parseTimeString } from '../../utils/crawlStatus';
 
 interface CrawlCardProps {
   crawl: Crawl;

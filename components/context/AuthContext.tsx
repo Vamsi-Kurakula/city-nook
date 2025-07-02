@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-expo';
-import { supabase } from '../utils/supabase';
-import { UserProfile } from '../utils/supabase';
+import { supabase } from '../../utils/supabase';
+import { UserProfile } from '../../utils/supabase';
 
 interface AuthContextType {
   isSignedIn: boolean;

@@ -1,12 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
-import { useCrawlContext } from './CrawlContext';
-import { Crawl } from '../types/crawl';
-import { getHeroImageSource } from './auto-generated/ImageLoader';
-import { useAuthContext } from './AuthContext';
-import { supabase } from '../utils/supabase';
+import { useCrawlContext } from '../context/CrawlContext';
+import { Crawl } from '../../types/crawl';
+import { getHeroImageSource } from '../auto-generated/ImageLoader';
+import { useAuthContext } from '../context/AuthContext';
+import { supabase } from '../../utils/supabase';
 
 const CrawlDetailScreen: React.FC = () => {
   const route = useRoute();

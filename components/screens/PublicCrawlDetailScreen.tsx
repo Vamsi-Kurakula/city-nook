@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
-import { supabase } from '../utils/supabase';
-import { useAuthContext } from './AuthContext';
-import { getHeroImageSource } from './auto-generated/ImageLoader';
-import { loadCrawlSteps } from './auto-generated/crawlAssetLoader';
-import { Crawl, CrawlSteps } from '../types/crawl';
-import { loadPublicCrawls } from '../utils/publicCrawlLoader';
+import { supabase } from '../../utils/supabase';
+import { useAuthContext } from '../context/AuthContext';
+import { getHeroImageSource } from '../auto-generated/ImageLoader';
+import { loadCrawlSteps } from '../auto-generated/crawlAssetLoader';
+import { Crawl, CrawlSteps } from '../../types/crawl';
+import { loadPublicCrawls } from '../../utils/publicCrawlLoader';
 
 const PublicCrawlDetailScreen: React.FC = () => {
   const route = useRoute();
@@ -35,21 +35,21 @@ const PublicCrawlDetailScreen: React.FC = () => {
           const publicCrawls = await loadPublicCrawls();
           const foundCrawl = publicCrawls.find(c => c.id === crawlId);
           if (foundCrawl) {
-            setCrawlData(foundCrawl);
+            setCrawlData({
+              ...foundCrawl,
+              'public-crawl': true
+            });
           }
         } catch (error) {
           console.error('Error loading crawl data:', error);
         } finally {
           setLoading(false);
         }
-      } else if (crawl) {
-        setCrawlData(crawl);
-        setLoading(false);
       }
     };
     
     loadCrawlData();
-  }, [crawl, crawlId]);
+  }, [crawlId]); // Only depend on crawlId, not crawl
   
   // Fetch signups when crawl data is available
   useEffect(() => {

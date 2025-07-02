@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FlatList, View, StyleSheet } from 'react-native';
 import CrawlCard from './CrawlCard';
-import { Crawl } from '../types/crawl';
+import { Crawl } from '../../types/crawl';
 
 interface CrawlListProps {
   crawls: Crawl[];

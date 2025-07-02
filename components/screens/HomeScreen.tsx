@@ -11,19 +11,19 @@ import {
   FlatList,
 } from 'react-native';
 import { useNavigation, CommonActions } from '@react-navigation/native';
-import { useAuthContext } from './AuthContext';
+import { useAuthContext } from '../context/AuthContext';
 import { SafeAreaView as SafeAreaViewRN } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import yaml from 'js-yaml';
-import { supabase } from '../utils/supabase';
-import { loadPublicCrawls } from '../utils/publicCrawlLoader';
-import { loadFeaturedCrawls, FeaturedCrawl } from '../utils/featuredCrawlLoader';
-import { loadCrawlSteps } from './auto-generated/crawlAssetLoader';
-import { formatTimeRemaining } from '../utils/crawlStatus';
-import { Crawl } from '../types/crawl';
-import { getHeroImageSource } from './auto-generated/ImageLoader';
+import { supabase } from '../../utils/supabase';
+import { loadPublicCrawls } from '../../utils/publicCrawlLoader';
+import { loadFeaturedCrawls, FeaturedCrawl } from '../../utils/featuredCrawlLoader';
+import { loadCrawlSteps } from '../auto-generated/crawlAssetLoader';
+import { formatTimeRemaining } from '../../utils/crawlStatus';
+import { Crawl } from '../../types/crawl';
+import { getHeroImageSource } from '../auto-generated/ImageLoader';
 
 interface PublicCrawl {
   id: string;
@@ -196,7 +196,7 @@ export default function HomeScreen() {
         crawlData = publicCrawls.find((c: any) => c.id === currentCrawl.crawlId);
       } else {
         // Load library crawl data
-        const asset = Asset.fromModule(require('../assets/crawl-library/crawls.yml'));
+        const asset = Asset.fromModule(require('../../assets/crawl-library/crawls.yml'));
         await asset.downloadAsync();
         const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
         const data = yaml.load(yamlString) as { crawls: any[] };
@@ -250,7 +250,7 @@ export default function HomeScreen() {
   const handleFeaturedCrawlPress = async (crawlId: string) => {
     try {
       // Load the full crawl data from the crawl library
-      const asset = Asset.fromModule(require('../assets/crawl-library/crawls.yml'));
+      const asset = Asset.fromModule(require('../../assets/crawl-library/crawls.yml'));
       await asset.downloadAsync();
       const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
       const data = yaml.load(yamlString) as { crawls: Crawl[] };

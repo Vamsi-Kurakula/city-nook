@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Crawl, CrawlProgress, UserStepProgress } from '../types/crawl';
+import { Crawl, CrawlProgress, UserStepProgress } from '../../types/crawl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface CrawlContextType {

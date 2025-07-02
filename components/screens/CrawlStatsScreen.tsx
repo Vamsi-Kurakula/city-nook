@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useAuthContext } from './AuthContext';
-import { getCrawlStats } from '../utils/supabase';
+import { useAuthContext } from '../context/AuthContext';
+import { getCrawlStats } from '../../utils/supabase';
 
 const CrawlStatsScreen: React.FC = () => {
   const navigation = useNavigation<any>();

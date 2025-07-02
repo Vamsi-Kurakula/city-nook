@@ -3,8 +3,8 @@ import AppNavigator from './AppNavigator';
 import { ClerkProvider, tokenCache, CLERK_PUBLISHABLE_KEY } from './utils/clerk';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AuthProvider } from './components/AuthContext';
-import { CrawlProvider } from './components/CrawlContext';
+import { AuthProvider } from './components/context/AuthContext';
+import { CrawlProvider } from './components/context/CrawlContext';
 import { NavigationContainer } from '@react-navigation/native';
 
 export default function App() {

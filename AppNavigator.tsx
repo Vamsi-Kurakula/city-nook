@@ -1,17 +1,17 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import HomeScreen from './components/HomeScreen';
-import PublicCrawls from './components/PublicCrawls';
-import CrawlLibrary from './components/CrawlLibrary';
-import UserProfile from './components/UserProfile';
+import HomeScreen from './components/screens/HomeScreen';
+import PublicCrawls from './components/screens/PublicCrawls';
+import CrawlLibrary from './components/screens/CrawlLibrary';
+import UserProfile from './components/screens/UserProfile';
 import { Ionicons } from '@expo/vector-icons';
-import CrawlDetailScreen from './components/CrawlDetailScreen';
-import CrawlSessionScreen from './components/CrawlSessionScreen';
-import PublicCrawlDetailScreen from './components/PublicCrawlDetailScreen';
-import CrawlStatsScreen from './components/CrawlStatsScreen';
-import CrawlHistoryScreen from './components/CrawlHistoryScreen';
-import CrawlHistoryDetailScreen from './components/CrawlHistoryDetailScreen';
+import CrawlDetailScreen from './components/screens/CrawlDetailScreen';
+import CrawlSessionScreen from './components/screens/CrawlSessionScreen';
+import PublicCrawlDetailScreen from './components/screens/PublicCrawlDetailScreen';
+import CrawlStatsScreen from './components/screens/CrawlStatsScreen';
+import CrawlHistoryScreen from './components/screens/CrawlHistoryScreen';
+import CrawlHistoryDetailScreen from './components/screens/CrawlHistoryDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();

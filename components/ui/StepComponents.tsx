@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
-import { CrawlStep } from '../types/crawl';
-import { validateAnswer } from '../utils/answerValidation';
-import { formatTimeRemaining } from '../utils/crawlStatus';
+import { CrawlStep } from '../../types/crawl';
+import { validateAnswer } from '../../utils/answerValidation';
+import { formatTimeRemaining } from '../../utils/crawlStatus';
 
 interface RiddleStepProps {
   step: CrawlStep;
