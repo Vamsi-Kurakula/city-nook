@@ -11,6 +11,7 @@ import {
   FlatList,
 } from 'react-native';
 import { useNavigation, CommonActions } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuthContext } from '../context/AuthContext';
 import { SafeAreaView as SafeAreaViewRN } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -24,6 +25,7 @@ import { loadCrawlSteps } from '../auto-generated/crawlAssetLoader';
 import { formatTimeRemaining } from '../../utils/crawlStatus';
 import { Crawl } from '../../types/crawl';
 import { getHeroImageSource } from '../auto-generated/ImageLoader';
+import { RootStackParamList } from '../../types/navigation';
 
 interface PublicCrawl {
   id: string;
@@ -45,7 +47,7 @@ interface CrawlProgress {
 }
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { user, isLoading } = useAuthContext();
   const userId = user?.id;
   const [featuredCrawls, setFeaturedCrawls] = useState<FeaturedCrawl[]>([]);
@@ -295,12 +297,7 @@ export default function HomeScreen() {
   };
 
   const handleViewAllFeaturedCrawls = () => {
-    navigation.dispatch(
-      CommonActions.navigate({
-        name: 'Tabs',
-        params: { screen: 'Crawl Library' },
-      })
-    );
+    navigation.navigate('CrawlLibrary');
   };
 
   const renderContinueCrawlButton = () => {
@@ -452,8 +449,28 @@ export default function HomeScreen() {
     <SafeAreaViewRN style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>City Crawler</Text>
-          <Text style={styles.subtitle}>Discover your city, one step at a time</Text>
+          <View style={styles.headerTop}>
+            <View style={styles.headerLeft}>
+              <Text style={styles.title}>City Crawler</Text>
+              <Text style={styles.subtitle}>Discover your city, one step at a time</Text>
+            </View>
+            <View style={styles.headerRight}>
+              <TouchableOpacity 
+                style={styles.profileButton} 
+                onPress={() => navigation.navigate('UserProfile')}
+              >
+                {user?.imageUrl ? (
+                  <Image source={{ uri: user.imageUrl }} style={styles.profileImage} />
+                ) : (
+                  <View style={styles.profilePlaceholder}>
+                    <Text style={styles.profilePlaceholderText}>
+                      {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         {renderContinueCrawlButton()}
@@ -484,6 +501,19 @@ const styles = StyleSheet.create({
   header: {
     padding: 20,
     paddingBottom: 10,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   title: {
     fontSize: 28,
@@ -641,5 +671,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#007AFF',
     fontWeight: '500',
+  },
+  profileButton: {
+    padding: 8,
+    borderRadius: 20,
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  profilePlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#e1e5e9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profilePlaceholderText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#666',
   },
 }); 

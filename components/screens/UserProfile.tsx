@@ -110,9 +110,14 @@ const UserProfile: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
-          <View style={styles.header}>
+          <View style={styles.profileHeader}>
             <View style={styles.avatarContainer}>
               {user?.imageUrl ? (
                 <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
@@ -173,6 +178,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
   scrollView: {
     flex: 1,
   },
@@ -184,7 +195,7 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
-  header: {
+  profileHeader: {
     alignItems: 'center',
     marginBottom: 30,
   },
@@ -319,6 +330,15 @@ const styles = StyleSheet.create({
   signInHeader: {
     alignItems: 'center',
     marginBottom: 60,
+  },
+  backButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  backButtonText: {
+    color: '#888',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

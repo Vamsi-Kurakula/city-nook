@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Text, StyleSheet, StatusBar, ActivityIndicator } from 'react-native';
+import { Text, StyleSheet, StatusBar, ActivityIndicator, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import yaml from 'js-yaml';
-import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { StackNavigationProp } from '@react-navigation/stack';
 import CrawlList from '../ui/CrawlList';
 import { useCrawlContext } from '../context/CrawlContext';
-import { RootTabParamList } from '../../types/navigation';
+import { RootStackParamList } from '../../types/navigation';
 import { Crawl } from '../../types/crawl';
 import { loadCrawlSteps } from '../auto-generated/crawlAssetLoader';
 import { useNavigation, CommonActions } from '@react-navigation/native';
@@ -16,7 +16,7 @@ interface CrawlData {
   crawls: Crawl[];
 }
 
-type CrawlLibraryNavigationProp = BottomTabNavigationProp<RootTabParamList, 'Crawl Library'>;
+type CrawlLibraryNavigationProp = StackNavigationProp<RootStackParamList, 'CrawlLibrary'>;
 
 const CrawlLibrary: React.FC = () => {
   const [crawls, setCrawls] = useState<Crawl[]>([]);
@@ -24,7 +24,7 @@ const CrawlLibrary: React.FC = () => {
   const [isStartingCrawl, setIsStartingCrawl] = useState(false);
   
   const { startCrawlWithNavigation } = useCrawlContext();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<CrawlLibraryNavigationProp>();
 
   useEffect(() => {
     const loadCrawls = async () => {
@@ -113,7 +113,12 @@ const CrawlLibrary: React.FC = () => {
   if (crawls.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.header}>Crawl Library</Text>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.headerTitle}>Crawl Library</Text>
         <Text style={styles.errorText}>No crawls found. Please check your crawls.yml file.</Text>
       </SafeAreaView>
     );
@@ -121,7 +126,12 @@ const CrawlLibrary: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Crawl Library</Text>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.headerTitle}>Crawl Library</Text>
       <CrawlList 
         crawls={crawls} 
         onCrawlPress={handleCrawlPress}
@@ -138,6 +148,21 @@ const styles = StyleSheet.create({
     paddingTop: StatusBar.currentHeight || 0,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  backButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  backButtonText: {
+    color: '#888',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  headerTitle: {
     fontSize: 32,
     fontWeight: 'bold',
     margin: 20,
