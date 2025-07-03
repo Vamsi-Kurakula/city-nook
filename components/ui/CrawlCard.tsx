@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Image } from 'react-native';
 import { Crawl } from '../../types/crawl';
 import { calculateCrawlStatus, formatTimeForDisplay, parseTimeString } from '../../utils/crawlStatus';
+import { getHeroImageSource } from '../auto-generated/ImageLoader';
 
 interface CrawlCardProps {
   crawl: Crawl;
   onPress: (crawl: Crawl) => void;
   onStart: (crawl: Crawl) => void;
   isExpanded: boolean;
+  width?: number;
+  marginHorizontal?: number;
 }
 
-const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpanded }) => {
+const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpanded, width, marginHorizontal }) => {
   const [animation] = useState(new Animated.Value(1));
   const [crawlStatus, setCrawlStatus] = useState<any>(null);
 
@@ -67,85 +70,103 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
   };
 
   return (
-    <Animated.View style={[styles.crawlCard, { transform: [{ scale: animation }] }]}>
+    <Animated.View style={[
+      styles.crawlCard, 
+      { 
+        transform: [{ scale: animation }], 
+        width: width,
+        marginHorizontal: marginHorizontal ?? 20
+      }
+    ]}>
       <TouchableOpacity 
         style={styles.cardContent} 
         onPress={() => onPress(crawl)} 
         activeOpacity={0.7}
         disabled={isExpanded}
       >
-        <View style={styles.cardLeft}>
-          <Text style={styles.crawlTitle}>{crawl.name}</Text>
-          {!isExpanded && (
-            <Text style={styles.crawlDesc} numberOfLines={2}>{crawl.description}</Text>
-          )}
-          
-          {/* Public Crawl Status and Timing */}
-          {crawl['public-crawl'] && crawl.start_time && crawlStatus && (
-            <View style={styles.publicCrawlInfo}>
-              <View style={styles.statusRow}>
-                <Text style={[styles.statusBadge, { color: getStatusColor(crawlStatus.status) }]}>
-                  {getStatusText(crawlStatus.status)}
-                </Text>
-                <Text style={styles.startTime}>
-                  🕐 {formatStartTime(crawl.start_time)}
-                </Text>
-              </View>
-              
-              {crawlStatus.status === 'upcoming' && crawlStatus.timeUntilStart && (
-                <Text style={styles.timingInfo}>
-                  {crawlStatus.timeUntilStart}
-                </Text>
-              )}
-              
-              {crawlStatus.status === 'ongoing' && (
-                <View style={styles.ongoingInfo}>
-                  <Text style={styles.timingInfo}>
-                    {crawlStatus.timeSinceStart}
+        {/* Hero Image - Top Half */}
+        <Image 
+          source={getHeroImageSource(crawl.assetFolder)} 
+          style={styles.heroImage}
+          resizeMode="cover"
+          onError={(error) => console.log('Image loading error:', error)}
+        />
+        
+        {/* Content - Bottom Half */}
+        <View style={styles.cardBody}>
+          <View style={styles.cardLeft}>
+            <Text style={styles.crawlTitle}>{crawl.name}</Text>
+            {!isExpanded && (
+              <Text style={styles.crawlDesc} numberOfLines={2}>{crawl.description}</Text>
+            )}
+            
+            {/* Public Crawl Status and Timing */}
+            {crawl['public-crawl'] && crawl.start_time && crawlStatus && (
+              <View style={styles.publicCrawlInfo}>
+                <View style={styles.statusRow}>
+                  <Text style={[styles.statusBadge, { color: getStatusColor(crawlStatus.status) }]}>
+                    {getStatusText(crawlStatus.status)}
                   </Text>
-                  {crawlStatus.currentStepIndex !== undefined && crawl.steps && (
-                    <Text style={styles.currentStep}>
-                      Step {crawlStatus.currentStepIndex + 1} of {crawl.steps.length}
-                    </Text>
-                  )}
+                  <Text style={styles.startTime}>
+                    🕐 {formatStartTime(crawl.start_time)}
+                  </Text>
                 </View>
-              )}
-              
-              {crawlStatus.status === 'completed' && (
-                <Text style={styles.timingInfo}>
-                  Ended {crawlStatus.estimatedEndTime && formatTimeForDisplay(crawlStatus.estimatedEndTime)}
-                </Text>
+                
+                {crawlStatus.status === 'upcoming' && crawlStatus.timeUntilStart && (
+                  <Text style={styles.timingInfo}>
+                    {crawlStatus.timeUntilStart}
+                  </Text>
+                )}
+                
+                {crawlStatus.status === 'ongoing' && (
+                  <View style={styles.ongoingInfo}>
+                    <Text style={styles.timingInfo}>
+                      {crawlStatus.timeSinceStart}
+                    </Text>
+                    {crawlStatus.currentStepIndex !== undefined && crawl.steps && (
+                      <Text style={styles.currentStep}>
+                        Step {crawlStatus.currentStepIndex + 1} of {crawl.steps.length}
+                      </Text>
+                    )}
+                  </View>
+                )}
+                
+                {crawlStatus.status === 'completed' && (
+                  <Text style={styles.timingInfo}>
+                    Ended {crawlStatus.estimatedEndTime && formatTimeForDisplay(crawlStatus.estimatedEndTime)}
+                  </Text>
+                )}
+              </View>
+            )}
+            
+            <View style={styles.crawlMeta}>
+              <Text style={styles.metaText}>{crawl.duration}</Text>
+              <Text style={styles.metaText}>{crawl.distance}</Text>
+              {crawl.steps && (
+                <Text style={styles.metaText}>{crawl.steps.length} steps</Text>
               )}
             </View>
-          )}
-          
-          <View style={styles.crawlMeta}>
-            <Text style={styles.metaText}>{crawl.duration}</Text>
-            <Text style={styles.metaText}>{crawl.distance}</Text>
-            {crawl.steps && (
-              <Text style={styles.metaText}>{crawl.steps.length} steps</Text>
-            )}
           </View>
+          
+          {isExpanded && (
+            <TouchableOpacity 
+              style={[
+                styles.startButton, 
+                crawl['public-crawl'] && crawlStatus?.status === 'completed' && styles.startButtonDisabled
+              ]} 
+              onPress={() => onStart(crawl)}
+              activeOpacity={0.8}
+              disabled={crawl['public-crawl'] && crawlStatus?.status === 'completed'}
+            >
+              <Text style={[
+                styles.startButtonText,
+                crawl['public-crawl'] && crawlStatus?.status === 'completed' && styles.startButtonTextDisabled
+              ]}>
+                {crawl['public-crawl'] && crawlStatus?.status === 'completed' ? 'Passed' : 'Start'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
-        
-        {isExpanded && (
-          <TouchableOpacity 
-            style={[
-              styles.startButton, 
-              crawl['public-crawl'] && crawlStatus?.status === 'completed' && styles.startButtonDisabled
-            ]} 
-            onPress={() => onStart(crawl)}
-            activeOpacity={0.8}
-            disabled={crawl['public-crawl'] && crawlStatus?.status === 'completed'}
-          >
-            <Text style={[
-              styles.startButtonText,
-              crawl['public-crawl'] && crawlStatus?.status === 'completed' && styles.startButtonTextDisabled
-            ]}>
-              {crawl['public-crawl'] && crawlStatus?.status === 'completed' ? 'Passed' : 'Start'}
-            </Text>
-          </TouchableOpacity>
-        )}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -155,7 +176,6 @@ const styles = StyleSheet.create({
   crawlCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    marginHorizontal: 20,
     marginVertical: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -164,9 +184,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cardContent: {
-    flexDirection: 'row',
-    padding: 16,
-    alignItems: 'center',
+    flexDirection: 'column',
+    padding: 0,
   },
   cardLeft: {
     flex: 1,
@@ -243,6 +262,16 @@ const styles = StyleSheet.create({
   },
   startButtonTextDisabled: {
     color: '#999',
+  },
+  heroImage: {
+    width: '100%',
+    height: 120,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  cardBody: {
+    padding: 16,
+    flexDirection: 'row',
   },
 });
 

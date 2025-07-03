@@ -26,6 +26,7 @@ import { formatTimeRemaining } from '../../utils/crawlStatus';
 import { Crawl } from '../../types/crawl';
 import { getHeroImageSource } from '../auto-generated/ImageLoader';
 import { RootStackParamList } from '../../types/navigation';
+import CrawlCard from '../ui/CrawlCard';
 
 interface PublicCrawl {
   id: string;
@@ -51,6 +52,7 @@ export default function HomeScreen() {
   const { user, isLoading } = useAuthContext();
   const userId = user?.id;
   const [featuredCrawls, setFeaturedCrawls] = useState<FeaturedCrawl[]>([]);
+  const [fullFeaturedCrawls, setFullFeaturedCrawls] = useState<Crawl[]>([]);
   const [upcomingCrawls, setUpcomingCrawls] = useState<PublicCrawl[]>([]);
   const [userSignups, setUserSignups] = useState<string[]>([]);
   const [currentCrawl, setCurrentCrawl] = useState<CrawlProgress | null>(null);
@@ -79,6 +81,37 @@ export default function HomeScreen() {
       // Load featured crawls
       const featured = await loadFeaturedCrawls();
       setFeaturedCrawls(featured);
+
+      // Load full crawl data for featured crawls
+      const fullFeaturedData = await Promise.all(
+        featured.map(async (featuredCrawl) => {
+          try {
+            // Load the main crawls data
+            const asset = Asset.fromModule(require('../../assets/crawl-library/crawls.yml'));
+            await asset.downloadAsync();
+            const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
+            const data = yaml.load(yamlString) as any;
+            
+            // Find the full crawl data
+            const crawl = data.crawls.find((c: any) => c.id === featuredCrawl.id);
+            if (crawl) {
+              // Load steps for the crawl
+              const stepsData = await loadCrawlSteps(crawl.assetFolder);
+              return {
+                ...crawl,
+                steps: stepsData?.steps || [],
+              };
+            }
+            return null;
+          } catch (error) {
+            console.error('Error loading full crawl data for featured crawl:', error);
+            return null;
+          }
+        })
+      );
+      
+      const validFullFeaturedCrawls = fullFeaturedData.filter(crawl => crawl !== null) as Crawl[];
+      setFullFeaturedCrawls(validFullFeaturedCrawls);
 
       // Load upcoming public crawls and user signups
       if (userId) {
@@ -255,28 +288,35 @@ export default function HomeScreen() {
       const asset = Asset.fromModule(require('../../assets/crawl-library/crawls.yml'));
       await asset.downloadAsync();
       const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
-      const data = yaml.load(yamlString) as { crawls: Crawl[] };
+      const data = yaml.load(yamlString) as any;
       
-      const crawl = data.crawls.find(c => c.id === crawlId);
+      const crawl = data.crawls.find((c: any) => c.id === crawlId);
       if (crawl) {
         // Load steps for the crawl
         const stepsData = await loadCrawlSteps(crawl.assetFolder);
-        const fullCrawl = {
+        const crawlWithSteps = {
           ...crawl,
-          steps: stepsData?.steps || []
+          steps: stepsData?.steps || [],
         };
         
         navigation.dispatch(
           CommonActions.navigate({
             name: 'CrawlDetail',
-            params: { crawl: fullCrawl },
+            params: { crawl: crawlWithSteps },
           })
         );
       }
     } catch (error) {
-      console.error('Error loading crawl data:', error);
-      Alert.alert('Error', 'Could not load crawl data');
+      console.error('Error loading featured crawl:', error);
     }
+  };
+
+  const handleFeaturedCrawlCardPress = (crawl: Crawl) => {
+    handleFeaturedCrawlPress(crawl.id);
+  };
+
+  const handleFeaturedCrawlCardStart = (crawl: Crawl) => {
+    handleFeaturedCrawlPress(crawl.id);
   };
 
   const handlePublicCrawlPress = (crawlId: string) => {
@@ -384,40 +424,28 @@ export default function HomeScreen() {
   };
 
   const renderFeaturedCrawls = () => {
-    if (featuredCrawls.length === 0) return null;
+    if (fullFeaturedCrawls.length === 0) return null;
 
     return (
       <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured Crawls</Text>
-          <TouchableOpacity onPress={handleViewAllFeaturedCrawls}>
-            <Text style={styles.viewAllButton}>View All</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.sectionTitle}>Featured Crawls</Text>
         <FlatList
-          data={featuredCrawls}
+          data={fullFeaturedCrawls}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalListContainer}
           keyExtractor={(item) => item.id}
           renderItem={({ item: crawl }) => (
-            <TouchableOpacity
-              style={styles.horizontalCrawlCard}
-              onPress={() => handleFeaturedCrawlPress(crawl.id)}
-            >
-              <Image 
-                source={getHeroImageSource(crawl.assetFolder)} 
-                style={styles.horizontalCrawlImage}
-                resizeMode="cover"
-                onError={(error) => console.log('Image loading error:', error)}
+            <View style={styles.horizontalCardContainer}>
+              <CrawlCard 
+                crawl={crawl} 
+                onPress={handleFeaturedCrawlCardPress}
+                onStart={handleFeaturedCrawlCardStart}
+                isExpanded={false}
+                width={280}
+                marginHorizontal={2}
               />
-              <View style={styles.horizontalCrawlContent}>
-                <Text style={styles.horizontalCrawlTitle} numberOfLines={1}>{crawl.title}</Text>
-                <Text style={styles.horizontalCrawlDescription} numberOfLines={2}>
-                  {crawl.description}
-                </Text>
-              </View>
-            </TouchableOpacity>
+            </View>
           )}
         />
       </View>
@@ -475,6 +503,25 @@ export default function HomeScreen() {
 
         {renderContinueCrawlButton()}
         {renderUpcomingCrawls()}
+        
+        {/* Crawl Library Button */}
+        <View style={[styles.section, { marginTop: 20 }]}>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity 
+              style={styles.halfWidthButton} 
+              onPress={() => navigation.navigate('CrawlLibrary')}
+            >
+              <Text style={styles.halfWidthButtonText}>📚 Crawl Library</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.halfWidthButton} 
+              onPress={() => console.log('Join crawl button pressed')}
+            >
+              <Text style={styles.halfWidthButtonText}>🎯 Join Crawl</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        
         {renderFeaturedCrawls()}
       </ScrollView>
     </SafeAreaViewRN>
@@ -575,11 +622,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   crawlCard: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    marginBottom: 12,
+    backgroundColor: '#fff',
     borderRadius: 12,
-    overflow: 'hidden',
+    marginVertical: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -596,8 +641,8 @@ const styles = StyleSheet.create({
   },
   crawlTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontWeight: 'bold',
+    color: '#333',
     marginBottom: 4,
   },
   crawlDescription: {
@@ -628,7 +673,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   horizontalListContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 4,
   },
   horizontalCrawlCard: {
     backgroundColor: 'white',
@@ -693,5 +738,40 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#666',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    gap: 12,
+  },
+  halfWidthButton: {
+    flex: 1,
+    backgroundColor: '#007AFF',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 60,
+  },
+  halfWidthButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'white',
+  },
+  horizontalCardContainer: {
+    marginRight: 4,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  cardContent: {
+    padding: 16,
+  },
+  crawlDesc: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+    lineHeight: 20,
   },
 }); 
