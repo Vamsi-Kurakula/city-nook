@@ -30,12 +30,12 @@ export interface CrawlStatus {
   timeUntilStart?: string;
   timeSinceStart?: string;
   estimatedEndTime?: Date;
-  currentStepIndex?: number;
-  stepDurations: { [stepNumber: number]: number }; // Duration in minutes
+  currentStopIndex?: number;
+  stopDurations: { [stopNumber: number]: number }; // Duration in minutes
 }
 
-export interface StepTiming {
-  stepNumber: number;
+export interface StopTiming {
+  stopNumber: number;
   startTime: Date;
   endTime: Date;
   duration: number; // minutes
@@ -79,12 +79,12 @@ export const parseTimeString = (timeString: string): Date => {
 export const calculateCrawlStatus = (
   startTimeString: string | undefined,
   duration: string,
-  steps?: any[]
+  stops?: any[]
 ): CrawlStatus => {
   if (!startTimeString) {
     return {
       status: 'unknown',
-      stepDurations: {}
+      stopDurations: {}
     };
   }
 
@@ -97,16 +97,16 @@ export const calculateCrawlStatus = (
   
   const estimatedEndTime = new Date(startTime.getTime() + (durationHours * 60 * 60 * 1000));
   
-  // Calculate step durations (evenly distribute time across steps)
-  const stepDurations: { [stepNumber: number]: number } = {};
-  if (steps && steps.length > 0) {
+  // Calculate stop durations (evenly distribute time across stops)
+  const stopDurations: { [stopNumber: number]: number } = {};
+  if (stops && stops.length > 0) {
     const totalMinutes = durationHours * 60;
-    const minutesPerStep = Math.floor(totalMinutes / steps.length);
-    const remainingMinutes = totalMinutes % steps.length;
+    const minutesPerStop = Math.floor(totalMinutes / stops.length);
+    const remainingMinutes = totalMinutes % stops.length;
     
-    steps.forEach((step, index) => {
-      const stepNumber = step.step_number;
-      stepDurations[stepNumber] = minutesPerStep + (index < remainingMinutes ? 1 : 0);
+    stops.forEach((stop, index) => {
+      const stopNumber = stop.stop_number;
+      stopDurations[stopNumber] = minutesPerStop + (index < remainingMinutes ? 1 : 0);
     });
   }
 
@@ -119,7 +119,7 @@ export const calculateCrawlStatus = (
       status: 'upcoming',
       timeUntilStart: `${formatTimeRemaining(timeUntilStartSeconds)} until start`,
       estimatedEndTime,
-      stepDurations
+      stopDurations
     };
   } else if (now >= startTime && now <= estimatedEndTime) {
     // Crawl is ongoing
@@ -134,68 +134,68 @@ export const calculateCrawlStatus = (
       timeString = `${minutes}m in`;
     }
     
-    // Calculate current step based on elapsed time
-    let currentStepIndex = 0;
+    // Calculate current stop based on elapsed time
+    let currentStopIndex = 0;
     let elapsedMinutes = timeSinceStart / (1000 * 60);
     
-    for (let i = 0; i < (steps?.length || 0); i++) {
-      const stepDuration = stepDurations[steps![i].step_number] || 0;
-      if (elapsedMinutes <= stepDuration) {
-        currentStepIndex = i;
+    for (let i = 0; i < (stops?.length || 0); i++) {
+      const stopDuration = stopDurations[stops![i].stop_number] || 0;
+      if (elapsedMinutes <= stopDuration) {
+        currentStopIndex = i;
         break;
       }
-      elapsedMinutes -= stepDuration;
-      currentStepIndex = i + 1;
+      elapsedMinutes -= stopDuration;
+      currentStopIndex = i + 1;
     }
     
     return {
       status: 'ongoing',
       timeSinceStart: timeString,
       estimatedEndTime,
-      currentStepIndex: Math.min(currentStepIndex, (steps?.length || 1) - 1),
-      stepDurations
+      currentStopIndex: Math.min(currentStopIndex, (stops?.length || 1) - 1),
+      stopDurations
     };
   } else {
     // Crawl has completed
     return {
       status: 'completed',
       estimatedEndTime,
-      stepDurations
+      stopDurations
     };
   }
 };
 
 /**
- * Get step timing information for a specific step
+ * Get stop timing information for a specific stop
  */
-export const getStepTiming = (
-  stepNumber: number,
+export const getStopTiming = (
+  stopNumber: number,
   crawlStartTime: Date,
-  stepDurations: { [stepNumber: number]: number },
-  currentStepIndex: number
-): StepTiming => {
-  let stepStartTime = new Date(crawlStartTime);
+  stopDurations: { [stopNumber: number]: number },
+  currentStopIndex: number
+): StopTiming => {
+  let stopStartTime = new Date(crawlStartTime);
   
-  // Calculate start time for this step
-  for (let i = 1; i < stepNumber; i++) {
-    const duration = stepDurations[i] || 0;
-    stepStartTime = new Date(stepStartTime.getTime() + (duration * 60 * 1000));
+  // Calculate start time for this stop
+  for (let i = 1; i < stopNumber; i++) {
+    const duration = stopDurations[i] || 0;
+    stopStartTime = new Date(stopStartTime.getTime() + (duration * 60 * 1000));
   }
   
-  const duration = stepDurations[stepNumber] || 0;
-  const stepEndTime = new Date(stepStartTime.getTime() + (duration * 60 * 1000));
+  const duration = stopDurations[stopNumber] || 0;
+  const stopEndTime = new Date(stopStartTime.getTime() + (duration * 60 * 1000));
   const now = new Date();
   
-  const isActive = stepNumber === (currentStepIndex + 1) && 
-                   now >= stepStartTime && 
-                   now <= stepEndTime;
+  const isActive = stopNumber === (currentStopIndex + 1) && 
+                   now >= stopStartTime && 
+                   now <= stopEndTime;
   
-  const isCompleted = stepNumber < (currentStepIndex + 1);
+  const isCompleted = stopNumber < (currentStopIndex + 1);
   
   return {
-    stepNumber,
-    startTime: stepStartTime,
-    endTime: stepEndTime,
+    stopNumber,
+    startTime: stopStartTime,
+    endTime: stopEndTime,
     duration,
     isActive,
     isCompleted

@@ -16,28 +16,28 @@ const CrawlLibraryFilters: React.FC = () => {
   const route = useRoute<CrawlLibraryFiltersScreenRouteProp>();
 
   // Get initial values from params or default
-  const initialMinSteps = route.params?.minSteps ?? 0;
+  const initialMinStops = route.params?.minStops ?? 0;
   const initialMaxDistanceMiles = route.params?.maxDistanceMiles ?? 10;
 
-  const [minSteps, setMinSteps] = useState(initialMinSteps);
+  const [minStops, setMinStops] = useState(initialMinStops);
   const [maxDistanceMiles, setMaxDistanceMiles] = useState(initialMaxDistanceMiles);
 
   const handleSave = () => {
-    navigation.navigate('CrawlLibrary', { minSteps, maxDistanceMiles });
+    navigation.navigate('CrawlLibrary', { minStops, maxDistanceMiles });
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Filter Crawls</Text>
       <View style={styles.filterRow}>
-        <Text style={styles.filterLabel}>Min Steps: {minSteps}</Text>
+        <Text style={styles.filterLabel}>Min Stops: {minStops}</Text>
         <Slider
           style={styles.slider}
           minimumValue={0}
           maximumValue={20}
           step={1}
-          value={minSteps}
-          onValueChange={setMinSteps}
+          value={minStops}
+          onValueChange={setMinStops}
           minimumTrackTintColor="#007AFF"
           maximumTrackTintColor="#ccc"
         />

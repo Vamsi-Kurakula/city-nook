@@ -10,7 +10,6 @@ function getCrawlFolders(dirPath) {
   if (!fs.existsSync(dirPath)) {
     return [];
   }
-  
   return fs.readdirSync(dirPath).filter(f => {
     const fullPath = path.join(dirPath, f);
     return fs.statSync(fullPath).isDirectory();
@@ -21,24 +20,26 @@ function getCrawlFolders(dirPath) {
 const publicFolders = getCrawlFolders(publicCrawlsDir);
 const libraryFolders = getCrawlFolders(crawlLibraryDir);
 
-// Generate asset map entries for folders that have steps.yml
-let assetMapEntries = '';
+// Generate asset map entries for folders that have stops.yml
+let assetMapEntriesArr = [];
 
 // Process public crawls
 publicFolders.forEach(folder => {
-  const stepsPath = path.join(publicCrawlsDir, folder, 'steps.yml');
-  if (fs.existsSync(stepsPath)) {
-    assetMapEntries += `  'public-crawls/${folder}': require('../../assets/public-crawls/${folder}/steps.yml'),\n`;
+  const stopsPath = path.join(publicCrawlsDir, folder, 'stops.yml');
+  if (fs.existsSync(stopsPath)) {
+    assetMapEntriesArr.push(`  'public-crawls/${folder}': require('../../assets/public-crawls/${folder}/stops.yml')`);
   }
 });
 
 // Process library crawls
 libraryFolders.forEach(folder => {
-  const stepsPath = path.join(crawlLibraryDir, folder, 'steps.yml');
-  if (fs.existsSync(stepsPath)) {
-    assetMapEntries += `  'crawl-library/${folder}': require('../../assets/crawl-library/${folder}/steps.yml'),\n`;
+  const stopsPath = path.join(crawlLibraryDir, folder, 'stops.yml');
+  if (fs.existsSync(stopsPath)) {
+    assetMapEntriesArr.push(`  'crawl-library/${folder}': require('../../assets/crawl-library/${folder}/stops.yml')`);
   }
 });
+
+const assetMapEntries = assetMapEntriesArr.join(',\n');
 
 const fileContent = `// AUTO-GENERATED FILE. DO NOT EDIT.
 // Run 'npm run generate-crawl-assets' to regenerate this file.
@@ -46,35 +47,34 @@ const fileContent = `// AUTO-GENERATED FILE. DO NOT EDIT.
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import yaml from 'js-yaml';
-import { CrawlSteps } from '../types/crawl';
+import { CrawlStops } from '../types/crawl';
 
-// This object maps crawl folder names to their corresponding steps.yml assets
+// This object maps crawl folder names to their corresponding stops.yml assets
 // Auto-generated from crawl folders in assets/public-crawls/ and assets/crawl-library/
-const STEPS_ASSET_MAP: { [key: string]: any } = {
-${assetMapEntries}};
+const STOPS_ASSET_MAP: { [key: string]: any } = {
+${assetMapEntries}
+};
 
 /**
- * Loads steps data for a specific crawl folder
+ * Loads stops data for a specific crawl folder
  * @param assetFolder - The folder name from crawls.yml
- * @returns Promise<CrawlSteps | null>
+ * @returns Promise<CrawlStops | null>
  */
-export const loadCrawlSteps = async (assetFolder: string): Promise<CrawlSteps | null> => {
+export const loadCrawlStops = async (assetFolder: string): Promise<CrawlStops | null> => {
   try {
-    const stepsAssetModule = STEPS_ASSET_MAP[assetFolder];
-    if (!stepsAssetModule) {
-      console.warn(\`No steps asset found for crawl folder: \${assetFolder}\`);
+    const stopsAssetModule = STOPS_ASSET_MAP[assetFolder];
+    if (!stopsAssetModule) {
+      console.warn('No stops asset found for crawl folder: ' + assetFolder);
       return null;
     }
-
-    const stepsAsset = Asset.fromModule(stepsAssetModule);
-    await stepsAsset.downloadAsync();
-    const stepsString = await FileSystem.readAsStringAsync(stepsAsset.localUri || stepsAsset.uri);
-    const stepsData = yaml.load(stepsString) as CrawlSteps;
-    
-    console.log(\`✓ Loaded \${stepsData.steps?.length || 0} steps for \${assetFolder}\`);
-    return stepsData;
+    const stopsAsset = Asset.fromModule(stopsAssetModule);
+    await stopsAsset.downloadAsync();
+    const stopsString = await FileSystem.readAsStringAsync(stopsAsset.localUri || stopsAsset.uri);
+    const stopsData = yaml.load(stopsString) as CrawlStops;
+    console.log('Loaded ' + ((stopsData.stops && stopsData.stops.length) || 0) + ' stops for ' + assetFolder);
+    return stopsData;
   } catch (error) {
-    console.error(\`Error loading steps for \${assetFolder}:\`, error);
+    console.error('Error loading stops for ' + assetFolder + ':', error);
     return null;
   }
 };
@@ -84,20 +84,20 @@ export const loadCrawlSteps = async (assetFolder: string): Promise<CrawlSteps | 
  * @returns string[] - Array of available crawl folder names
  */
 export const getAvailableCrawlFolders = (): string[] => {
-  return Object.keys(STEPS_ASSET_MAP);
+  return Object.keys(STOPS_ASSET_MAP);
 };
 
 /**
- * Checks if a crawl folder has steps data available
+ * Checks if a crawl folder has stops data available
  * @param assetFolder - The folder name to check
  * @returns boolean
  */
-export const hasCrawlSteps = (assetFolder: string): boolean => {
-  return assetFolder in STEPS_ASSET_MAP;
+export const hasCrawlStops = (assetFolder: string): boolean => {
+  return assetFolder in STOPS_ASSET_MAP;
 };
 `;
 
 fs.writeFileSync(outputFile, fileContent);
 console.log('crawlAssetLoader.ts generated successfully!');
 console.log(`Found ${publicFolders.length} public crawl folders, ${libraryFolders.length} library crawl folders`);
-console.log(`${assetMapEntries.split('\n').filter(line => line.includes(':')).length} total folders with steps.yml files`); 
+console.log(`${assetMapEntriesArr.length} total folders with stops.yml files`); 

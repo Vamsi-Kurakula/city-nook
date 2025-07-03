@@ -20,8 +20,8 @@ export interface CrawlProgress {
   id: string;
   user_id: string;
   crawl_id: string;
-  current_step: number;
-  completed_steps: number[];
+  current_stop: number;
+  completed_stops: number[];
   started_at: string;
   completed_at?: string;
   created_at: string;
@@ -41,11 +41,11 @@ export interface UserCrawlHistory {
 /**
  * Upsert crawl progress for a user
  */
-export async function saveCrawlProgress({ userId, crawlId, currentStep, completedSteps, startedAt, completedAt }: {
+export async function saveCrawlProgress({ userId, crawlId, currentStop, completedStops, startedAt, completedAt }: {
   userId: string;
   crawlId: string;
-  currentStep: number;
-  completedSteps: number[];
+  currentStop: number;
+  completedStops: number[];
   startedAt: string;
   completedAt?: string;
 }) {
@@ -53,8 +53,8 @@ export async function saveCrawlProgress({ userId, crawlId, currentStep, complete
     {
       user_id: userId,
       crawl_id: crawlId,
-      current_step: currentStep,
-      completed_steps: completedSteps,
+      current_stop: currentStop,
+      completed_stops: completedStops,
       started_at: startedAt,
       completed_at: completedAt || null,
     }

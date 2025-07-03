@@ -21,7 +21,7 @@ import yaml from 'js-yaml';
 import { supabase } from '../../utils/supabase';
 import { loadPublicCrawls } from '../../utils/publicCrawlLoader';
 import { loadFeaturedCrawls, FeaturedCrawl } from '../../utils/featuredCrawlLoader';
-import { loadCrawlSteps } from '../auto-generated/crawlAssetLoader';
+import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
 import { formatTimeRemaining } from '../../utils/crawlStatus';
 import { Crawl } from '../../types/crawl';
 import { getHeroImageSource } from '../auto-generated/ImageLoader';
@@ -35,7 +35,7 @@ interface PublicCrawl {
   description: string;
   start_time: string;
   hero_image: string;
-  steps: any[];
+  stops: any[];
   assetFolder: string;
 }
 
@@ -95,11 +95,11 @@ export default function HomeScreen() {
             // Find the full crawl data
             const crawl = data.crawls.find((c: any) => c.id === featuredCrawl.id);
             if (crawl) {
-              // Load steps for the crawl
-              const stepsData = await loadCrawlSteps(crawl.assetFolder);
+              // Load stops for the crawl
+              const stopsData = await loadCrawlStops(crawl.assetFolder);
               return {
                 ...crawl,
-                steps: stepsData?.steps || [],
+                stops: stopsData?.stops || [],
               };
             }
             return null;
@@ -125,7 +125,7 @@ export default function HomeScreen() {
         const now = new Date();
         const upcoming = crawls.filter((crawl: any) => {
           const startTime = new Date(crawl.start_time);
-          const totalDuration = crawl.steps.reduce((total: number, step: any) => total + (step.reveal_after_minutes || 0), 0);
+          const totalDuration = crawl.stops.reduce((total: number, stop: any) => total + (stop.reveal_after_minutes || 0), 0);
           const endTime = new Date(startTime.getTime() + totalDuration * 60 * 1000);
           return endTime > now;
         });
@@ -238,9 +238,9 @@ export default function HomeScreen() {
         crawlData = data.crawls.find((c: any) => c.id === currentCrawl.crawlId);
         
         if (crawlData) {
-          // Load steps for the crawl
-          const stepsData = await loadCrawlSteps(crawlData.assetFolder);
-          crawlData.steps = stepsData?.steps || [];
+          // Load stops for the crawl
+          const stopsData = await loadCrawlStops(crawlData.assetFolder);
+          crawlData.stops = stopsData?.stops || [];
         }
       }
 
@@ -292,17 +292,17 @@ export default function HomeScreen() {
       
       const crawl = data.crawls.find((c: any) => c.id === crawlId);
       if (crawl) {
-        // Load steps for the crawl
-        const stepsData = await loadCrawlSteps(crawl.assetFolder);
-        const crawlWithSteps = {
+        // Load stops for the crawl
+        const stopsData = await loadCrawlStops(crawl.assetFolder);
+        const crawlWithStops = {
           ...crawl,
-          steps: stepsData?.steps || [],
+          stops: stopsData?.stops || [],
         };
         
         navigation.dispatch(
           CommonActions.navigate({
             name: 'CrawlDetail',
-            params: { crawl: crawlWithSteps },
+            params: { crawl: crawlWithStops },
           })
         );
       }
@@ -356,7 +356,7 @@ export default function HomeScreen() {
           <View style={styles.continueCrawlContent}>
             <Text style={styles.continueCrawlTitle}>{title}</Text>
             <Text style={styles.continueCrawlSubtitle}>
-              {progress} steps completed • Tap to continue
+              {progress} stops completed • Tap to continue
             </Text>
           </View>
           <Text style={styles.continueArrow}>→</Text>
@@ -480,7 +480,7 @@ export default function HomeScreen() {
           <View style={styles.headerTop}>
             <View style={styles.headerLeft}>
               <Text style={styles.title}>City Crawler</Text>
-              <Text style={styles.subtitle}>Discover your city, one step at a time</Text>
+              <Text style={styles.subtitle}>Discover your city, one stop at a time</Text>
             </View>
             <View style={styles.headerRight}>
               <TouchableOpacity 

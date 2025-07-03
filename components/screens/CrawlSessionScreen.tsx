@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Mod
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useCrawlContext } from '../context/CrawlContext';
-import { Crawl, CrawlStep } from '../../types/crawl';
-import { loadCrawlSteps } from '../auto-generated/crawlAssetLoader';
-import { StepComponent } from '../ui/StepComponents';
+import { Crawl, CrawlStop } from '../../types/crawl';
+import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
+import { StopComponent } from '../ui/StopComponents';
 import { useAuthContext } from '../context/AuthContext';
 import { saveCrawlProgress, addCrawlHistory } from '../../utils/supabase';
 
@@ -34,16 +34,16 @@ const CrawlSessionScreen: React.FC = () => {
     setIsCrawlActive,
     currentProgress,
     setCurrentProgress,
-    completeStep,
-    nextStep,
-    getCurrentStep,
+    completeStop,
+    nextStop,
+    getCurrentStop,
     clearCrawlSession,
   } = useCrawlContext();
   const { user } = useAuthContext();
 
   const [loading, setLoading] = useState(false);
-  const [steps, setSteps] = useState<CrawlStep[]>(routeParams?.crawl?.steps || []);
-  const [showPastSteps, setShowPastSteps] = useState(false);
+  const [stops, setStops] = useState<CrawlStop[]>(routeParams?.crawl?.stops || []);
+  const [showPastStops, setShowPastStops] = useState(false);
 
   // Load crawl data if we only have crawlId
   useEffect(() => {
@@ -57,31 +57,31 @@ const CrawlSessionScreen: React.FC = () => {
     }
   }, [crawlData, crawlId, routeParams?.crawl]);
 
-  // Load steps if not present
+  // Load stops if not present
   useEffect(() => {
-    if (crawlData && (!crawlData.steps || crawlData.steps.length === 0)) {
+    if (crawlData && (!crawlData.stops || crawlData.stops.length === 0)) {
       setLoading(true);
-      loadCrawlSteps(crawlData.assetFolder).then(data => {
-        setSteps(data?.steps || []);
+      loadCrawlStops(crawlData.assetFolder).then(data => {
+        setStops(data?.stops || []);
         setLoading(false);
       });
     } else if (crawlData) {
-      setSteps(crawlData.steps || []);
+      setStops(crawlData.stops || []);
     }
   }, [crawlData]);
 
   // Start session if not already
   useEffect(() => {
     if (crawlData && (!isCrawlActive || !currentCrawl || currentCrawl.id !== crawlData.id)) {
-      setCurrentCrawl({ ...crawlData, steps });
+      setCurrentCrawl({ ...crawlData, stops });
       setIsCrawlActive(true);
       const resumeDataToUse = routeParams?.resumeData || routeParams?.resumeProgress;
       if (resumeDataToUse) {
         setCurrentProgress({
           crawl_id: crawlData.id,
-          current_step: resumeDataToUse.currentStep || resumeDataToUse.current_step,
-          completed_steps: (resumeDataToUse.completedSteps || resumeDataToUse.completed_steps || []).map((stepNum: number, idx: number) => ({
-            step_number: stepNum,
+          current_stop: resumeDataToUse.currentStop || resumeDataToUse.current_stop,
+          completed_stops: (resumeDataToUse.completedStops || resumeDataToUse.completed_stops || []).map((stopNum: number, idx: number) => ({
+            stop_number: stopNum,
             completed: true,
             user_answer: '', // If you want to store answers, update this
             completed_at: undefined,
@@ -93,20 +93,20 @@ const CrawlSessionScreen: React.FC = () => {
       } else {
         setCurrentProgress({
           crawl_id: crawlData.id,
-          current_step: 1,
-          completed_steps: [],
+          current_stop: 1,
+          completed_stops: [],
           started_at: new Date(),
           last_updated: new Date(),
           completed: false,
         });
       }
     }
-  }, [isCrawlActive, currentCrawl, crawlData, setCurrentCrawl, setIsCrawlActive, setCurrentProgress, steps, routeParams?.resumeData, routeParams?.resumeProgress]);
+  }, [isCrawlActive, currentCrawl, crawlData, setCurrentCrawl, setIsCrawlActive, setCurrentProgress, stops, routeParams?.resumeData, routeParams?.resumeProgress]);
 
-  const currentStepNumber = getCurrentStep();
-  const totalSteps = steps.length;
+  const currentStopNumber = getCurrentStop();
+  const totalStops = stops.length;
   const isCompleted = currentProgress?.completed || false;
-  const completedSteps = currentProgress?.completed_steps || [];
+  const completedStops = currentProgress?.completed_stops || [];
 
   const handleExit = useCallback(() => {
     Alert.alert(
@@ -130,8 +130,8 @@ const CrawlSessionScreen: React.FC = () => {
               await saveCrawlProgress({
                 userId: user.id,
                 crawlId: currentProgress.crawl_id,
-                currentStep: currentProgress.current_step,
-                completedSteps: currentProgress.completed_steps.map((s: any) => s.step_number),
+                currentStop: currentProgress.current_stop,
+                completedStops: currentProgress.completed_stops.map((s: any) => s.stop_number),
                 startedAt: new Date(currentProgress.started_at).toISOString(),
                 completedAt: currentProgress.completed ? new Date().toISOString() : undefined,
               });
@@ -144,14 +144,14 @@ const CrawlSessionScreen: React.FC = () => {
     );
   }, [clearCrawlSession, navigation, user, currentProgress]);
 
-  const handleStepComplete = (userAnswer: string) => {
-    completeStep(currentStepNumber, userAnswer);
+  const handleStopComplete = (userAnswer: string) => {
+    completeStop(currentStopNumber, userAnswer);
     setTimeout(() => {
-      nextStep();
+      nextStop();
     }, 1000);
   };
 
-  const progressPercent = totalSteps > 0 ? Math.round(((currentStepNumber - 1) / totalSteps) * 100) : 0;
+  const progressPercent = totalStops > 0 ? Math.round(((currentStopNumber - 1) / totalStops) * 100) : 0;
 
   useEffect(() => {
     if (isCompleted && user?.id && currentProgress && currentCrawl) {
@@ -168,8 +168,8 @@ const CrawlSessionScreen: React.FC = () => {
         await saveCrawlProgress({
           userId: user.id,
           crawlId: currentCrawl.id,
-          currentStep: currentProgress.current_step,
-          completedSteps: currentProgress.completed_steps.map((s: any) => s.step_number),
+          currentStop: currentProgress.current_stop,
+          completedStops: currentProgress.completed_stops.map((s: any) => s.stop_number),
           startedAt: started.toISOString(),
           completedAt: completed.toISOString(),
         });
@@ -177,9 +177,9 @@ const CrawlSessionScreen: React.FC = () => {
     }
   }, [isCompleted, user, currentProgress, currentCrawl, clearCrawlSession, navigation]);
 
-  const isPublicCrawl = crawlData?.start_time && steps && steps.some((s: CrawlStep) => s.reveal_after_minutes !== undefined);
+  const isPublicCrawl = crawlData?.start_time && stops && stops.some((s: CrawlStop) => s.reveal_after_minutes !== undefined);
 
-  if (loading || !crawlData || !steps.length) {
+  if (loading || !crawlData || !stops.length) {
     return (
       <SafeAreaView style={styles.container}>
         <ActivityIndicator size="large" />
@@ -192,7 +192,7 @@ const CrawlSessionScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.centered}>
           <Text style={styles.completionTitle}>🎉 Crawl Completed!</Text>
-          <Text style={styles.completionText}>You finished all steps of this crawl. Your progress has been saved.</Text>
+          <Text style={styles.completionText}>You finished all stops of this crawl. Your progress has been saved.</Text>
           <TouchableOpacity style={styles.exitButton} onPress={async () => {
             await clearCrawlSession();
             navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
@@ -205,7 +205,7 @@ const CrawlSessionScreen: React.FC = () => {
     );
   }
 
-  const currentStep = steps[currentStepNumber - 1];
+  const currentStop = stops[currentStopNumber - 1];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -217,52 +217,52 @@ const CrawlSessionScreen: React.FC = () => {
         <Text style={styles.progressPercentText}>{progressPercent}%</Text>
       </View>
       <View style={styles.progressBarContainer}>
-        <Text style={styles.progressText}>Step {currentStepNumber} of {totalSteps}</Text>
+        <Text style={styles.progressText}>Stop {currentStopNumber} of {totalStops}</Text>
         <TouchableOpacity style={styles.exitButtonSmall} onPress={handleExit}>
           <Text style={styles.exitButtonSmallText}>Exit</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.stepContainer}>
-        <StepComponent
-          step={currentStep}
-          onComplete={handleStepComplete}
+      <View style={styles.stopContainer}>
+        <StopComponent
+          stop={currentStop}
+          onComplete={handleStopComplete}
           isCompleted={false}
           crawlStartTime={crawlData?.start_time}
-          currentStepIndex={currentStepNumber - 1}
-          allSteps={steps}
+          currentStopIndex={currentStopNumber - 1}
+          allStops={stops}
         />
       </View>
-      {/* Show Past Steps Button */}
-      <TouchableOpacity style={styles.pastStepsButton} onPress={() => setShowPastSteps(true)}>
-        <Text style={styles.pastStepsButtonText}>See All Past Steps</Text>
+      {/* Show Past Stops Button */}
+      <TouchableOpacity style={styles.pastStopsButton} onPress={() => setShowPastStops(true)}>
+        <Text style={styles.pastStopsButtonText}>See All Past Stops</Text>
       </TouchableOpacity>
-      {/* Past Steps Modal */}
-      <Modal visible={showPastSteps} animationType="slide" onRequestClose={() => setShowPastSteps(false)}>
+      {/* Past Stops Modal */}
+      <Modal visible={showPastStops} animationType="slide" onRequestClose={() => setShowPastStops(false)}>
         <SafeAreaView style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Past Steps</Text>
+          <Text style={styles.modalTitle}>Past Stops</Text>
           <FlatList
-            data={completedSteps}
-            keyExtractor={item => item.step_number.toString()}
+            data={completedStops}
+            keyExtractor={item => item.stop_number.toString()}
             renderItem={({ item }) => {
-              const step = steps.find((s: CrawlStep) => s.step_number === item.step_number);
-              const question = step?.step_components?.description || step?.step_components?.riddle || step?.step_components?.photo_instructions || step?.step_components?.location_name || step?.step_components?.photo_target || '';
+              const stop = stops.find((s: CrawlStop) => s.stop_number === item.stop_number);
+              const question = stop?.stop_components?.description || stop?.stop_components?.riddle || stop?.stop_components?.photo_instructions || stop?.stop_components?.location_name || stop?.stop_components?.photo_target || '';
               return (
-                <View style={styles.pastStepItem}>
-                  <Text style={styles.pastStepTitle}>Step {item.step_number}</Text>
-                  <Text style={styles.pastStepQuestion}>{question}</Text>
-                  <Text style={styles.pastStepAnswer}>Answer: {item.user_answer}</Text>
-                  <Text style={styles.pastStepTime}>Completed: {item.completed_at ? new Date(item.completed_at).toLocaleString() : ''}</Text>
-                  {step?.reward_location && (
-                    <TouchableOpacity onPress={() => Linking.openURL(step.reward_location)}>
-                      <Text style={styles.pastStepLink}>📍 Open Reward Location</Text>
+                <View style={styles.pastStopItem}>
+                  <Text style={styles.pastStopTitle}>Stop {item.stop_number}</Text>
+                  <Text style={styles.pastStopQuestion}>{question}</Text>
+                  <Text style={styles.pastStopAnswer}>Answer: {item.user_answer}</Text>
+                  <Text style={styles.pastStopTime}>Completed: {item.completed_at ? new Date(item.completed_at).toLocaleString() : ''}</Text>
+                  {stop?.reward_location && (
+                    <TouchableOpacity onPress={() => Linking.openURL(stop.reward_location)}>
+                      <Text style={styles.pastStopLink}>📍 Open Reward Location</Text>
                     </TouchableOpacity>
                   )}
                 </View>
               );
             }}
-            ListEmptyComponent={<Text style={styles.noPastSteps}>No steps completed yet.</Text>}
+            ListEmptyComponent={<Text style={styles.noPastStops}>No stops completed yet.</Text>}
           />
-          <TouchableOpacity style={styles.closeModalButton} onPress={() => setShowPastSteps(false)}>
+          <TouchableOpacity style={styles.closeModalButton} onPress={() => setShowPastStops(false)}>
             <Text style={styles.closeModalButtonText}>Close</Text>
           </TouchableOpacity>
         </SafeAreaView>
@@ -308,13 +308,13 @@ const styles = StyleSheet.create({
   progressText: { fontSize: 16, fontWeight: 'bold' },
   exitButtonSmall: { padding: 8 },
   exitButtonSmallText: { color: '#888', fontSize: 16 },
-  stepContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  stopContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   completionTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 12 },
   completionText: { fontSize: 16, marginBottom: 24, textAlign: 'center' },
   exitButton: { backgroundColor: '#eee', padding: 12, borderRadius: 8 },
   exitButtonText: { color: '#333', fontSize: 16 },
-  pastStepsButton: {
+  pastStopsButton: {
     position: 'absolute',
     left: 0,
     right: 0,
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#eee',
   },
-  pastStepsButtonText: {
+  pastStopsButtonText: {
     color: '#007AFF',
     fontSize: 16,
     fontWeight: 'bold',
@@ -340,39 +340,39 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
   },
-  pastStepItem: {
+  pastStopItem: {
     marginBottom: 16,
     padding: 12,
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
   },
-  pastStepTitle: {
+  pastStopTitle: {
     fontSize: 16,
     fontWeight: 'bold',
   },
-  pastStepQuestion: {
+  pastStopQuestion: {
     fontSize: 15,
     color: '#222',
     marginTop: 4,
     marginBottom: 4,
   },
-  pastStepAnswer: {
+  pastStopAnswer: {
     fontSize: 14,
     color: '#333',
     marginTop: 4,
   },
-  pastStepTime: {
+  pastStopTime: {
     fontSize: 12,
     color: '#888',
     marginTop: 2,
   },
-  pastStepLink: {
+  pastStopLink: {
     color: '#007AFF',
     fontSize: 15,
     marginTop: 6,
     textDecorationLine: 'underline',
   },
-  noPastSteps: {
+  noPastStops: {
     textAlign: 'center',
     color: '#888',
     marginTop: 32,

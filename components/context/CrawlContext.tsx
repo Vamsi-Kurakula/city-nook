@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Crawl, CrawlProgress, UserStepProgress } from '../../types/crawl';
+import { Crawl, CrawlProgress, UserStopProgress } from '../../types/crawl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface CrawlContextType {
@@ -12,9 +12,9 @@ interface CrawlContextType {
   // Progress tracking
   currentProgress: CrawlProgress | null;
   setCurrentProgress: (progress: CrawlProgress | null) => void;
-  completeStep: (stepNumber: number, userAnswer?: string) => void;
-  nextStep: () => void;
-  getCurrentStep: () => number;
+  completeStop: (stopNumber: number, userAnswer?: string) => void;
+  nextStop: () => void;
+  getCurrentStop: () => number;
   
   // Crawl history
   crawlHistory: CrawlProgress[];
@@ -85,8 +85,8 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
     // Initialize progress
     const newProgress: CrawlProgress = {
       crawl_id: crawl.id,
-      current_step: 1,
-      completed_steps: [],
+      current_stop: 1,
+      completed_stops: [],
       started_at: new Date(),
       last_updated: new Date(),
       completed: false,
@@ -99,50 +99,50 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
     }, 50);
   };
 
-  const completeStep = (stepNumber: number, userAnswer?: string) => {
+  const completeStop = (stopNumber: number, userAnswer?: string) => {
     if (!currentProgress) return;
     
     const updatedProgress = { ...currentProgress };
-    const existingStepIndex = updatedProgress.completed_steps.findIndex(
-      step => step.step_number === stepNumber
+    const existingStopIndex = updatedProgress.completed_stops.findIndex(
+      stop => stop.stop_number === stopNumber
     );
     
-    const completedStep: UserStepProgress = {
-      step_number: stepNumber,
+    const completedStop: UserStopProgress = {
+      stop_number: stopNumber,
       completed: true,
       user_answer: userAnswer,
       completed_at: new Date(),
     };
     
-    if (existingStepIndex >= 0) {
-      updatedProgress.completed_steps[existingStepIndex] = completedStep;
+    if (existingStopIndex >= 0) {
+      updatedProgress.completed_stops[existingStopIndex] = completedStop;
     } else {
-      updatedProgress.completed_steps.push(completedStep);
+      updatedProgress.completed_stops.push(completedStop);
     }
     
     updatedProgress.last_updated = new Date();
     setCurrentProgress(updatedProgress);
   };
 
-  const nextStep = () => {
+  const nextStop = () => {
     if (!currentProgress || !currentCrawl) return;
     
     const updatedProgress = { ...currentProgress };
-    updatedProgress.current_step += 1;
+    updatedProgress.current_stop += 1;
     updatedProgress.last_updated = new Date();
     
     // Check if crawl is completed
-    if (updatedProgress.current_step > (currentCrawl.steps?.length || 0)) {
+    if (updatedProgress.current_stop > (currentCrawl.stops?.length || 0)) {
       updatedProgress.completed = true;
-      updatedProgress.current_step = currentCrawl.steps?.length || 0; // Keep at last step
+      updatedProgress.current_stop = currentCrawl.stops?.length || 0; // Keep at last stop
       addToHistory(updatedProgress);
     }
     
     setCurrentProgress(updatedProgress);
   };
 
-  const getCurrentStep = (): number => {
-    return currentProgress?.current_step || 1;
+  const getCurrentStop = (): number => {
+    return currentProgress?.current_stop || 1;
   };
 
   const addToHistory = (progress: CrawlProgress) => {
@@ -171,9 +171,9 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
       startCrawlWithNavigation,
       currentProgress,
       setCurrentProgress,
-      completeStep,
-      nextStep,
-      getCurrentStep,
+      completeStop,
+      nextStop,
+      getCurrentStop,
       crawlHistory,
       addToHistory,
       loadHistory,

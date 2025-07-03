@@ -11,7 +11,7 @@ import { useCrawlContext } from '../context/CrawlContext';
 import { useAuthContext } from '../context/AuthContext';
 import { RootStackParamList } from '../../types/navigation';
 import { Crawl } from '../../types/crawl';
-import { loadCrawlSteps } from '../auto-generated/crawlAssetLoader';
+import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 
 interface CrawlData {
@@ -29,10 +29,10 @@ const CrawlLibrary: React.FC = () => {
   const route = useRoute<CrawlLibraryRouteProp>();
 
   // Read initial filter values from route params or default
-  const initialMinSteps = route.params?.minSteps ?? 0;
+  const initialMinStops = route.params?.minStops ?? 0;
   const initialMaxDistanceMiles = route.params?.maxDistanceMiles ?? 10;
 
-  const [minSteps, setMinSteps] = useState(initialMinSteps);
+  const [minStops, setMinStops] = useState(initialMinStops);
   const [maxDistanceMiles, setMaxDistanceMiles] = useState(initialMaxDistanceMiles);
   
   const { startCrawlWithNavigation } = useCrawlContext();
@@ -49,33 +49,33 @@ const CrawlLibrary: React.FC = () => {
         const data = yaml.load(yamlString) as CrawlData;
         
         if (data && Array.isArray(data.crawls)) {
-          console.log(`Found ${data.crawls.length} crawls, loading steps...`);
+          console.log(`Found ${data.crawls.length} crawls, loading stops...`);
           
-          // Load steps for each crawl using the utility
-          const crawlsWithSteps = await Promise.all(
+          // Load stops for each crawl using the utility
+          const crawlsWithStops = await Promise.all(
             data.crawls.map(async (crawl) => {
-              console.log('About to load steps for assetFolder:', crawl.assetFolder, 'in crawl:', crawl.name);
+              console.log('About to load stops for assetFolder:', crawl.assetFolder, 'in crawl:', crawl.name);
               if (!crawl.assetFolder) {
                 console.warn('Skipping crawl with missing assetFolder:', crawl);
                 return crawl;
               }
               try {
-                console.log(`Loading steps for ${crawl.name} (${crawl.assetFolder})...`);
-                const stepsData = await loadCrawlSteps(crawl.assetFolder);
+                console.log(`Loading stops for ${crawl.name} (${crawl.assetFolder})...`);
+                const stopsData = await loadCrawlStops(crawl.assetFolder);
                 return {
                   ...crawl,
-                  steps: stepsData?.steps || [],
+                  stops: stopsData?.stops || [],
                 };
               } catch (error) {
-                console.warn(`Could not load steps for ${crawl.name}:`, error);
+                console.warn(`Could not load stops for ${crawl.name}:`, error);
                 return crawl;
               }
             })
           );
-          console.log('All crawls loaded successfully:', crawlsWithSteps.map(c => ({ name: c.name, steps: c.steps?.length || 0 })));
+          console.log('All crawls loaded successfully:', crawlsWithStops.map(c => ({ name: c.name, stops: c.stops?.length || 0 })));
           
           // Filter to only show private crawls (public-crawl: false) in Crawl Library
-          const privateCrawls = crawlsWithSteps.filter(crawl => crawl['public-crawl'] === false);
+          const privateCrawls = crawlsWithStops.filter(crawl => crawl['public-crawl'] === false);
           console.log(`Filtered to ${privateCrawls.length} private crawls`);
           
           setCrawls(privateCrawls);
@@ -115,10 +115,10 @@ const CrawlLibrary: React.FC = () => {
   };
 
   const filteredCrawls = crawls.filter(crawl => {
-    const stepsCount = crawl.steps?.length || 0;
+    const stopsCount = crawl.stops?.length || 0;
     const distanceKm = typeof crawl.distance === 'number' ? crawl.distance : Number(crawl.distance) || 0;
     const distanceMiles = distanceKm * 0.621371;
-    return stepsCount >= minSteps && distanceMiles <= maxDistanceMiles;
+    return stopsCount >= minStops && distanceMiles <= maxDistanceMiles;
   });
 
   if (loading) {
@@ -193,7 +193,7 @@ const CrawlLibrary: React.FC = () => {
           <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.backToHomeButton}>
             <Text style={styles.backToHomeText}>Back to Home</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('CrawlLibraryFilters', { minSteps, maxDistanceMiles })} style={styles.filtersButton}>
+          <TouchableOpacity onPress={() => navigation.navigate('CrawlLibraryFilters', { minStops, maxDistanceMiles })} style={styles.filtersButton}>
             <Text style={styles.filtersButtonText}>Filters</Text>
           </TouchableOpacity>
         </View>

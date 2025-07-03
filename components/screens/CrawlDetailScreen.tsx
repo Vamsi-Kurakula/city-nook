@@ -90,18 +90,18 @@ const CrawlDetailScreen: React.FC = () => {
   };
 
   let resumeInfo = null;
-  if (resumeProgress && crawl?.steps) {
-    const completedCount = resumeProgress.completed_steps?.length || 0;
-    const currentStepNum = resumeProgress.current_step;
-    const currentStep = crawl.steps.find(s => s.step_number === currentStepNum);
-    const locationName = currentStep?.step_components?.location_name || currentStep?.step_components?.description || currentStep?.step_components?.riddle || '';
+  if (resumeProgress && crawl?.stops) {
+    const completedCount = resumeProgress.completed_stops?.length || 0;
+    const currentStopNum = resumeProgress.current_stop;
+    const currentStop = crawl.stops.find(s => s.stop_number === currentStopNum);
+    const locationName = currentStop?.stop_components?.location_name || currentStop?.stop_components?.description || currentStop?.stop_components?.riddle || '';
     resumeInfo = (
       <View style={{ marginTop: 16, marginBottom: 4, alignItems: 'flex-start' }}>
         <Text style={{ color: '#888', fontSize: 15 }}>
-          {`You have completed ${completedCount} step${completedCount === 1 ? '' : 's'}.`}
+          {`You have completed ${completedCount} stop${completedCount === 1 ? '' : 's'}.`}
         </Text>
         <Text style={{ color: '#888', fontSize: 15 }}>
-          {`Current step: ${currentStepNum}${locationName ? ` - ${locationName}` : ''}`}
+          {`Current stop: ${currentStopNum}${locationName ? ` - ${locationName}` : ''}`}
         </Text>
       </View>
     );

@@ -1,21 +1,20 @@
-export interface StepComponent {
+export interface StopComponent {
   [key: string]: string;
 }
 
-export interface CrawlStep {
-  step_number: number;
-  step_type: 'riddle' | 'location' | 'photo' | 'button';
-  reward_location: string;
-  step_components: StepComponent;
-  reveal_after_minutes?: number; // For public crawls - relative time from previous step
+export interface CrawlStop {
+  stop_number: number;
+  stop_type: string;
+  stop_components: any; // Replace 'any' with a more specific type if available
+  reward_location?: string;
 }
 
-export interface CrawlSteps {
-  steps: CrawlStep[];
+export interface CrawlStops {
+  stops: CrawlStop[];
 }
 
-export interface UserStepProgress {
-  step_number: number;
+export interface UserStopProgress {
+  stop_number: number;
   completed: boolean;
   user_answer?: string;
   completed_at?: Date;
@@ -23,8 +22,8 @@ export interface UserStepProgress {
 
 export interface CrawlProgress {
   crawl_id: string;
-  current_step: number;
-  completed_steps: UserStepProgress[];
+  current_stop: number;
+  completed_stops: UserStopProgress[];
   started_at: Date;
   last_updated: Date;
   completed?: boolean;
@@ -40,7 +39,7 @@ export interface Crawl {
   distance: string;
   'public-crawl': boolean;
   start_time?: string; // Format: "YYYY-MM-DD HH:MM" or "HH:MM" for today
-  steps?: CrawlStep[];
+  stops?: CrawlStop[];
 }
 
 export interface CrawlSessionScreenParams {

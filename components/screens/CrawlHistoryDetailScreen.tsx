@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { loadCrawlSteps } from '../auto-generated/crawlAssetLoader';
+import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
 import { getCrawlNameMapping, getCrawlAssetFolder } from '../../utils/supabase';
-import { CrawlStep } from '../../types/crawl';
+import { CrawlStop } from '../../types/crawl';
 
 interface CrawlHistoryDetailParams {
   crawlId: string;
@@ -18,7 +18,7 @@ const CrawlHistoryDetailScreen: React.FC = () => {
   const route = useRoute();
   const { crawlId, completedAt, totalTimeMinutes, score } = route.params as CrawlHistoryDetailParams;
   
-  const [steps, setSteps] = useState<CrawlStep[]>([]);
+  const [stops, setStops] = useState<CrawlStop[]>([]);
   const [crawlName, setCrawlName] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
@@ -35,9 +35,9 @@ const CrawlHistoryDetailScreen: React.FC = () => {
         // Get the asset folder for this crawl
         const assetFolder = await getCrawlAssetFolder(crawlId);
         if (assetFolder) {
-          const stepsData = await loadCrawlSteps(assetFolder);
-          if (stepsData?.steps) {
-            setSteps(stepsData.steps);
+          const stopsData = await loadCrawlStops(assetFolder);
+          if (stopsData?.stops) {
+            setStops(stopsData.stops);
           }
         }
       } catch (error) {
@@ -70,19 +70,19 @@ const CrawlHistoryDetailScreen: React.FC = () => {
     }
   };
 
-  const renderStep = ({ item, index }: { item: CrawlStep; index: number }) => (
-    <View style={styles.stepItem}>
-      <View style={styles.stepHeader}>
-        <Text style={styles.stepNumber}>Step {item.step_number}</Text>
-        <Text style={styles.stepType}>{item.step_type}</Text>
+  const renderStop = ({ item, index }: { item: CrawlStop; index: number }) => (
+    <View style={styles.stopItem}>
+      <View style={styles.stopHeader}>
+        <Text style={styles.stopNumber}>Stop {item.stop_number}</Text>
+        <Text style={styles.stopType}>{item.stop_type}</Text>
       </View>
       
-      <Text style={styles.stepDescription}>
-        {item.step_components.description || 
-         item.step_components.location_name || 
-         item.step_components.riddle || 
-         item.step_components.photo_instructions || 
-         'Step description'}
+      <Text style={styles.stopDescription}>
+        {item.stop_components.description || 
+         item.stop_components.location_name || 
+         item.stop_components.riddle || 
+         item.stop_components.photo_instructions || 
+         'Stop description'}
       </Text>
       
       {item.reward_location && (
@@ -122,19 +122,19 @@ const CrawlHistoryDetailScreen: React.FC = () => {
             )}
           </View>
           
-          <View style={styles.stepsSection}>
-            <Text style={styles.sectionTitle}>Crawl Steps</Text>
-            {steps.length > 0 ? (
+          <View style={styles.stopsSection}>
+            <Text style={styles.sectionTitle}>Crawl Stops</Text>
+            {stops.length > 0 ? (
               <FlatList
-                data={steps}
-                keyExtractor={(item) => item.step_number.toString()}
-                renderItem={renderStep}
+                data={stops}
+                keyExtractor={(item) => item.stop_number.toString()}
+                renderItem={renderStop}
                 scrollEnabled={false}
-                contentContainerStyle={styles.stepsList}
+                contentContainerStyle={styles.stopsList}
               />
             ) : (
-              <Text style={styles.noStepsText}>
-                No steps available for this crawl.
+              <Text style={styles.noStopsText}>
+                No stops available for this crawl.
               </Text>
             )}
           </View>
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontWeight: '600',
   },
-  stepsSection: {
+  stopsSection: {
     marginBottom: 20,
   },
   sectionTitle: {
@@ -205,28 +205,28 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 16,
   },
-  stepsList: {
+  stopsList: {
     gap: 12,
   },
-  stepItem: {
+  stopItem: {
     backgroundColor: '#f8f9fa',
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e9ecef',
   },
-  stepHeader: {
+  stopHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
-  stepNumber: {
+  stopNumber: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
   },
-  stepType: {
+  stopType: {
     fontSize: 12,
     color: '#666',
     backgroundColor: '#e9ecef',
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     textTransform: 'capitalize',
   },
-  stepDescription: {
+  stopDescription: {
     fontSize: 14,
     color: '#666',
     lineHeight: 20,
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontWeight: '500',
   },
-  noStepsText: {
+  noStopsText: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',

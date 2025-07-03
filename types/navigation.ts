@@ -1,6 +1,6 @@
 export type RootStackParamList = {
   Home: undefined;
-  CrawlLibrary: { minSteps?: number; maxDistanceMiles?: number } | undefined;
+  CrawlLibrary: { minStops?: number; maxDistanceMiles?: number } | undefined;
   UserProfile: undefined;
   CrawlDetail: { crawlId: string } | { crawl: any };
   PublicCrawlDetail: { crawlId: string } | { crawl: any };
@@ -10,5 +10,5 @@ export type RootStackParamList = {
   CrawlStats: undefined;
   CrawlHistory: undefined;
   CrawlHistoryDetail: { crawlId: string };
-  CrawlLibraryFilters: { minSteps: number; maxDistanceMiles: number } | undefined;
+  CrawlLibraryFilters: { minStops: number; maxDistanceMiles: number } | undefined;
 }; 

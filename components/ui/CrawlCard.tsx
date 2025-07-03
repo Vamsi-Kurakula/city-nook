@@ -27,13 +27,13 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
   // Calculate crawl status for public crawls
   useEffect(() => {
     if (crawl['public-crawl'] && crawl.start_time) {
-      const status = calculateCrawlStatus(crawl.start_time, crawl.duration, crawl.steps);
+      const status = calculateCrawlStatus(crawl.start_time, crawl.duration, crawl.stops);
       setCrawlStatus(status);
       
       // Update status every minute for ongoing crawls
       if (status.status === 'ongoing' || status.status === 'upcoming') {
         const interval = setInterval(() => {
-          const updatedStatus = calculateCrawlStatus(crawl.start_time, crawl.duration, crawl.steps);
+          const updatedStatus = calculateCrawlStatus(crawl.start_time, crawl.duration, crawl.stops);
           setCrawlStatus(updatedStatus);
         }, 60000); // Update every minute
         
@@ -123,9 +123,9 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
                     <Text style={styles.timingInfo}>
                       {crawlStatus.timeSinceStart}
                     </Text>
-                    {crawlStatus.currentStepIndex !== undefined && crawl.steps && (
-                      <Text style={styles.currentStep}>
-                        Step {crawlStatus.currentStepIndex + 1} of {crawl.steps.length}
+                    {crawlStatus.currentStopIndex !== undefined && crawl.stops && (
+                      <Text style={styles.currentStop}>
+                        Stop {crawlStatus.currentStopIndex + 1} of {crawl.stops.length}
                       </Text>
                     )}
                   </View>
@@ -142,8 +142,8 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
             <View style={styles.crawlMeta}>
               <Text style={styles.metaText}>{crawl.duration}</Text>
               <Text style={styles.metaText}>{crawl.distance}</Text>
-              {crawl.steps && (
-                <Text style={styles.metaText}>{crawl.steps.length} steps</Text>
+              {crawl.stops && (
+                <Text style={styles.metaText}>{crawl.stops.length} stops</Text>
               )}
             </View>
           </View>
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  currentStep: {
+  currentStop: {
     fontSize: 12,
     color: '#28a745',
     fontWeight: '500',

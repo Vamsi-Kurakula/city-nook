@@ -1,29 +1,29 @@
-steps:
-  - step_number: 1
-    step_type: "riddle"
+stops:
+  - stop_number: 1
+    stop_type: "riddle"
     reward_location: "https://maps.google.com/?q=Metropolitan+Museum+of+Art+New+York"
-    step_components:
+    stop_components:
       riddle: "I am a building filled with stories, where ancient meets modern. Artists display their visions, and visitors come to see masterpieces from around the world. What am I?"
       answer: "museum"
   
-  - step_number: 2
-    step_type: "location"
+  - stop_number: 2
+    stop_type: "location"
     reward_location: "https://maps.google.com/?q=Central+Park+New+York"
-    step_components:
+    stop_components:
       location_name: "Central Park Bethesda Fountain"
       coordinates: "40.7829,-73.9654"
       description: "Find the iconic Bethesda Fountain, a centerpiece of Central Park where many artists gather"
   
-  - step_number: 3
-    step_type: "photo"
+  - stop_number: 3
+    stop_type: "photo"
     reward_location: "https://maps.google.com/?q=MoMA+New+York"
-    step_components:
+    stop_components:
       photo_target: "MoMA Building"
       photo_instructions: "Take a photo of the Museum of Modern Art building from across the street"
   
-  - step_number: 4
-    step_type: "riddle"
+  - stop_number: 4
+    stop_type: "riddle"
     reward_location: "https://maps.google.com/?q=Times+Square+New+York"
-    step_components:
+    stop_components:
       riddle: "I light up the night with colors bright, where Broadway meets the world. Tourists flock to see my glow, and artists perform on my stage. What am I?"
       answer: "times square" 

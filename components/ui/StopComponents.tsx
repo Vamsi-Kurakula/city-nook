@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
-import { CrawlStep } from '../../types/crawl';
+import { CrawlStop } from '../../types/crawl';
 import { validateAnswer } from '../../utils/answerValidation';
 import { formatTimeRemaining } from '../../utils/crawlStatus';
 
-interface RiddleStepProps {
-  step: CrawlStep;
+interface RiddleStopProps {
+  stop: CrawlStop;
   onComplete: (userAnswer: string) => void;
   isCompleted: boolean;
   userAnswer?: string;
 }
 
-export const RiddleStep: React.FC<RiddleStepProps> = ({ step, onComplete, isCompleted, userAnswer }) => {
+export const RiddleStop: React.FC<RiddleStopProps> = ({ stop, onComplete, isCompleted, userAnswer }) => {
   const [answer, setAnswer] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -22,7 +22,7 @@ export const RiddleStep: React.FC<RiddleStepProps> = ({ step, onComplete, isComp
     }
 
     setIsSubmitting(true);
-    const correctAnswer = step.step_components.answer || '';
+    const correctAnswer = stop.stop_components.answer || '';
     const isValid = await validateAnswer(answer.trim(), correctAnswer);
     setIsSubmitting(false);
 
@@ -36,9 +36,9 @@ export const RiddleStep: React.FC<RiddleStepProps> = ({ step, onComplete, isComp
 
   if (isCompleted) {
     return (
-      <View style={styles.completedStep}>
-        <Text style={styles.stepTitle}>✓ Step {step.step_number}</Text>
-        <Text style={styles.stepDescription}>{step.step_components.riddle || ''}</Text>
+      <View style={styles.completedStop}>
+        <Text style={styles.stopTitle}>✓ Stop {stop.stop_number}</Text>
+        <Text style={styles.stopDescription}>{stop.stop_components.riddle || ''}</Text>
         <View style={styles.answerSection}>
           <Text style={styles.answerLabel}>Your Answer:</Text>
           <Text style={styles.userAnswer}>{userAnswer}</Text>
@@ -48,10 +48,9 @@ export const RiddleStep: React.FC<RiddleStepProps> = ({ step, onComplete, isComp
   }
 
   return (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Step {step.step_number}</Text>
-      <Text style={styles.stepDescription}>{step.step_components.riddle || ''}</Text>
-      
+    <View style={styles.stopContainer}>
+      <Text style={styles.stopTitle}>Stop {stop.stop_number}</Text>
+      <Text style={styles.stopDescription}>{stop.stop_components.riddle || ''}</Text>
       <View style={styles.inputSection}>
         <Text style={styles.inputLabel}>Your Answer:</Text>
         <TextInput
@@ -76,17 +75,17 @@ export const RiddleStep: React.FC<RiddleStepProps> = ({ step, onComplete, isComp
   );
 };
 
-interface LocationStepProps {
-  step: CrawlStep;
+interface LocationStopProps {
+  stop: CrawlStop;
   onComplete: (userAnswer: string) => void;
   isCompleted: boolean;
   userAnswer?: string;
 }
 
-export const LocationStep: React.FC<LocationStepProps> = ({ step, onComplete, isCompleted, userAnswer }) => {
+export const LocationStop: React.FC<LocationStopProps> = ({ stop, onComplete, isCompleted, userAnswer }) => {
   const openMaps = () => {
-    if (step.reward_location) {
-      Linking.openURL(step.reward_location);
+    if (stop.reward_location) {
+      Linking.openURL(stop.reward_location);
     }
   };
 
@@ -97,9 +96,9 @@ export const LocationStep: React.FC<LocationStepProps> = ({ step, onComplete, is
 
   if (isCompleted) {
     return (
-      <View style={styles.completedStep}>
-        <Text style={styles.stepTitle}>✓ Step {step.step_number}</Text>
-        <Text style={styles.stepDescription}>{step.step_components.description || step.step_components.location_name || ''}</Text>
+      <View style={styles.completedStop}>
+        <Text style={styles.stopTitle}>✓ Stop {stop.stop_number}</Text>
+        <Text style={styles.stopDescription}>{stop.stop_components.description || stop.stop_components.location_name || ''}</Text>
         <View style={styles.answerSection}>
           <Text style={styles.answerLabel}>Status:</Text>
           <Text style={styles.userAnswer}>{userAnswer}</Text>
@@ -109,15 +108,13 @@ export const LocationStep: React.FC<LocationStepProps> = ({ step, onComplete, is
   }
 
   return (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Step {step.step_number}</Text>
-      <Text style={styles.stepDescription}>{step.step_components.description || step.step_components.location_name || ''}</Text>
-      
+    <View style={styles.stopContainer}>
+      <Text style={styles.stopTitle}>Stop {stop.stop_number}</Text>
+      <Text style={styles.stopDescription}>{stop.stop_components.description || stop.stop_components.location_name || ''}</Text>
       <View style={styles.locationSection}>
         <TouchableOpacity style={styles.mapsButton} onPress={openMaps}>
           <Text style={styles.mapsButtonText}>📍 Open in Maps</Text>
         </TouchableOpacity>
-        
         <TouchableOpacity style={styles.arrivedButton} onPress={handleArrived}>
           <Text style={styles.arrivedButtonText}>✅ I've Arrived</Text>
         </TouchableOpacity>
@@ -126,14 +123,14 @@ export const LocationStep: React.FC<LocationStepProps> = ({ step, onComplete, is
   );
 };
 
-interface PhotoStepProps {
-  step: CrawlStep;
+interface PhotoStopProps {
+  stop: CrawlStop;
   onComplete: (userAnswer: string) => void;
   isCompleted: boolean;
   userAnswer?: string;
 }
 
-export const PhotoStep: React.FC<PhotoStepProps> = ({ step, onComplete, isCompleted, userAnswer }) => {
+export const PhotoStop: React.FC<PhotoStopProps> = ({ stop, onComplete, isCompleted, userAnswer }) => {
   const handlePhotoTaken = () => {
     onComplete('Photo taken');
     Alert.alert('Photo Captured!', 'Great! You\'ve taken the photo.');
@@ -141,9 +138,9 @@ export const PhotoStep: React.FC<PhotoStepProps> = ({ step, onComplete, isComple
 
   if (isCompleted) {
     return (
-      <View style={styles.completedStep}>
-        <Text style={styles.stepTitle}>✓ Step {step.step_number}</Text>
-        <Text style={styles.stepDescription}>{step.step_components.photo_instructions || step.step_components.photo_target || ''}</Text>
+      <View style={styles.completedStop}>
+        <Text style={styles.stopTitle}>✓ Stop {stop.stop_number}</Text>
+        <Text style={styles.stopDescription}>{stop.stop_components.photo_instructions || stop.stop_components.photo_target || ''}</Text>
         <View style={styles.answerSection}>
           <Text style={styles.answerLabel}>Status:</Text>
           <Text style={styles.userAnswer}>{userAnswer}</Text>
@@ -153,10 +150,9 @@ export const PhotoStep: React.FC<PhotoStepProps> = ({ step, onComplete, isComple
   }
 
   return (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Step {step.step_number}</Text>
-      <Text style={styles.stepDescription}>{step.step_components.photo_instructions || step.step_components.photo_target || ''}</Text>
-      
+    <View style={styles.stopContainer}>
+      <Text style={styles.stopTitle}>Stop {stop.stop_number}</Text>
+      <Text style={styles.stopDescription}>{stop.stop_components.photo_instructions || stop.stop_components.photo_target || ''}</Text>
       <View style={styles.photoSection}>
         <TouchableOpacity style={styles.photoButton} onPress={handlePhotoTaken}>
           <Text style={styles.photoButtonText}>📸 Take Photo</Text>
@@ -166,59 +162,55 @@ export const PhotoStep: React.FC<PhotoStepProps> = ({ step, onComplete, isComple
   );
 };
 
-interface ButtonStepProps {
-  step: CrawlStep;
+interface ButtonStopProps {
+  stop: CrawlStop;
   onComplete: (userAnswer: string) => void;
   isCompleted: boolean;
   userAnswer?: string;
   crawlStartTime?: string;
-  currentStepIndex?: number;
-  allSteps?: CrawlStep[];
+  currentStopIndex?: number;
+  allStops?: CrawlStop[];
 }
 
-export const ButtonStep: React.FC<ButtonStepProps> = ({ 
-  step, 
+export const ButtonStop: React.FC<ButtonStopProps> = ({ 
+  stop, 
   onComplete, 
   isCompleted, 
   userAnswer,
   crawlStartTime,
-  currentStepIndex,
-  allSteps
+  currentStopIndex,
+  allStops
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [timeUntilReveal, setTimeUntilReveal] = useState<number | null>(null);
 
-  // Calculate when this step should be revealed
-  const calculateStepRevealTime = () => {
-    if (!crawlStartTime || currentStepIndex === undefined || !allSteps) {
+  // Calculate when this stop should be revealed
+  const calculateStopRevealTime = () => {
+    if (!crawlStartTime || currentStopIndex === undefined || !allStops) {
       return null;
     }
 
     const startTime = new Date(crawlStartTime);
     let totalMinutes = 0;
-    
-    // Sum up reveal_after_minutes for all steps up to and including the current step
-    for (let i = 0; i <= currentStepIndex; i++) {
-      const stepMinutes = allSteps[i]?.reveal_after_minutes || 0;
-      totalMinutes += stepMinutes;
+    // Sum up reveal_after_minutes for all stops up to and including the current stop
+    for (let i = 0; i <= currentStopIndex; i++) {
+      const stopMinutes = allStops[i]?.reveal_after_minutes || 0;
+      totalMinutes += stopMinutes;
     }
-    
     const revealTime = new Date(startTime.getTime() + totalMinutes * 60 * 1000);
     return revealTime;
   };
 
-  const revealTime = calculateStepRevealTime();
-  const isPublicCrawl = crawlStartTime && allSteps && allSteps.some(s => s.reveal_after_minutes !== undefined);
-  const isStepAvailable = !isPublicCrawl || !revealTime || currentTime >= revealTime;
+  const revealTime = calculateStopRevealTime();
+  const isPublicCrawl = crawlStartTime && allStops && allStops.some(s => s.reveal_after_minutes !== undefined);
+  const isStopAvailable = !isPublicCrawl || !revealTime || currentTime >= revealTime;
 
   // Update current time every second
   useEffect(() => {
     if (!isPublicCrawl || !revealTime) return;
-
     const interval = setInterval(() => {
       const now = new Date();
       setCurrentTime(now);
-      
       if (revealTime && now < revealTime) {
         const remaining = Math.ceil((revealTime.getTime() - now.getTime()) / 1000);
         setTimeUntilReveal(remaining);
@@ -226,27 +218,26 @@ export const ButtonStep: React.FC<ButtonStepProps> = ({
         setTimeUntilReveal(null);
       }
     }, 1000);
-
     return () => clearInterval(interval);
   }, [isPublicCrawl, revealTime]);
 
   const openMaps = () => {
-    if (step.reward_location) {
-      Linking.openURL(step.reward_location);
+    if (stop.reward_location) {
+      Linking.openURL(stop.reward_location);
     }
   };
 
   const handleButtonPress = () => {
-    if (!isStepAvailable) return;
+    if (!isStopAvailable) return;
     onComplete('Button pressed');
-    Alert.alert('Step Complete!', 'Great! You\'ve completed this step.');
+    Alert.alert('Stop Complete!', 'Great! You\'ve completed this stop.');
   };
 
   if (isCompleted) {
     return (
-      <View style={styles.completedStep}>
-        <Text style={styles.stepTitle}>✓ Step {step.step_number}</Text>
-        <Text style={styles.stepDescription}>{step.step_components.description || step.step_components.location_name || ''}</Text>
+      <View style={styles.completedStop}>
+        <Text style={styles.stopTitle}>✓ Stop {stop.stop_number}</Text>
+        <Text style={styles.stopDescription}>{stop.stop_components.description || stop.stop_components.location_name || ''}</Text>
         <View style={styles.answerSection}>
           <Text style={styles.answerLabel}>Status:</Text>
           <Text style={styles.userAnswer}>{userAnswer}</Text>
@@ -256,19 +247,18 @@ export const ButtonStep: React.FC<ButtonStepProps> = ({
   }
 
   return (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Step {step.step_number}</Text>
-      <Text style={styles.stepDescription}>{step.step_components.description || step.step_components.location_name || ''}</Text>
-      
+    <View style={styles.stopContainer}>
+      <Text style={styles.stopTitle}>Stop {stop.stop_number}</Text>
+      <Text style={styles.stopDescription}>{stop.stop_components.description || stop.stop_components.location_name || ''}</Text>
       {isPublicCrawl && revealTime && (
         <View style={styles.timeSection}>
           <View style={styles.timeDisplay}>
-            <Text style={styles.timeLabel}>Step Available At:</Text>
+            <Text style={styles.timeLabel}>Stop Available At:</Text>
             <Text style={styles.targetTime}>
               {revealTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </View>
-          {!isStepAvailable && timeUntilReveal !== null && (
+          {!isStopAvailable && timeUntilReveal !== null && (
             <View style={styles.timeDisplay}>
               <Text style={styles.timeLabel}>Time Remaining:</Text>
               <Text style={styles.timeRemaining}>
@@ -276,7 +266,7 @@ export const ButtonStep: React.FC<ButtonStepProps> = ({
               </Text>
             </View>
           )}
-          {isStepAvailable && (
+          {isStopAvailable && (
             <View style={styles.timeDisplay}>
               <Text style={styles.timeLabel}>Status:</Text>
               <Text style={[styles.timeReached, { fontWeight: 'bold' }]}>✅ Available Now</Text>
@@ -284,29 +274,27 @@ export const ButtonStep: React.FC<ButtonStepProps> = ({
           )}
         </View>
       )}
-      
       <View style={styles.buttonSection}>
-        {step.reward_location && (
+        {stop.reward_location && (
           <TouchableOpacity style={styles.mapsButton} onPress={openMaps}>
             <Text style={styles.mapsButtonText}>📍 Open in Maps</Text>
           </TouchableOpacity>
         )}
-        
         <TouchableOpacity 
           style={[
             styles.completeButton, 
-            !isStepAvailable && styles.timeButtonDisabled
+            !isStopAvailable && styles.timeButtonDisabled
           ]} 
           onPress={handleButtonPress}
-          disabled={!isStepAvailable}
+          disabled={!isStopAvailable}
         >
           <Text style={[
             styles.completeButtonText,
-            !isStepAvailable && styles.timeButtonTextDisabled
+            !isStopAvailable && styles.timeButtonTextDisabled
           ]}>
-            {!isStepAvailable 
+            {!isStopAvailable 
               ? `⏰ Wait ${timeUntilReveal ? formatTimeRemaining(timeUntilReveal) : ''}`
-              : (step.step_components.button_text || '✅ Complete Step')
+              : (stop.stop_components.button_text || '✅ Complete Stop')
             }
           </Text>
         </TouchableOpacity>
@@ -315,48 +303,48 @@ export const ButtonStep: React.FC<ButtonStepProps> = ({
   );
 };
 
-interface StepComponentProps {
-  step: CrawlStep;
+interface StopComponentProps {
+  stop: CrawlStop;
   onComplete: (userAnswer: string) => void;
   isCompleted: boolean;
   userAnswer?: string;
   crawlStartTime?: string;
-  stepDurations?: { [stepNumber: number]: number };
-  currentStepIndex?: number;
-  allSteps?: CrawlStep[];
+  stopDurations?: { [stopNumber: number]: number };
+  currentStopIndex?: number;
+  allStops?: CrawlStop[];
 }
 
-export const StepComponent: React.FC<StepComponentProps> = ({ 
-  step, 
+export const StopComponent: React.FC<StopComponentProps> = ({ 
+  stop, 
   onComplete, 
   isCompleted, 
   userAnswer,
   crawlStartTime,
-  stepDurations,
-  currentStepIndex,
-  allSteps
+  stopDurations,
+  currentStopIndex,
+  allStops
 }) => {
-  switch (step.step_type) {
+  switch (stop.stop_type) {
     case 'riddle':
-      return <RiddleStep step={step} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} />;
+      return <RiddleStop stop={stop} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} />;
     case 'location':
-      return <LocationStep step={step} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} />;
+      return <LocationStop stop={stop} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} />;
     case 'photo':
-      return <PhotoStep step={step} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} />;
+      return <PhotoStop stop={stop} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} />;
     case 'button':
-      return <ButtonStep step={step} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} crawlStartTime={crawlStartTime} currentStepIndex={currentStepIndex} allSteps={allSteps} />;
+      return <ButtonStop stop={stop} onComplete={onComplete} isCompleted={isCompleted} userAnswer={userAnswer} crawlStartTime={crawlStartTime} currentStopIndex={currentStopIndex} allStops={allStops} />;
     default:
       return (
-        <View style={styles.stepContainer}>
-          <Text style={styles.stepTitle}>Unknown Step Type</Text>
-          <Text style={styles.stepDescription}>{step.step_components.description || ''}</Text>
+        <View style={styles.stopContainer}>
+          <Text style={styles.stopTitle}>Unknown Stop Type</Text>
+          <Text style={styles.stopDescription}>{stop.stop_components.description || ''}</Text>
         </View>
       );
   }
 };
 
 const styles = StyleSheet.create({
-  stepContainer: {
+  stopContainer: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
@@ -367,7 +355,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  completedStep: {
+  completedStop: {
     backgroundColor: '#f8f9fa',
     borderRadius: 12,
     padding: 20,
@@ -375,13 +363,13 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: '#28a745',
   },
-  stepTitle: {
+  stopTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
     color: '#333',
   },
-  stepDescription: {
+  stopDescription: {
     fontSize: 16,
     color: '#666',
     lineHeight: 24,

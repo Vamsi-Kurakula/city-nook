@@ -6,7 +6,7 @@ import * as FileSystem from 'expo-file-system';
 import yaml from 'js-yaml';
 import CrawlList from '../ui/CrawlList';
 import { Crawl } from '../../types/crawl';
-import { loadCrawlSteps } from '../auto-generated/crawlAssetLoader';
+import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 
 interface CrawlData {
@@ -29,28 +29,28 @@ const PublicCrawls: React.FC = () => {
         const data = yaml.load(yamlString) as CrawlData;
         
         if (data && Array.isArray(data.crawls)) {
-          console.log(`Found ${data.crawls.length} crawls, loading steps...`);
+          console.log(`Found ${data.crawls.length} crawls, loading stops...`);
           
-          // Load steps for each crawl using the utility
-          const crawlsWithSteps = await Promise.all(
+          // Load stops for each crawl using the utility
+          const crawlsWithStops = await Promise.all(
             data.crawls.map(async (crawl) => {
               try {
-                console.log(`Loading steps for ${crawl.name} (${crawl.assetFolder})...`);
-                const stepsData = await loadCrawlSteps(crawl.assetFolder);
+                console.log(`Loading stops for ${crawl.name} (${crawl.assetFolder})...`);
+                const stopsData = await loadCrawlStops(crawl.assetFolder);
                 return {
                   ...crawl,
-                  steps: stepsData?.steps || [],
+                  stops: stopsData?.stops || [],
                 };
               } catch (error) {
-                console.warn(`Could not load steps for ${crawl.name}:`, error);
+                console.warn(`Could not load stops for ${crawl.name}:`, error);
                 return crawl;
               }
             })
           );
-          console.log('All crawls loaded successfully:', crawlsWithSteps.map(c => ({ name: c.name, steps: c.steps?.length || 0 })));
+          console.log('All crawls loaded successfully:', crawlsWithStops.map(c => ({ name: c.name, stops: c.stops?.length || 0 })));
           
           // Filter to only show public crawls (public-crawl: true)
-          const publicCrawls = crawlsWithSteps.filter(crawl => crawl['public-crawl'] === true);
+          const publicCrawls = crawlsWithStops.filter(crawl => crawl['public-crawl'] === true);
           console.log(`Filtered to ${publicCrawls.length} public crawls`);
           
           setCrawls(publicCrawls);

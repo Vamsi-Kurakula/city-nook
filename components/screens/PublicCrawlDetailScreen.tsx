@@ -5,8 +5,8 @@ import { useRoute, useNavigation, CommonActions } from '@react-navigation/native
 import { supabase } from '../../utils/supabase';
 import { useAuthContext } from '../context/AuthContext';
 import { getHeroImageSource } from '../auto-generated/ImageLoader';
-import { loadCrawlSteps } from '../auto-generated/crawlAssetLoader';
-import { Crawl, CrawlSteps } from '../../types/crawl';
+import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
+import { Crawl, CrawlStops } from '../../types/crawl';
 import { loadPublicCrawls } from '../../utils/publicCrawlLoader';
 
 const PublicCrawlDetailScreen: React.FC = () => {
@@ -24,7 +24,7 @@ const PublicCrawlDetailScreen: React.FC = () => {
   const [loading, setLoading] = useState(!crawl);
   const [signups, setSignups] = useState<any[]>([]);
   const [isSignedUp, setIsSignedUp] = useState(false);
-  const [crawlStepsData, setCrawlStepsData] = useState<CrawlSteps | null>(null);
+  const [crawlStopsData, setCrawlStopsData] = useState<CrawlStops | null>(null);
   
   // Load crawl data if we only have crawlId
   useEffect(() => {
@@ -72,19 +72,19 @@ const PublicCrawlDetailScreen: React.FC = () => {
     fetchSignups();
   }, [crawlData?.id, user?.id, isLoading]);
   
-  // Load steps when crawl data is available
+  // Load stops when crawl data is available
   useEffect(() => {
-    const loadSteps = async () => {
+    const loadStops = async () => {
       if (!crawlData) return;
       
       try {
-        const stepsData = await loadCrawlSteps(crawlData.assetFolder);
-        setCrawlStepsData(stepsData);
+        const stopsData = await loadCrawlStops(crawlData.assetFolder);
+        setCrawlStopsData(stopsData);
       } catch (error) {
-        console.error('Error loading crawl steps:', error);
+        console.error('Error loading crawl stops:', error);
       }
     };
-    loadSteps();
+    loadStops();
   }, [crawlData?.assetFolder]);
   
   if (loading) {
@@ -144,11 +144,11 @@ const PublicCrawlDetailScreen: React.FC = () => {
 
   // Calculate if crawl is completed
   const isCrawlCompleted = () => {
-    if (!crawlData.start_time || !crawlStepsData?.steps) return false;
+    if (!crawlData.start_time || !crawlStopsData?.stops) return false;
     
     const startTime = new Date(crawlData.start_time);
-    const totalDurationMinutes = crawlStepsData.steps.reduce((total, step) => {
-      return total + (step.reveal_after_minutes || 0);
+    const totalDurationMinutes = crawlStopsData.stops.reduce((total, stop) => {
+      return total + (stop.reveal_after_minutes || 0);
     }, 0);
     const endTime = new Date(startTime.getTime() + totalDurationMinutes * 60 * 1000);
     const currentTime = new Date();
