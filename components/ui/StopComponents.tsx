@@ -84,8 +84,8 @@ interface LocationStopProps {
 
 export const LocationStop: React.FC<LocationStopProps> = ({ stop, onComplete, isCompleted, userAnswer }) => {
   const openMaps = () => {
-    if (stop.reward_location) {
-      Linking.openURL(stop.reward_location);
+    if (stop.location_link) {
+      Linking.openURL(stop.location_link);
     }
   };
 
@@ -222,8 +222,8 @@ export const ButtonStop: React.FC<ButtonStopProps> = ({
   }, [isPublicCrawl, revealTime]);
 
   const openMaps = () => {
-    if (stop.reward_location) {
-      Linking.openURL(stop.reward_location);
+    if (stop.location_link) {
+      Linking.openURL(stop.location_link);
     }
   };
 
@@ -275,7 +275,7 @@ export const ButtonStop: React.FC<ButtonStopProps> = ({
         </View>
       )}
       <View style={styles.buttonSection}>
-        {stop.reward_location && (
+        {stop.location_link && (
           <TouchableOpacity style={styles.mapsButton} onPress={openMaps}>
             <Text style={styles.mapsButtonText}>📍 Open in Maps</Text>
           </TouchableOpacity>

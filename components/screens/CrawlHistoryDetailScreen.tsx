@@ -85,7 +85,7 @@ const CrawlHistoryDetailScreen: React.FC = () => {
          'Stop description'}
       </Text>
       
-      {item.reward_location && (
+      {item.location_link && (
         <Text style={styles.rewardLocation}>
           📍 Reward Location Available
         </Text>

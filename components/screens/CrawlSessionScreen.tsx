@@ -252,8 +252,8 @@ const CrawlSessionScreen: React.FC = () => {
                   <Text style={styles.pastStopQuestion}>{question}</Text>
                   <Text style={styles.pastStopAnswer}>Answer: {item.user_answer}</Text>
                   <Text style={styles.pastStopTime}>Completed: {item.completed_at ? new Date(item.completed_at).toLocaleString() : ''}</Text>
-                  {stop?.reward_location && (
-                    <TouchableOpacity onPress={() => Linking.openURL(stop.reward_location)}>
+                                     {stop?.location_link && (
+                     <TouchableOpacity onPress={() => Linking.openURL(stop.location_link!)}>
                       <Text style={styles.pastStopLink}>📍 Open Reward Location</Text>
                     </TouchableOpacity>
                   )}

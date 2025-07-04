@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import { useCrawlContext } from '../context/CrawlContext';
@@ -7,6 +7,7 @@ import { Crawl } from '../../types/crawl';
 import { getHeroImageSource } from '../auto-generated/ImageLoader';
 import { useAuthContext } from '../context/AuthContext';
 import { supabase } from '../../utils/supabase';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const CrawlDetailScreen: React.FC = () => {
   const route = useRoute();
@@ -125,9 +126,95 @@ const CrawlDetailScreen: React.FC = () => {
         <Text style={styles.meta}>Duration: {crawl.duration}</Text>
         <Text style={styles.meta}>Distance: {crawl.distance}</Text>
         <Text style={styles.meta}>Difficulty: {crawl.difficulty}</Text>
+        
+        {/* Crawl Route Visualization */}
+        {crawl.stops && crawl.stops.length > 0 && (
+          <View style={styles.routeSection}>
+            <Text style={styles.routeSectionTitle}>Crawl Route</Text>
+            <View style={styles.routeVisualization}>
+              {/* First Stop */}
+              <View style={styles.routeRow}>
+                <View style={styles.routeCircle}>
+                  <MaterialIcons name="location-on" size={20} color="#fff" />
+                </View>
+                {crawl.stops?.[0]?.location_link ? (
+                  <TouchableOpacity onPress={() => Linking.openURL(crawl.stops?.[0]?.location_link || '')}>
+                    <Text style={[styles.routeStopText, styles.routeStopLink]} numberOfLines={2}>
+                      {crawl.stops?.[0]?.location_name || 'First Stop'}
+                    </Text>
+                  </TouchableOpacity>
+                ) : crawl.stops?.[0]?.stop_components?.address ? (
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(crawl.stops?.[0]?.stop_components?.address || '')}`)}
+                  >
+                    <Text style={[styles.routeStopText, styles.routeStopLink]} numberOfLines={2}>
+                      {crawl.stops?.[0]?.stop_components?.address}
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <Text style={styles.routeStopText} numberOfLines={2}>
+                    {crawl.stops?.[0]?.stop_components?.location_name || 
+                     crawl.stops?.[0]?.stop_components?.description || 
+                     'First Stop'}
+                  </Text>
+                )}
+              </View>
+              {/* Dashed Line */}
+              <View style={styles.routeRow}>
+                <View style={styles.dashedLineContainer}>
+                  <View style={styles.dashedLine} />
+                </View>
+                <Text style={styles.routeStopText}></Text>
+              </View>
+              {/* Middle Circle - Number of stops in between */}
+              <View style={styles.routeRow}>
+                <View style={styles.routeCircle}><Text style={styles.routeCircleText}>{crawl.stops.length > 2 ? crawl.stops.length - 2 : '0'}</Text></View>
+                <Text style={styles.routeStopText} numberOfLines={2}>
+                  {crawl.stops.length > 2 ? 'Stops in between' : 'direct route'}
+                </Text>
+              </View>
+              {/* Dashed Line */}
+              <View style={styles.routeRow}>
+                <View style={styles.dashedLineContainer}>
+                  <View style={styles.dashedLine} />
+                </View>
+                <Text style={styles.routeStopText}></Text>
+              </View>
+              {/* Last Stop */}
+              <View style={styles.routeRow}>
+                <View style={styles.routeCircle}>
+                  <MaterialIcons name="location-on" size={20} color="#fff" />
+                </View>
+                {crawl.stops?.[crawl.stops.length - 1]?.location_link ? (
+                  <TouchableOpacity onPress={() => Linking.openURL(crawl.stops?.[crawl.stops.length - 1]?.location_link || '')}>
+                    <Text style={[styles.routeStopText, styles.routeStopLink]} numberOfLines={2}>
+                      {crawl.stops?.[crawl.stops.length - 1]?.location_name || 'Last Stop'}
+                    </Text>
+                  </TouchableOpacity>
+                ) : crawl.stops?.[crawl.stops.length - 1]?.stop_components?.address ? (
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(crawl.stops?.[crawl.stops.length - 1]?.stop_components?.address || '')}`)}
+                  >
+                    <Text style={[styles.routeStopText, styles.routeStopLink]} numberOfLines={2}>
+                      {crawl.stops?.[crawl.stops.length - 1]?.stop_components?.address}
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <Text style={styles.routeStopText} numberOfLines={2}>
+                    {crawl.stops?.[crawl.stops.length - 1]?.stop_components?.location_name || 
+                     crawl.stops?.[crawl.stops.length - 1]?.stop_components?.description || 
+                     'Last Stop'}
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+        )}
+        
         <TouchableOpacity style={styles.startButton} onPress={handleStartCrawl}>
           <Text style={styles.startButtonText}>Start Crawl</Text>
         </TouchableOpacity>
+        
         {resumeInfo}
         {resumeProgress && (
           <TouchableOpacity style={[styles.startButton, { backgroundColor: '#888', marginTop: 12 }]} onPress={handleResumeCrawl}>
@@ -164,6 +251,67 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: '#666',
+  },
+  routeSection: {
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  routeSectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  routeVisualization: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  routeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  routeCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  routeCircleText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  dashedLineContainer: {
+    width: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dashedLine: {
+    width: 2,
+    height: 32,
+    borderWidth: 1,
+    borderColor: '#888',
+    borderStyle: 'dashed',
+    alignSelf: 'center',
+    marginTop: 0,
+    marginBottom: 0,
+  },
+  routeStopText: {
+    fontSize: 14,
+    color: '#333',
+    maxWidth: 180,
+    marginLeft: 12,
+  },
+  routeStopLink: {
+    color: '#007AFF',
+    textDecorationLine: 'underline',
+  },
+  locationText: {
+    color: '#007AFF',
+    textDecorationLine: 'underline',
   },
 });
 

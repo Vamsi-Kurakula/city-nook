@@ -5,8 +5,10 @@ export interface StopComponent {
 export interface CrawlStop {
   stop_number: number;
   stop_type: string;
-  stop_components: any; // Replace 'any' with a more specific type if available
-  reward_location?: string;
+  location_name: string;
+  location_link?: string;
+  stop_components: any;
+  reveal_after_minutes?: number;
 }
 
 export interface CrawlStops {

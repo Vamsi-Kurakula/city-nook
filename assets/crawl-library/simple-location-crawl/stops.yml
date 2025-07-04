@@ -1,40 +1,40 @@
 stops:
   - stop_number: 1
     stop_type: "button"
-    reward_location: "https://maps.google.com/?q=Central+Park+New+York"
+    location_name: "Central Park"
+    location_link: "https://maps.google.com/?q=Central+Park+New+York"
     stop_components:
-      location_name: "Central Park"
       description: "Start your journey at the heart of New York City - Central Park"
       button_text: "🚶‍♂️ Start Here"
   
   - stop_number: 2
     stop_type: "button"
-    reward_location: "https://maps.google.com/?q=Bethesda+Fountain+Central+Park+New+York"
+    location_name: "Bethesda Fountain"
+    location_link: "https://maps.google.com/?q=Bethesda+Fountain+Central+Park+New+York"
     stop_components:
-      location_name: "Bethesda Fountain"
       description: "Find the iconic Bethesda Fountain, a centerpiece of Central Park"
       button_text: "⛲ Found the Fountain"
   
   - stop_number: 3
     stop_type: "button"
-    reward_location: "https://maps.google.com/?q=Belvedere+Castle+Central+Park+New+York"
+    location_name: "Belvedere Castle"
+    location_link: "https://maps.google.com/?q=Belvedere+Castle+Central+Park+New+York"
     stop_components:
-      location_name: "Belvedere Castle"
       description: "Climb to the top of Belvedere Castle for amazing views"
       button_text: "🏰 Reached the Castle"
   
   - stop_number: 4
     stop_type: "button"
-    reward_location: "https://maps.google.com/?q=Strawberry+Fields+Central+Park+New+York"
+    location_name: "Strawberry Fields"
+    location_link: "https://maps.google.com/?q=Strawberry+Fields+Central+Park+New+York"
     stop_components:
-      location_name: "Strawberry Fields"
       description: "Visit the John Lennon memorial at Strawberry Fields"
       button_text: "🌹 At Strawberry Fields"
   
   - stop_number: 5
     stop_type: "button"
-    reward_location: "https://maps.google.com/?q=The+Mall+Central+Park+New+York"
+    location_name: "The Mall"
+    location_link: "https://maps.google.com/?q=The+Mall+Central+Park+New+York"
     stop_components:
-      location_name: "The Mall"
       description: "Walk down The Mall, the grand promenade lined with American elms"
       button_text: " Walked The Mall" 
