@@ -310,6 +310,56 @@ export default function HomeScreen() {
     handleFeaturedCrawlPress(crawl.id);
   };
 
+  const handleInProgressCrawlPress = async (crawlProgress: CrawlProgress) => {
+    try {
+      // Load the full crawl data
+      let crawlData: any = null;
+      
+      if (crawlProgress.isPublicCrawl) {
+        // Load public crawl data
+        const publicCrawls = await loadPublicCrawls();
+        crawlData = publicCrawls.find((c: any) => c.id === crawlProgress.crawlId);
+      } else {
+        // Load library crawl data
+        const asset = Asset.fromModule(require('../../assets/crawl-library/crawls.yml'));
+        await asset.downloadAsync();
+        const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
+        const data = yaml.load(yamlString) as { crawls: any[] };
+        crawlData = data.crawls.find((c: any) => c.id === crawlProgress.crawlId);
+        
+        if (crawlData) {
+          // Load stops for the crawl
+          const stopsData = await loadCrawlStops(crawlData.assetFolder);
+          crawlData.stops = stopsData?.stops || [];
+        }
+      }
+
+      if (!crawlData) {
+        Alert.alert('Error', 'Could not load crawl data');
+        return;
+      }
+
+      if (crawlProgress.isPublicCrawl) {
+        navigation.dispatch(
+          CommonActions.navigate({
+            name: 'PublicCrawlDetail',
+            params: { crawlId: crawlProgress.crawlId },
+          })
+        );
+      } else {
+        navigation.dispatch(
+          CommonActions.navigate({
+            name: 'CrawlDetail',
+            params: { crawl: crawlData },
+          })
+        );
+      }
+    } catch (error) {
+      console.error('Error loading in-progress crawl data:', error);
+      Alert.alert('Error', 'Could not load crawl data');
+    }
+  };
+
   const handlePublicCrawlPress = (crawlId: string) => {
     navigation.dispatch(
       CommonActions.navigate({
@@ -527,16 +577,8 @@ export default function HomeScreen() {
                   <View style={styles.horizontalCardContainer}>
                     <CrawlCard 
                       crawl={crawl as Crawl} 
-                      onPress={() => {
-                        // Set this as the current crawl and continue
-                        setCurrentCrawl(crawlProgress);
-                        handleContinueCrawl();
-                      }}
-                      onStart={() => {
-                        // Set this as the current crawl and continue
-                        setCurrentCrawl(crawlProgress);
-                        handleContinueCrawl();
-                      }}
+                      onPress={() => handleInProgressCrawlPress(crawlProgress)}
+                      onStart={() => handleInProgressCrawlPress(crawlProgress)}
                       isExpanded={false}
                       width={280}
                       marginHorizontal={2}
