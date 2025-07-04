@@ -56,6 +56,7 @@ export default function HomeScreen() {
   const [upcomingCrawls, setUpcomingCrawls] = useState<PublicCrawl[]>([]);
   const [userSignups, setUserSignups] = useState<string[]>([]);
   const [currentCrawl, setCurrentCrawl] = useState<CrawlProgress | null>(null);
+  const [inProgressCrawls, setInProgressCrawls] = useState<CrawlProgress[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Add debugging
@@ -175,43 +176,33 @@ export default function HomeScreen() {
     if (!userId) return;
 
     try {
-      // Check for public crawl in progress
-      const { data: publicProgress, error: publicError } = await supabase
+      console.log('Loading current crawls for user:', userId);
+      
+      // Get all in-progress crawls (both public and library)
+      const { data: allProgress, error } = await supabase
         .from('crawl_progress')
         .select('*')
         .eq('user_id', userId)
-        .eq('is_public_crawl', true)
-        .single();
+        .is('completed_at', null)
+        .order('started_at', { ascending: false });
 
-      if (publicProgress && !publicError) {
-        setCurrentCrawl({
-          crawlId: publicProgress.crawl_id,
-          currentStep: publicProgress.current_step,
-          completedSteps: publicProgress.completed_steps || [],
-          startTime: publicProgress.start_time,
-          isPublicCrawl: true
-        });
-        return;
-      }
+      console.log('All progress:', allProgress, 'Error:', error);
 
-      // Check for library crawl in progress
-      const { data: libraryProgress, error: libraryError } = await supabase
-        .from('crawl_progress')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_public_crawl', false)
-        .order('start_time', { ascending: false })
-        .limit(1)
-        .single();
+      if (allProgress && allProgress.length > 0) {
+        const inProgressCrawlsData: CrawlProgress[] = allProgress.map(progress => ({
+          crawlId: progress.crawl_id,
+          currentStep: progress.current_stop,
+          completedSteps: progress.completed_stops || [],
+          startTime: progress.started_at,
+          isPublicCrawl: false // We'll determine this by checking if it's in public crawls
+        }));
 
-      if (libraryProgress && !libraryError) {
-        setCurrentCrawl({
-          crawlId: libraryProgress.crawl_id,
-          currentStep: libraryProgress.current_step,
-          completedSteps: libraryProgress.completed_steps || [],
-          startTime: libraryProgress.start_time,
-          isPublicCrawl: false
-        });
+        console.log('All in-progress crawls:', inProgressCrawlsData);
+        setInProgressCrawls(inProgressCrawlsData);
+        setCurrentCrawl(inProgressCrawlsData[0]);
+      } else {
+        setInProgressCrawls([]);
+        setCurrentCrawl(null);
       }
     } catch (error) {
       console.error('Error loading current crawl:', error);
@@ -338,31 +329,6 @@ export default function HomeScreen() {
 
   const handleViewAllFeaturedCrawls = () => {
     navigation.navigate('CrawlLibrary');
-  };
-
-  const renderContinueCrawlButton = () => {
-    if (!currentCrawl) return null;
-
-    const crawl = upcomingCrawls.find(c => c.id === currentCrawl.crawlId) || 
-                  featuredCrawls.find(c => c.id === currentCrawl.crawlId);
-    
-    const title = crawl?.title || currentCrawl.crawlId;
-    const progress = currentCrawl.completedSteps.length;
-
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Continue Crawl</Text>
-        <TouchableOpacity style={styles.continueCrawlCard} onPress={handleContinueCrawl}>
-          <View style={styles.continueCrawlContent}>
-            <Text style={styles.continueCrawlTitle}>{title}</Text>
-            <Text style={styles.continueCrawlSubtitle}>
-              {progress} stops completed • Tap to continue
-            </Text>
-          </View>
-          <Text style={styles.continueArrow}>→</Text>
-        </TouchableOpacity>
-      </View>
-    );
   };
 
   const renderUpcomingCrawls = () => {
@@ -501,7 +467,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {renderContinueCrawlButton()}
         {renderUpcomingCrawls()}
         
         {/* Crawl Library Button */}
@@ -521,6 +486,67 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         </View>
+        
+        {/* Crawls in Progress Section */}
+        {user && inProgressCrawls.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Crawls in Progress</Text>
+            <FlatList
+              data={inProgressCrawls}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalListContainer}
+              keyExtractor={(item) => item.crawlId}
+              renderItem={({ item: crawlProgress }) => {
+                // Find the full crawl data
+                const crawl = upcomingCrawls.find(c => c.id === crawlProgress.crawlId) || 
+                             fullFeaturedCrawls.find(c => c.id === crawlProgress.crawlId);
+                
+                if (!crawl) {
+                  // If we can't find the crawl data, show a placeholder
+                  return (
+                    <View style={styles.horizontalCardContainer}>
+                      <View style={styles.inProgressCard}>
+                        <View style={styles.inProgressCardContent}>
+                          <View style={styles.inProgressCardLeft}>
+                            <Text style={styles.inProgressCardTitle} numberOfLines={1}>
+                              Crawl {crawlProgress.crawlId}
+                            </Text>
+                            <Text style={styles.inProgressCardSubtitle}>
+                              {crawlProgress.completedSteps.length} stops completed • Tap to continue
+                            </Text>
+                          </View>
+                          <Text style={styles.inProgressArrow}>→</Text>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                }
+                
+                return (
+                  <View style={styles.horizontalCardContainer}>
+                    <CrawlCard 
+                      crawl={crawl as Crawl} 
+                      onPress={() => {
+                        // Set this as the current crawl and continue
+                        setCurrentCrawl(crawlProgress);
+                        handleContinueCrawl();
+                      }}
+                      onStart={() => {
+                        // Set this as the current crawl and continue
+                        setCurrentCrawl(crawlProgress);
+                        handleContinueCrawl();
+                      }}
+                      isExpanded={false}
+                      width={280}
+                      marginHorizontal={2}
+                    />
+                  </View>
+                );
+              }}
+            />
+          </View>
+        )}
         
         {renderFeaturedCrawls()}
       </ScrollView>
@@ -773,5 +799,39 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 8,
     lineHeight: 20,
+  },
+  inProgressCard: {
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  inProgressCardContent: {
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  inProgressCardLeft: {
+    flex: 1,
+  },
+  inProgressCardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  inProgressCardSubtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  inProgressArrow: {
+    fontSize: 24,
+    color: '#007AFF',
+    fontWeight: 'bold',
   },
 }); 
