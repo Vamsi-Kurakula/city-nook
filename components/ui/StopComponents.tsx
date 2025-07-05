@@ -228,7 +228,7 @@ export const ButtonStop: React.FC<ButtonStopProps> = ({
   };
 
   const handleButtonPress = () => {
-    if (!isStopAvailable) return;
+    if (!isStopAvailable || isCompleted) return;
     onComplete('Button pressed');
     Alert.alert('Stop Complete!', 'Great! You\'ve completed this stop.');
   };
@@ -266,7 +266,7 @@ export const ButtonStop: React.FC<ButtonStopProps> = ({
               </Text>
             </View>
           )}
-          {isStopAvailable && (
+          {isStopAvailable && !isCompleted && (
             <View style={styles.timeDisplay}>
               <Text style={styles.timeLabel}>Status:</Text>
               <Text style={[styles.timeReached, { fontWeight: 'bold' }]}>✅ Available Now</Text>
@@ -283,17 +283,19 @@ export const ButtonStop: React.FC<ButtonStopProps> = ({
         <TouchableOpacity 
           style={[
             styles.completeButton, 
-            !isStopAvailable && styles.timeButtonDisabled
+            (!isStopAvailable || isCompleted) && styles.timeButtonDisabled
           ]} 
           onPress={handleButtonPress}
-          disabled={!isStopAvailable}
+          disabled={!isStopAvailable || isCompleted}
         >
           <Text style={[
             styles.completeButtonText,
-            !isStopAvailable && styles.timeButtonTextDisabled
+            (!isStopAvailable || isCompleted) && styles.timeButtonTextDisabled
           ]}>
             {!isStopAvailable 
               ? `⏰ Wait ${timeUntilReveal ? formatTimeRemaining(timeUntilReveal) : ''}`
+              : isCompleted
+              ? '✅ Completed'
               : (stop.stop_components.button_text || '✅ Complete Stop')
             }
           </Text>
