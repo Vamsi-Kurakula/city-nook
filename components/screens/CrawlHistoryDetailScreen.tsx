@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
-import { getCrawlNameMapping, getCrawlAssetFolder } from '../../utils/supabase';
+import { getCrawlNameMapping, getCrawlAssetFolder } from '../../utils/database';
 import { CrawlStop } from '../../types/crawl';
 
 interface CrawlHistoryDetailParams {

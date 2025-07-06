@@ -6,7 +6,7 @@ import { useCrawlContext } from '../context/CrawlContext';
 import { Crawl } from '../../types/crawl';
 import { getHeroImageSource } from '../auto-generated/ImageLoader';
 import { useAuthContext } from '../context/AuthContext';
-import { supabase } from '../../utils/supabase';
+import { supabase } from '../../utils/database';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const CrawlDetailScreen: React.FC = () => {

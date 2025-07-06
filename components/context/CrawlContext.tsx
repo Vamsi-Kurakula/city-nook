@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Crawl, CrawlProgress, UserStopProgress } from '../../types/crawl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { deleteCrawlProgress, getCurrentCrawlProgress, saveCrawlProgress, addCrawlHistory, getCrawlNameMapping } from '../../utils/supabase';
+import { deleteCrawlProgress, getCurrentCrawlProgress, saveCrawlProgress, addCrawlHistory, getCrawlNameMapping } from '../../utils/database';
 
 interface CrawlContextType {
   currentCrawl: Crawl | null;

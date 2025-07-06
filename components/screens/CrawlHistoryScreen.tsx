@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthContext } from '../context/AuthContext';
-import { getCrawlHistory, getCrawlNameMapping } from '../../utils/supabase';
+import { getCrawlHistory, getCrawlNameMapping } from '../../utils/database';
 
 interface CrawlHistoryItem {
   id: string;

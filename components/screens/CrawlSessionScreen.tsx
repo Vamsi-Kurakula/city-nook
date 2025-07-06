@@ -5,10 +5,10 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { useCrawlContext } from '../context/CrawlContext';
 import { Crawl, CrawlStop } from '../../types/crawl';
 import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
-import { StopComponent } from '../ui/StopComponents';
+import { StopComponent } from '../ui/stops';
 import CrawlMap from '../ui/CrawlMap';
 import { useAuthContext } from '../context/AuthContext';
-import { saveCrawlProgress, addCrawlHistory, deleteCrawlProgress, supabase } from '../../utils/supabase';
+import { saveCrawlProgress, addCrawlHistory, deleteCrawlProgress, supabase } from '../../utils/database';
 import { extractAllCoordinates, LocationCoordinates } from '../../utils/coordinateExtractor';
 
 const CrawlSessionScreen: React.FC = () => {
@@ -247,16 +247,22 @@ const CrawlSessionScreen: React.FC = () => {
   }, [saveAndClearCrawlSession, navigation, user, currentProgress]);
 
   const handleStopComplete = async (userAnswer: string) => {
+    console.log('handleStopComplete called - currentStopNumber:', currentStopNumber, 'userAnswer:', userAnswer);
     await completeStop(currentStopNumber, userAnswer, user?.id);
+    console.log('Setting isGateCompleted to true');
     setIsGateCompleted(true);
     setIsNextStopRevealed(true);
   };
 
   const handleNextStep = async () => {
+    console.log('handleNextStep called - isGateCompleted:', isGateCompleted, 'currentStopNumber:', currentStopNumber);
     if (isGateCompleted) {
+      console.log('Proceeding to next stop...');
       setIsGateCompleted(false);
       setIsNextStopRevealed(false);
       await nextStop(user?.id);
+    } else {
+      console.log('Cannot proceed - isGateCompleted is false');
     }
   };
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
-import { supabase } from '../../utils/supabase';
+import { supabase } from '../../utils/database';
 import { useAuthContext } from '../context/AuthContext';
 import { useCrawlContext } from '../context/CrawlContext';
 import { Alert } from 'react-native';

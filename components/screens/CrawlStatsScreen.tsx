@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../context/AuthContext';
-import { getCrawlStats } from '../../utils/supabase';
+import { getCrawlStats } from '../../utils/database';
 
 const CrawlStatsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
