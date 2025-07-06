@@ -8,7 +8,7 @@ import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
 import { StopComponent } from '../ui/StopComponents';
 import CrawlMap from '../ui/CrawlMap';
 import { useAuthContext } from '../context/AuthContext';
-import { saveCrawlProgress, addCrawlHistory } from '../../utils/supabase';
+import { saveCrawlProgress, addCrawlHistory, supabase } from '../../utils/supabase';
 import { extractAllCoordinates, LocationCoordinates } from '../../utils/coordinateExtractor';
 
 const CrawlSessionScreen: React.FC = () => {
@@ -40,6 +40,7 @@ const CrawlSessionScreen: React.FC = () => {
     nextStop,
     getCurrentStop,
     clearCrawlSession,
+    saveAndClearCrawlSession,
   } = useCrawlContext();
   const { user } = useAuthContext();
 
@@ -120,46 +121,62 @@ const CrawlSessionScreen: React.FC = () => {
     }
   }, [isCrawlActive, currentCrawl, crawlData, setCurrentCrawl, setIsCrawlActive, setCurrentProgress, stops, routeParams?.resumeData, routeParams?.resumeProgress]);
 
+  // Save progress to database when session starts
+  useEffect(() => {
+    const saveInitialProgress = async () => {
+      if (user?.id && currentProgress && currentCrawl && !routeParams?.resumeData && !routeParams?.resumeProgress) {
+        // Only save if this is a new session (not resuming)
+        console.log('Saving initial progress to database:', currentProgress);
+        
+        // Temporarily save without completed_stops until database schema is fixed
+        const progressData = {
+          user_id: user.id,
+          crawl_id: currentProgress.crawl_id,
+          current_stop: currentProgress.current_stop,
+          started_at: new Date(currentProgress.started_at).toISOString(),
+          completed_at: undefined,
+        };
+        
+        const { error } = await supabase
+          .from('crawl_progress')
+          .upsert([progressData], { onConflict: 'user_id,crawl_id' });
+          
+        if (error) {
+          console.error('Error saving initial progress:', error);
+        } else {
+          console.log('Initial progress saved successfully');
+        }
+      }
+    };
+    
+    saveInitialProgress();
+  }, [user?.id, currentProgress, currentCrawl, routeParams?.resumeData, routeParams?.resumeProgress]);
+
   const currentStopNumber = getCurrentStop();
   const totalStops = stops.length;
   const isCompleted = currentProgress?.completed || false;
   const completedStops = currentProgress?.completed_stops || [];
 
-  const handleExit = useCallback(() => {
-    Alert.alert(
-      'Exit Crawl',
-      'Do you want to save your progress before exiting?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Exit Without Saving',
-          style: 'destructive',
-          onPress: async () => {
-            await clearCrawlSession();
-            navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
-          },
-        },
-        {
-          text: 'Save and Exit',
-          style: 'default',
-          onPress: async () => {
-            if (user?.id && currentProgress) {
-              await saveCrawlProgress({
-                userId: user.id,
-                crawlId: currentProgress.crawl_id,
-                currentStop: currentProgress.current_stop,
-                completedStops: currentProgress.completed_stops.map((s: any) => s.stop_number),
-                startedAt: new Date(currentProgress.started_at).toISOString(),
-                completedAt: currentProgress.completed ? new Date().toISOString() : undefined,
-              });
-            }
-            await clearCrawlSession();
-            navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
-          },
-        },
-      ]
-    );
-  }, [clearCrawlSession, navigation, user, currentProgress]);
+  const handleExit = useCallback(async () => {
+    // Automatically save progress before exiting
+    if (user?.id && currentProgress) {
+      // Convert completed_stops to array of numbers
+      const completedStopNumbers = currentProgress.completed_stops.map((s: any) => 
+        typeof s === 'number' ? s : s.stop_number
+      );
+      
+      await saveCrawlProgress({
+        userId: user.id,
+        crawlId: currentProgress.crawl_id,
+        currentStop: currentProgress.current_stop,
+        completedStops: completedStopNumbers,
+        startedAt: new Date(currentProgress.started_at).toISOString(),
+        completedAt: currentProgress.completed ? new Date().toISOString() : undefined,
+      });
+    }
+    await saveAndClearCrawlSession();
+    navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+  }, [saveAndClearCrawlSession, navigation, user, currentProgress]);
 
   const handleStopComplete = (userAnswer: string) => {
     completeStop(currentStopNumber, userAnswer);
@@ -191,11 +208,17 @@ const CrawlSessionScreen: React.FC = () => {
           completedAt: completed.toISOString(),
           totalTimeMinutes,
         });
+        
+        // Convert completed_stops to array of numbers
+        const completedStopNumbers = currentProgress.completed_stops.map((s: any) => 
+          typeof s === 'number' ? s : s.stop_number
+        );
+        
         await saveCrawlProgress({
           userId: user.id,
           crawlId: currentCrawl.id,
           currentStop: currentProgress.current_stop,
-          completedStops: currentProgress.completed_stops.map((s: any) => s.stop_number),
+          completedStops: completedStopNumbers,
           startedAt: started.toISOString(),
           completedAt: completed.toISOString(),
         });

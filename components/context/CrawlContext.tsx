@@ -21,7 +21,13 @@ interface CrawlContextType {
   addToHistory: (progress: CrawlProgress) => void;
   loadHistory: () => void;
   
+  // Single crawl enforcement
+  hasCrawlInProgress: () => boolean;
+  getCurrentCrawlName: () => string | null;
+  endCurrentCrawlAndStartNew: (newCrawl: Crawl, onComplete: () => void) => void;
+  
   clearCrawlSession: () => Promise<void>;
+  saveAndClearCrawlSession: () => Promise<void>;
 }
 
 const CrawlContext = createContext<CrawlContextType | undefined>(undefined);
@@ -162,6 +168,60 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
     // For now, we'll just use in-memory storage
   };
 
+  // Single crawl enforcement functions
+  const hasCrawlInProgress = (): boolean => {
+    return isCrawlActive && currentCrawl !== null;
+  };
+
+  const getCurrentCrawlName = (): string | null => {
+    return currentCrawl?.name || null;
+  };
+
+  const endCurrentCrawlAndStartNew = (newCrawl: Crawl, onComplete: () => void) => {
+    // Mark current crawl as "did not finish" and add to history
+    if (currentProgress && currentCrawl) {
+      const unfinishedProgress = {
+        ...currentProgress,
+        completed: false,
+        last_updated: new Date(),
+      };
+      addToHistory(unfinishedProgress);
+    }
+
+    // Start the new crawl
+    setCurrentCrawl(newCrawl);
+    setIsCrawlActive(true);
+    
+    // Initialize progress for new crawl
+    const newProgress: CrawlProgress = {
+      crawl_id: newCrawl.id,
+      current_stop: 1,
+      completed_stops: [],
+      started_at: new Date(),
+      last_updated: new Date(),
+      completed: false,
+    };
+    setCurrentProgress(newProgress);
+    
+    // Use setTimeout to ensure state updates are processed
+    setTimeout(() => {
+      onComplete();
+    }, 50);
+  };
+
+  const saveAndClearCrawlSession = async () => {
+    // Save current progress to history before clearing
+    if (currentProgress && currentCrawl) {
+      const progressToSave = {
+        ...currentProgress,
+        last_updated: new Date(),
+      };
+      addToHistory(progressToSave);
+    }
+    
+    await clearCrawlSession();
+  };
+
   return (
     <CrawlContext.Provider value={{
       currentCrawl,
@@ -177,7 +237,11 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
       crawlHistory,
       addToHistory,
       loadHistory,
+      hasCrawlInProgress,
+      getCurrentCrawlName,
+      endCurrentCrawlAndStartNew,
       clearCrawlSession,
+      saveAndClearCrawlSession,
     }}>
       {children}
     </CrawlContext.Provider>

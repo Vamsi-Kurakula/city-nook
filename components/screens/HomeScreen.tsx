@@ -57,6 +57,7 @@ export default function HomeScreen() {
   const [userSignups, setUserSignups] = useState<string[]>([]);
   const [currentCrawl, setCurrentCrawl] = useState<CrawlProgress | null>(null);
   const [inProgressCrawls, setInProgressCrawls] = useState<CrawlProgress[]>([]);
+  const [allLibraryCrawls, setAllLibraryCrawls] = useState<Crawl[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Add debugging
@@ -189,13 +190,55 @@ export default function HomeScreen() {
       console.log('All progress:', allProgress, 'Error:', error);
 
       if (allProgress && allProgress.length > 0) {
-        const inProgressCrawlsData: CrawlProgress[] = allProgress.map(progress => ({
-          crawlId: progress.crawl_id,
-          currentStep: progress.current_stop,
-          completedSteps: progress.completed_stops || [],
-          startTime: progress.started_at,
-          isPublicCrawl: false // We'll determine this by checking if it's in public crawls
-        }));
+        // Load all crawl data to determine which are public crawls
+        const [publicCrawls, libraryCrawls] = await Promise.all([
+          loadPublicCrawls(),
+          (async () => {
+            try {
+              const asset = Asset.fromModule(require('../../assets/crawl-library/crawls.yml'));
+              await asset.downloadAsync();
+              const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
+              const data = yaml.load(yamlString) as { crawls: any[] };
+              
+              // Load stops for each library crawl
+              const libraryCrawlsWithStops = await Promise.all(
+                (data.crawls || []).map(async (crawl) => {
+                  try {
+                    const stopsData = await loadCrawlStops(crawl.assetFolder);
+                    return {
+                      ...crawl,
+                      stops: stopsData?.stops || [],
+                    };
+                  } catch (error) {
+                    console.warn(`Could not load stops for ${crawl.name}:`, error);
+                    return crawl;
+                  }
+                })
+              );
+              
+              return libraryCrawlsWithStops;
+            } catch (error) {
+              console.error('Error loading library crawls:', error);
+              return [];
+            }
+          })()
+        ]);
+
+        // Store all library crawls for use in rendering
+        setAllLibraryCrawls(libraryCrawls);
+
+        const inProgressCrawlsData: CrawlProgress[] = allProgress.map(progress => {
+          // Check if this is a public crawl
+          const isPublicCrawl = publicCrawls.some(crawl => crawl.id === progress.crawl_id);
+          
+          return {
+            crawlId: progress.crawl_id,
+            currentStep: progress.current_stop,
+            completedSteps: progress.completed_stops || [],
+            startTime: progress.started_at,
+            isPublicCrawl
+          };
+        });
 
         console.log('All in-progress crawls:', inProgressCrawlsData);
         setInProgressCrawls(inProgressCrawlsData);
@@ -381,6 +424,8 @@ export default function HomeScreen() {
     navigation.navigate('CrawlLibrary');
   };
 
+
+
   const renderUpcomingCrawls = () => {
     if (upcomingCrawls.length === 0) return null;
 
@@ -550,7 +595,8 @@ export default function HomeScreen() {
               renderItem={({ item: crawlProgress }) => {
                 // Find the full crawl data
                 const crawl = upcomingCrawls.find(c => c.id === crawlProgress.crawlId) || 
-                             fullFeaturedCrawls.find(c => c.id === crawlProgress.crawlId);
+                             fullFeaturedCrawls.find(c => c.id === crawlProgress.crawlId) ||
+                             allLibraryCrawls.find(c => c.id === crawlProgress.crawlId);
                 
                 if (!crawl) {
                   // If we can't find the crawl data, show a placeholder
@@ -876,4 +922,5 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontWeight: 'bold',
   },
+
 }); 

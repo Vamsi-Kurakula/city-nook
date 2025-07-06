@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import { useCrawlContext } from '../context/CrawlContext';
@@ -30,7 +30,12 @@ const CrawlDetailScreen: React.FC = () => {
     );
   }
   
-  const { startCrawlWithNavigation } = useCrawlContext();
+  const { 
+    startCrawlWithNavigation, 
+    hasCrawlInProgress, 
+    getCurrentCrawlName, 
+    endCurrentCrawlAndStartNew 
+  } = useCrawlContext();
   const { user, isLoading } = useAuthContext();
   const [resumeProgress, setResumeProgress] = React.useState<any>(null);
 
@@ -38,15 +43,30 @@ const CrawlDetailScreen: React.FC = () => {
     const fetchProgress = async () => {
       if (user?.id && crawl?.id && !isLoading) {
         console.log('CrawlDetailScreen fetching progress for:', { userId: user.id, crawlId: crawl.id });
+        
+        // First, let's check all progress records for this user
+        const { data: allProgress, error: allError } = await supabase
+          .from('crawl_progress')
+          .select('*')
+          .eq('user_id', user.id);
+        
+        console.log('All progress records for user:', allProgress, 'Error:', allError);
+        
+        // Now check for this specific crawl
         const { data, error } = await supabase
           .from('crawl_progress')
           .select('*')
           .eq('user_id', user.id)
           .eq('crawl_id', crawl.id)
           .single();
+        
+        console.log('CrawlDetailScreen progress query result:', { data, error });
+        
         if (data && !data.completed_at) {
+          console.log('Setting resume progress:', data);
           setResumeProgress(data);
         } else {
+          console.log('No resume progress found or crawl completed');
           setResumeProgress(null);
         }
       }
@@ -82,12 +102,39 @@ const CrawlDetailScreen: React.FC = () => {
   };
 
   const handleStartCrawl = () => {
-    navigation.dispatch(
-      CommonActions.navigate({
-        name: 'CrawlSession',
-        params: { crawl },
-      })
-    );
+    // Check if there's already a crawl in progress
+    if (hasCrawlInProgress()) {
+      const currentCrawlName = getCurrentCrawlName();
+      Alert.alert(
+        'Crawl in Progress',
+        `You have "${currentCrawlName}" in progress. Would you like to end that crawl and start "${crawl.name}"?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Yes, Start New Crawl',
+            style: 'destructive',
+            onPress: () => {
+              endCurrentCrawlAndStartNew(crawl, () => {
+                navigation.dispatch(
+                  CommonActions.navigate({
+                    name: 'CrawlSession',
+                    params: { crawl },
+                  })
+                );
+              });
+            },
+          },
+        ]
+      );
+    } else {
+      // No crawl in progress, start normally
+      navigation.dispatch(
+        CommonActions.navigate({
+          name: 'CrawlSession',
+          params: { crawl },
+        })
+      );
+    }
   };
 
   let resumeInfo = null;
@@ -211,16 +258,48 @@ const CrawlDetailScreen: React.FC = () => {
           </View>
         )}
         
-        <TouchableOpacity style={styles.startButton} onPress={handleStartCrawl}>
-          <Text style={styles.startButtonText}>Start Crawl</Text>
-        </TouchableOpacity>
-        
         {resumeInfo}
+        
+        {/* Debug info */}
+        {__DEV__ && (
+          <View style={{ marginTop: 16, padding: 12, backgroundColor: '#f0f0f0', borderRadius: 8 }}>
+            <Text style={{ fontSize: 12, color: '#666' }}>
+              Debug: resumeProgress = {resumeProgress ? 'defined' : 'null'}
+            </Text>
+            <Text style={{ fontSize: 12, color: '#666' }}>
+              User ID: {user?.id || 'null'}
+            </Text>
+            <Text style={{ fontSize: 12, color: '#666' }}>
+              Crawl ID: {crawl?.id || 'null'}
+            </Text>
+          </View>
+        )}
+        
+        {/* Show Resume button if there's progress to resume */}
         {resumeProgress && (
-          <TouchableOpacity style={[styles.startButton, { backgroundColor: '#888', marginTop: 12 }]} onPress={handleResumeCrawl}>
+          <TouchableOpacity style={[styles.startButton, { backgroundColor: '#28a745', marginTop: 12 }]} onPress={handleResumeCrawl}>
             <Text style={[styles.startButtonText, { color: '#fff' }]}>Resume Crawl</Text>
           </TouchableOpacity>
         )}
+        
+        {/* Show Start New Crawl button */}
+        <TouchableOpacity 
+          style={[
+            styles.startButton, 
+            { 
+              backgroundColor: resumeProgress ? '#ffc107' : '#007AFF',
+              marginTop: resumeProgress ? 12 : 24 
+            }
+          ]} 
+          onPress={handleStartCrawl}
+        >
+          <Text style={[
+            styles.startButtonText, 
+            { color: resumeProgress ? '#333' : '#fff' }
+          ]}>
+            {resumeProgress ? 'Start New Crawl' : 'Start Crawl'}
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
