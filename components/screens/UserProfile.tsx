@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const UserProfile: React.FC = () => {
   const { user, userProfile, signOut, isLoading, isSignedIn } = useAuthContext();
+  const { theme, themeType, setTheme } = useTheme();
   const navigation = useNavigation<any>();
 
   const handleSignOut = async () => {
@@ -58,6 +60,10 @@ const UserProfile: React.FC = () => {
     );
   };
 
+  const handleThemeChange = (newTheme: 'light' | 'dark') => {
+    setTheme(newTheme);
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -99,10 +105,10 @@ const UserProfile: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Back</Text>
+          <Text style={[styles.backButtonText, { color: theme.text.tertiary }]}>← Back</Text>
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.scrollView}>
@@ -142,13 +148,53 @@ const UserProfile: React.FC = () => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Crawl Activity</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Crawl Activity</Text>
             <TouchableOpacity style={styles.activityButton} onPress={handleCrawlStats}>
               <Text style={styles.activityButtonText}>📊 Crawl Statistics</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.activityButton} onPress={handleCrawlHistory}>
               <Text style={styles.activityButtonText}>📋 Crawl History</Text>
             </TouchableOpacity>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Appearance</Text>
+            <View style={styles.themeSection}>
+              <Text style={[styles.themeLabel, { color: theme.text.secondary }]}>Theme</Text>
+              <View style={styles.themeButtons}>
+                <TouchableOpacity 
+                  style={[
+                    styles.themeButton, 
+                    { backgroundColor: themeType === 'light' ? theme.button.primary : theme.background.secondary },
+                    { borderColor: theme.border.primary }
+                  ]}
+                  onPress={() => handleThemeChange('light')}
+                >
+                  <Text style={[
+                    styles.themeButtonText, 
+                    { color: themeType === 'light' ? theme.text.inverse : theme.text.primary }
+                  ]}>
+                    Light
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[
+                    styles.themeButton, 
+                    { backgroundColor: themeType === 'dark' ? theme.button.primary : theme.background.secondary },
+                    { borderColor: theme.border.primary }
+                  ]}
+                  onPress={() => handleThemeChange('dark')}
+                >
+                  <Text style={[
+                    styles.themeButtonText, 
+                    { color: themeType === 'dark' ? theme.text.inverse : theme.text.primary }
+                  ]}>
+                    Dark
+                  </Text>
+                </TouchableOpacity>
+
+              </View>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -328,6 +374,29 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: '#888',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  themeSection: {
+    marginBottom: 16,
+  },
+  themeLabel: {
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  themeButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  themeButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  themeButtonText: {
+    fontSize: 14,
     fontWeight: '600',
   },
 });

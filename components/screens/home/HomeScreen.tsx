@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../../context/AuthContext';
 import { useCrawlContext } from '../../context/CrawlContext';
+import { useTheme } from '../../context/ThemeContext';
 import HomeHeader from './HomeHeader';
 import UpcomingCrawlsSection from './UpcomingCrawlsSection';
 import FeaturedCrawlsSection from './FeaturedCrawlsSection';
@@ -14,6 +15,7 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const { user, isLoading } = useAuthContext();
   const { hasCrawlInProgress, getCurrentCrawlName } = useCrawlContext();
+  const { theme } = useTheme();
   const userId = user?.id;
 
 
@@ -44,18 +46,18 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <HomeHeader />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <ActivityIndicator size="large" color={theme.button.primary} />
+          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <HomeHeader />
         
@@ -63,16 +65,16 @@ export default function HomeScreen() {
         <View style={[styles.section, { marginTop: 20 }]}>
           <View style={styles.buttonRow}>
             <TouchableOpacity 
-              style={styles.halfWidthButton} 
+              style={[styles.halfWidthButton, { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary }]} 
               onPress={() => navigation.navigate('CrawlLibrary')}
             >
-              <Text style={styles.halfWidthButtonText}>📚 Crawl Library</Text>
+              <Text style={[styles.halfWidthButtonText, { color: theme.text.primary }]}>📚 Crawl Library</Text>
             </TouchableOpacity>
             <TouchableOpacity 
-              style={styles.halfWidthButton} 
+              style={[styles.halfWidthButton, { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary }]} 
               onPress={() => navigation.navigate('PublicCrawls')}
             >
-              <Text style={styles.halfWidthButtonText}>🎯 Join Crawl</Text>
+              <Text style={[styles.halfWidthButtonText, { color: theme.text.primary }]}>🎯 Join Crawl</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -81,20 +83,20 @@ export default function HomeScreen() {
         {currentCrawl && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Continue Your Crawl</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Continue Your Crawl</Text>
             </View>
             <TouchableOpacity
-              style={styles.continueCrawlCard}
+              style={[styles.continueCrawlCard, { backgroundColor: theme.button.primary, shadowColor: theme.shadow.primary }]}
               onPress={() => handleInProgressCrawlPress(currentCrawl)}
             >
               <View style={styles.continueCrawlContent}>
-                <Text style={styles.continueCrawlTitle}>
+                <Text style={[styles.continueCrawlTitle, { color: theme.text.inverse }]}>
                   {getCurrentCrawlName() || 'Current Crawl'}
                 </Text>
-                <Text style={styles.continueCrawlProgress}>
+                <Text style={[styles.continueCrawlProgress, { color: theme.text.inverse }]}>
                   Stop {currentCrawl.currentStep} of {currentCrawl.completedSteps.length + 1}
                 </Text>
-                <Text style={styles.continueCrawlButton}>Continue →</Text>
+                <Text style={[styles.continueCrawlButton, { color: theme.text.inverse }]}>Continue →</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -124,7 +126,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   scrollView: {
     flex: 1,
@@ -137,7 +138,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
   },
   section: {
     marginBottom: 24,
@@ -152,14 +152,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1a1a1a',
   },
   continueCrawlCard: {
-    backgroundColor: '#007AFF',
     marginHorizontal: 20,
     borderRadius: 12,
     padding: 20,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -171,18 +168,15 @@ const styles = StyleSheet.create({
   continueCrawlTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: 'white',
     marginBottom: 4,
   },
   continueCrawlProgress: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: 8,
   },
   continueCrawlButton: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -191,12 +185,10 @@ const styles = StyleSheet.create({
   },
   halfWidthButton: {
     flex: 1,
-    backgroundColor: 'white',
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -205,6 +197,5 @@ const styles = StyleSheet.create({
   halfWidthButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1a1a1a',
   },
 }); 

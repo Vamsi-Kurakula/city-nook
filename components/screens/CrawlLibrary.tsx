@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, StyleSheet, StatusBar, ActivityIndicator, View, TouchableOpacity, Image } from 'react-native';
+import { Text, StyleSheet, ActivityIndicator, View, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
@@ -8,6 +8,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import CrawlList from '../ui/CrawlList';
 import { useCrawlContext } from '../context/CrawlContext';
+import { useTheme } from '../context/ThemeContext';
 import { Alert } from 'react-native';
 import { useAuthContext } from '../context/AuthContext';
 import { RootStackParamList } from '../../types/navigation';
@@ -38,6 +39,7 @@ const CrawlLibrary: React.FC = () => {
   
   const { startCrawlWithNavigation, hasCrawlInProgress, getCurrentCrawlName, endCurrentCrawlAndStartNew } = useCrawlContext();
   const { user } = useAuthContext();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const loadCrawls = async () => {
@@ -146,20 +148,20 @@ const CrawlLibrary: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" style={{ marginTop: 40 }} />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+        <ActivityIndicator size="large" color={theme.button.primary} style={{ marginTop: 40 }} />
       </SafeAreaView>
     );
   }
 
   if (crawls.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.headerWrapper}>
           <View style={styles.header}>
             <View style={styles.headerTop}>
               <View style={styles.headerLeft}>
-                <Text style={styles.title}>Crawl Library</Text>
+                <Text style={[styles.title, { color: theme.text.primary }]}>Crawl Library</Text>
               </View>
               <View style={styles.headerRight}>
                 <TouchableOpacity 
@@ -169,8 +171,8 @@ const CrawlLibrary: React.FC = () => {
                   {user?.imageUrl ? (
                     <Image source={{ uri: user.imageUrl }} style={styles.profileImage} />
                   ) : (
-                    <View style={styles.profilePlaceholder}>
-                      <Text style={styles.profilePlaceholderText}>
+                    <View style={[styles.profilePlaceholder, { backgroundColor: theme.special.avatarPlaceholder }]}>
+                      <Text style={[styles.profilePlaceholderText, { color: theme.text.secondary }]}>
                         {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
                       </Text>
                     </View>
@@ -180,18 +182,18 @@ const CrawlLibrary: React.FC = () => {
             </View>
           </View>
         </View>
-        <Text style={styles.errorText}>No crawls found. Please check your crawls.yml file.</Text>
+        <Text style={[styles.errorText, { color: theme.text.tertiary }]}>No crawls found. Please check your crawls.yml file.</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <View style={styles.headerWrapper}>
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <View style={styles.headerLeft}>
-              <Text style={styles.title}>Crawl Library</Text>
+              <Text style={[styles.title, { color: theme.text.primary }]}>Crawl Library</Text>
             </View>
             <View style={styles.headerRight}>
               <TouchableOpacity 
@@ -201,8 +203,8 @@ const CrawlLibrary: React.FC = () => {
                 {user?.imageUrl ? (
                   <Image source={{ uri: user.imageUrl }} style={styles.profileImage} />
                 ) : (
-                  <View style={styles.profilePlaceholder}>
-                    <Text style={styles.profilePlaceholderText}>
+                  <View style={[styles.profilePlaceholder, { backgroundColor: theme.special.avatarPlaceholder }]}>
+                    <Text style={[styles.profilePlaceholderText, { color: theme.text.secondary }]}>
                       {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
                     </Text>
                   </View>
@@ -213,11 +215,11 @@ const CrawlLibrary: React.FC = () => {
         </View>
         {/* Action buttons row */}
         <View style={styles.actionRow}>
-          <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.backToHomeButton}>
-            <Text style={styles.backToHomeText}>Back to Home</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Home')} style={[styles.backToHomeButton, { backgroundColor: theme.button.secondary }]}>
+            <Text style={[styles.backToHomeText, { color: theme.text.primary }]}>Back to Home</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('CrawlLibraryFilters', { minStops, maxDistanceMiles })} style={styles.filtersButton}>
-            <Text style={styles.filtersButtonText}>Filters</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('CrawlLibraryFilters', { minStops, maxDistanceMiles })} style={[styles.filtersButton, { backgroundColor: theme.background.tertiary }]}>
+            <Text style={[styles.filtersButtonText, { color: theme.button.primary }]}>Filters</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -233,7 +235,6 @@ const CrawlLibrary: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   headerWrapper: {
     paddingHorizontal: 20,
@@ -258,16 +259,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1a1a1a',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
   },
   errorText: {
     fontSize: 18,
-    color: '#999',
     textAlign: 'center',
     marginTop: 40,
   },
@@ -284,21 +282,18 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#e1e5e9',
     justifyContent: 'center',
     alignItems: 'center',
   },
   profilePlaceholderText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#666',
   },
   backToHomeButton: {
     height: 44,
     justifyContent: 'center',
   },
   backToHomeText: {
-    color: '#888',
     fontSize: 16,
     fontWeight: '600',
     textDecorationLine: 'underline',
@@ -306,12 +301,10 @@ const styles = StyleSheet.create({
   filtersButton: {
     height: 44,
     justifyContent: 'center',
-    backgroundColor: '#eee',
     paddingHorizontal: 16,
     borderRadius: 8,
   },
   filtersButtonText: {
-    color: '#007AFF',
     fontSize: 16,
     fontWeight: '600',
   },

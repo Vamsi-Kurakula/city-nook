@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated, Image } from 'react
 import { Crawl } from '../../types/crawl';
 import { calculateCrawlStatus, formatTimeForDisplay, parseTimeString } from '../../utils/crawlStatus';
 import { getHeroImageSource } from '../auto-generated/ImageLoader';
+import { useTheme } from '../context/ThemeContext';
 
 interface CrawlCardProps {
   crawl: Crawl;
@@ -16,6 +17,7 @@ interface CrawlCardProps {
 const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpanded, width, marginHorizontal }) => {
   const [animation] = useState(new Animated.Value(1));
   const [crawlStatus, setCrawlStatus] = useState<any>(null);
+  const { theme } = useTheme();
 
   React.useEffect(() => {
     Animated.spring(animation, {
@@ -44,10 +46,10 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'upcoming': return '#007AFF';
-      case 'ongoing': return '#28a745';
-      case 'completed': return '#6c757d';
-      default: return '#999';
+      case 'upcoming': return theme.status.info;
+      case 'ongoing': return theme.status.success;
+      case 'completed': return theme.status.completed;
+      default: return theme.text.tertiary;
     }
   };
 
@@ -75,7 +77,9 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
       { 
         transform: [{ scale: animation }], 
         width: width,
-        marginHorizontal: marginHorizontal ?? 20
+        marginHorizontal: marginHorizontal ?? 20,
+        backgroundColor: theme.background.secondary,
+        shadowColor: theme.shadow.primary
       }
     ]}>
       <TouchableOpacity 
@@ -95,9 +99,9 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
         {/* Content - Bottom Half */}
         <View style={styles.cardBody}>
           <View style={styles.cardLeft}>
-            <Text style={styles.crawlTitle}>{crawl.name}</Text>
+            <Text style={[styles.crawlTitle, { color: theme.text.primary }]}>{crawl.name}</Text>
             {!isExpanded && (
-              <Text style={styles.crawlDesc} numberOfLines={2}>{crawl.description}</Text>
+              <Text style={[styles.crawlDesc, { color: theme.text.secondary }]} numberOfLines={2}>{crawl.description}</Text>
             )}
             
             {/* Public Crawl Status and Timing */}
@@ -107,24 +111,24 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
                   <Text style={[styles.statusBadge, { color: getStatusColor(crawlStatus.status) }]}>
                     {getStatusText(crawlStatus.status)}
                   </Text>
-                  <Text style={styles.startTime}>
+                  <Text style={[styles.startTime, { color: theme.text.secondary }]}>
                     🕐 {formatStartTime(crawl.start_time)}
                   </Text>
                 </View>
                 
                 {crawlStatus.status === 'upcoming' && crawlStatus.timeUntilStart && (
-                  <Text style={styles.timingInfo}>
+                  <Text style={[styles.timingInfo, { color: theme.text.secondary }]}>
                     {crawlStatus.timeUntilStart}
                   </Text>
                 )}
                 
                 {crawlStatus.status === 'ongoing' && (
                   <View style={styles.ongoingInfo}>
-                    <Text style={styles.timingInfo}>
+                    <Text style={[styles.timingInfo, { color: theme.text.secondary }]}>
                       {crawlStatus.timeSinceStart}
                     </Text>
                     {crawlStatus.currentStopIndex !== undefined && crawl.stops && (
-                      <Text style={styles.currentStop}>
+                      <Text style={[styles.currentStop, { color: theme.text.secondary }]}>
                         Stop {crawlStatus.currentStopIndex + 1} of {crawl.stops.length}
                       </Text>
                     )}
@@ -132,7 +136,7 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
                 )}
                 
                 {crawlStatus.status === 'completed' && (
-                  <Text style={styles.timingInfo}>
+                  <Text style={[styles.timingInfo, { color: theme.text.secondary }]}>
                     Ended {crawlStatus.estimatedEndTime && formatTimeForDisplay(crawlStatus.estimatedEndTime)}
                   </Text>
                 )}
@@ -140,10 +144,10 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
             )}
             
             <View style={styles.crawlMeta}>
-              <Text style={styles.metaText}>{crawl.duration}</Text>
-              <Text style={styles.metaText}>{crawl.distance}</Text>
+              <Text style={[styles.metaText, { color: theme.text.tertiary }]}>{crawl.duration}</Text>
+              <Text style={[styles.metaText, { color: theme.text.tertiary }]}>{crawl.distance}</Text>
               {crawl.stops && (
-                <Text style={styles.metaText}>{crawl.stops.length} stops</Text>
+                <Text style={[styles.metaText, { color: theme.text.tertiary }]}>{crawl.stops.length} stops</Text>
               )}
             </View>
           </View>
@@ -152,7 +156,7 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
             <TouchableOpacity 
               style={[
                 styles.startButton, 
-                crawl['public-crawl'] && crawlStatus?.status === 'completed' && styles.startButtonDisabled
+                { backgroundColor: crawl['public-crawl'] && crawlStatus?.status === 'completed' ? theme.button.disabled : theme.button.primary }
               ]} 
               onPress={() => onStart(crawl)}
               activeOpacity={0.8}
@@ -160,7 +164,7 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
             >
               <Text style={[
                 styles.startButtonText,
-                crawl['public-crawl'] && crawlStatus?.status === 'completed' && styles.startButtonTextDisabled
+                { color: crawl['public-crawl'] && crawlStatus?.status === 'completed' ? theme.text.disabled : theme.text.inverse }
               ]}>
                 {crawl['public-crawl'] && crawlStatus?.status === 'completed' ? 'Passed' : 'Start'}
               </Text>
@@ -174,10 +178,8 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
 
 const styles = StyleSheet.create({
   crawlCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     marginVertical: 8,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -194,12 +196,10 @@ const styles = StyleSheet.create({
   crawlTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   crawlDesc: {
     fontSize: 14,
-    color: '#666',
     lineHeight: 20,
     marginBottom: 8,
   },
@@ -218,12 +218,10 @@ const styles = StyleSheet.create({
   },
   startTime: {
     fontSize: 12,
-    color: '#666',
     fontWeight: '500',
   },
   timingInfo: {
     fontSize: 12,
-    color: '#007AFF',
     fontWeight: '500',
   },
   ongoingInfo: {
@@ -233,7 +231,6 @@ const styles = StyleSheet.create({
   },
   currentStop: {
     fontSize: 12,
-    color: '#28a745',
     fontWeight: '500',
   },
   crawlMeta: {
@@ -242,26 +239,23 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: '#999',
     fontWeight: '500',
   },
   startButton: {
-    backgroundColor: '#007AFF',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
     alignItems: 'center',
   },
   startButtonDisabled: {
-    backgroundColor: '#ccc',
+    // Will be overridden by theme
   },
   startButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
   startButtonTextDisabled: {
-    color: '#999',
+    // Will be overridden by theme
   },
   heroImage: {
     width: '100%',

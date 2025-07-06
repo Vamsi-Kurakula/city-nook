@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Mod
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useCrawlContext } from '../context/CrawlContext';
+import { useTheme } from '../context/ThemeContext';
 import { Crawl, CrawlStop } from '../../types/crawl';
 import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
 import { StopComponent } from '../ui/stops';
@@ -14,6 +15,7 @@ import { extractAllCoordinates, LocationCoordinates } from '../../utils/coordina
 const CrawlSessionScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
+  const { theme } = useTheme();
   // Defensive extraction and logging
   const routeParams = route.params as { crawl?: any; crawlId?: string; resumeData?: any; resumeProgress?: any } | undefined;
   const crawlData = routeParams?.crawl;
@@ -322,29 +324,29 @@ const CrawlSessionScreen: React.FC = () => {
 
   if (loading || !crawlData || !stops.length || isCompleting) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" />
-        {isCompleting && <Text style={{ marginTop: 16, textAlign: 'center' }}>Completing crawl...</Text>}
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+        <ActivityIndicator size="large" color={theme.button.primary} />
+        {isCompleting && <Text style={[{ marginTop: 16, textAlign: 'center' }, { color: theme.text.primary }]}>Completing crawl...</Text>}
       </SafeAreaView>
     );
   }
 
   if ((isCompleted || crawlCompleted) && !isCompleting) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.centered}>
-          <Text style={styles.completionTitle}>🎉 Crawl Completed!</Text>
-          <Text style={styles.completionText}>You finished all stops of this crawl. Your progress has been saved.</Text>
-          <TouchableOpacity style={styles.completionExitButton} onPress={async () => {
+          <Text style={[styles.completionTitle, { color: theme.text.primary }]}>🎉 Crawl Completed!</Text>
+          <Text style={[styles.completionText, { color: theme.text.secondary }]}>You finished all stops of this crawl. Your progress has been saved.</Text>
+          <TouchableOpacity style={[styles.completionExitButton, { backgroundColor: theme.button.primary }]} onPress={async () => {
             // Progress record is already deleted in the completion useEffect
             setIsCompleting(false);
             setCrawlCompleted(false);
             await clearCrawlSession();
             navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
           }}>
-            <Text style={styles.completionExitButtonText}>Back to Library</Text>
+            <Text style={[styles.completionExitButtonText, { color: theme.text.inverse }]}>Back to Library</Text>
           </TouchableOpacity>
-          <Text style={styles.swipeHint}>Or swipe left to return to the library</Text>
+          <Text style={[styles.swipeHint, { color: theme.text.tertiary }]}>Or swipe left to return to the library</Text>
         </View>
       </SafeAreaView>
     );
@@ -353,11 +355,11 @@ const CrawlSessionScreen: React.FC = () => {
   const currentStop = stops[currentStopNumber - 1];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       {/* Fixed Top Section - Exit Button and Future Buttons */}
-      <View style={styles.topSection}>
+      <View style={[styles.topSection, { borderBottomColor: theme.border.secondary }]}>
         <TouchableOpacity style={styles.exitButton} onPress={handleExit}>
-          <Text style={styles.exitButtonText}>Exit</Text>
+          <Text style={[styles.exitButtonText, { color: theme.text.secondary }]}>Exit</Text>
         </TouchableOpacity>
         <View style={styles.topRightButtons}>
           {/* Future buttons will go here */}
@@ -365,28 +367,28 @@ const CrawlSessionScreen: React.FC = () => {
       </View>
 
       {/* Fixed Progress Bar Section */}
-      <View style={styles.progressSection}>
+      <View style={[styles.progressSection, { backgroundColor: theme.background.tertiary }]}>
         <View style={styles.progressBarWrapper}>
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
+          <View style={[styles.progressBarBg, { backgroundColor: theme.border.secondary }]}>
+            <View style={[styles.progressBarFill, { width: `${progressPercent}%`, backgroundColor: theme.status.success }]} />
           </View>
-          <Text style={styles.progressPercentText}>{progressPercent}%</Text>
+          <Text style={[styles.progressPercentText, { color: theme.text.secondary }]}>{progressPercent}%</Text>
         </View>
       </View>
 
       {/* Scrollable Content */}
       <ScrollView style={styles.scrollableContent} showsVerticalScrollIndicator={false}>
         {/* Current Location Section */}
-        <View style={styles.locationSection}>
-          <Text style={styles.sectionTitle}>Current Location</Text>
+        <View style={[styles.locationSection, { backgroundColor: theme.background.secondary, borderBottomColor: theme.border.secondary }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Current Location</Text>
           <View style={styles.locationContent}>
-            <Text style={styles.locationName}>{currentStop?.location_name || 'Unknown Location'}</Text>
+            <Text style={[styles.locationName, { color: theme.text.primary }]}>{currentStop?.location_name || 'Unknown Location'}</Text>
           </View>
         </View>
 
         {/* Gate Section - Stop Type Content */}
-        <View style={styles.gateSection}>
-          <Text style={styles.sectionTitle}>Current Challenge</Text>
+        <View style={[styles.gateSection, { backgroundColor: theme.background.secondary, borderBottomColor: theme.border.secondary }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Current Challenge</Text>
           <View style={styles.gateContent}>
             <StopComponent
               stop={currentStop}
@@ -400,20 +402,20 @@ const CrawlSessionScreen: React.FC = () => {
         </View>
 
         {/* Travel Section - Next Stop Info */}
-        <View style={styles.travelSection}>
-          <Text style={styles.sectionTitle}>Next Stop</Text>
+        <View style={[styles.travelSection, { backgroundColor: theme.background.secondary, borderBottomColor: theme.border.secondary }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Next Stop</Text>
           <View style={styles.travelContent}>
             {isNextStopRevealed && currentStopNumber < totalStops ? (
               <>
-                <Text style={styles.nextStopName}>{stops[currentStopNumber]?.location_name || 'Next Location'}</Text>
+                <Text style={[styles.nextStopName, { color: theme.text.primary }]}>{stops[currentStopNumber]?.location_name || 'Next Location'}</Text>
                 {stops[currentStopNumber]?.location_link && (
                   <TouchableOpacity onPress={() => Linking.openURL(stops[currentStopNumber]?.location_link!)}>
-                    <Text style={styles.locationLink}>📍 Open in Maps</Text>
+                    <Text style={[styles.locationLink, { color: theme.button.primary }]}>📍 Open in Maps</Text>
                   </TouchableOpacity>
                 )}
               </>
             ) : (
-              <Text style={styles.travelText}>
+              <Text style={[styles.travelText, { color: theme.text.secondary }]}>
                 {currentStopNumber >= totalStops ? 'This is the final stop!' : 'Complete the current challenge to unlock the next location.'}
               </Text>
             )}
@@ -421,28 +423,28 @@ const CrawlSessionScreen: React.FC = () => {
         </View>
 
         {/* Bottom Buttons Section */}
-        <View style={styles.bottomButtonsSection}>
-          <TouchableOpacity style={styles.bottomButton} onPress={() => setShowMap(true)}>
-            <Text style={styles.bottomButtonText}>🗺️ Map</Text>
+        <View style={[styles.bottomButtonsSection, { backgroundColor: theme.background.secondary, borderTopColor: theme.border.secondary }]}>
+          <TouchableOpacity style={[styles.bottomButton, { backgroundColor: theme.background.tertiary }]} onPress={() => setShowMap(true)}>
+            <Text style={[styles.bottomButtonText, { color: theme.text.primary }]}>🗺️ Map</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[
               styles.bottomButton, 
               styles.nextButton, 
-              isGateCompleted ? styles.enabledButton : styles.disabledButton
+              { backgroundColor: isGateCompleted ? theme.button.primary : theme.button.disabled }
             ]}
             onPress={handleNextStep}
             disabled={!isGateCompleted}
           >
             <Text style={[
               styles.bottomButtonText, 
-              isGateCompleted ? styles.enabledButtonText : styles.disabledButtonText
+              { color: isGateCompleted ? theme.text.inverse : theme.text.disabled }
             ]}>
               Next Step
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.bottomButton} onPress={() => setShowPastStops(true)}>
-            <Text style={styles.bottomButtonText}>📋 Past Steps</Text>
+          <TouchableOpacity style={[styles.bottomButton, { backgroundColor: theme.background.tertiary }]} onPress={() => setShowPastStops(true)}>
+            <Text style={[styles.bottomButtonText, { color: theme.text.primary }]}>📋 Past Steps</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -504,7 +506,7 @@ const CrawlSessionScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   scrollableContent: { flex: 1 },
   topSection: {
     flexDirection: 'row',
@@ -513,14 +515,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   exitButton: { 
     padding: 8,
-    backgroundColor: '#f5f5f5',
     borderRadius: 6,
   },
-  exitButtonText: { color: '#666', fontSize: 14, fontWeight: '600' },
+  exitButtonText: { fontSize: 14, fontWeight: '600' },
   topRightButtons: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -529,7 +529,6 @@ const styles = StyleSheet.create({
   progressSection: {
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#f8f9fa',
   },
   progressBarWrapper: {
     flexDirection: 'row',
@@ -539,19 +538,16 @@ const styles = StyleSheet.create({
   progressBarBg: {
     flex: 1,
     height: 8,
-    backgroundColor: '#e0e0e0',
     borderRadius: 4,
     overflow: 'hidden',
     marginRight: 12,
   },
   progressBarFill: {
     height: 8,
-    backgroundColor: '#4caf50',
     borderRadius: 4,
   },
   progressPercentText: {
     fontSize: 14,
-    color: '#666',
     fontWeight: '600',
     minWidth: 35,
     textAlign: 'right',
@@ -559,18 +555,15 @@ const styles = StyleSheet.create({
   progressText: { 
     fontSize: 14, 
     fontWeight: '600',
-    color: '#333',
   },
   locationSection: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   sectionTitle: { 
     fontSize: 16, 
     fontWeight: 'bold', 
     marginBottom: 8,
-    color: '#333',
   },
   locationContent: { 
     flexDirection: 'row', 
@@ -580,11 +573,9 @@ const styles = StyleSheet.create({
   locationName: { 
     fontSize: 16, 
     fontWeight: '500',
-    color: '#333',
     flex: 1,
   },
   locationLink: { 
-    color: '#007AFF', 
     fontSize: 14, 
     textDecorationLine: 'underline',
     fontWeight: '500',
@@ -593,68 +584,59 @@ const styles = StyleSheet.create({
     padding: 16,
     minHeight: 200,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   gateContent: { 
     minHeight: 150,
   },
   travelSection: {
     padding: 16,
-    backgroundColor: '#f8f9fa',
     borderTopWidth: 1,
-    borderTopColor: '#eee',
     minHeight: 80,
   },
   travelContent: { 
     paddingVertical: 8,
   },
   travelText: { 
-    color: '#666', 
     fontSize: 14,
     fontStyle: 'italic',
   },
   nextStopName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 8,
   },
   bottomButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#eee',
   },
   bottomButton: { 
     flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#f5f5f5',
     borderRadius: 8,
     marginHorizontal: 4,
     alignItems: 'center',
   },
   bottomButtonText: { 
-    color: '#333', 
     fontSize: 14,
     fontWeight: '600',
   },
   nextButton: { 
-    backgroundColor: '#007AFF',
+    // Will be overridden by theme
   },
   disabledButton: { 
-    backgroundColor: '#e0e0e0',
+    // Will be overridden by theme
   },
   disabledButtonText: { 
-    color: '#999',
+    // Will be overridden by theme
   },
   enabledButton: {
-    backgroundColor: '#007AFF',
+    // Will be overridden by theme
   },
   enabledButtonText: {
-    color: '#fff',
+    // Will be overridden by theme
   },
   modalContainer: {
     flex: 1,

@@ -3,6 +3,7 @@ import { View, StyleSheet, Text, TouchableOpacity, Image, Alert } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOAuth, useAuth } from '@clerk/clerk-expo';
 import { useAuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import * as WebBrowser from 'expo-web-browser';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -11,6 +12,7 @@ export default function SignInScreen() {
   const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
   const { isSignedIn } = useAuth();
   const { signOut } = useAuthContext();
+  const { theme } = useTheme();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const handleContinueWithCurrentAccount = async () => {
@@ -110,41 +112,41 @@ export default function SignInScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <View style={styles.content}>
         {/* App Logo/Title */}
         <View style={styles.header}>
-          <Text style={styles.title}>City Crawler</Text>
-          <Text style={styles.subtitle}>Discover your city, one crawl at a time</Text>
+          <Text style={[styles.title, { color: theme.text.primary }]}>City Crawler</Text>
+          <Text style={[styles.subtitle, { color: theme.text.secondary }]}>Discover your city, one crawl at a time</Text>
         </View>
 
         {/* Sign In Options */}
         <View style={styles.signInOptions}>
           {isSignedIn ? (
             <>
-              <Text style={styles.welcomeText}>Welcome back!</Text>
+              <Text style={[styles.welcomeText, { color: theme.text.primary }]}>Welcome back!</Text>
               <TouchableOpacity
-                style={styles.primaryButton}
+                style={[styles.primaryButton, { backgroundColor: theme.button.primary }]}
                 onPress={handleContinueWithCurrentAccount}
               >
-                <Text style={styles.primaryButtonText}>Continue with Current Account</Text>
+                <Text style={[styles.primaryButtonText, { color: theme.text.inverse }]}>Continue with Current Account</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
-                style={styles.secondaryButton}
+                style={[styles.secondaryButton, { backgroundColor: theme.button.secondary }]}
                 onPress={handleSignOut}
               >
-                <Text style={styles.secondaryButtonText}>Sign Out</Text>
+                <Text style={[styles.secondaryButtonText, { color: theme.text.primary }]}>Sign Out</Text>
               </TouchableOpacity>
             </>
                     ) : (
             <TouchableOpacity
-              style={[styles.googleButton, isLoading && styles.googleButtonDisabled]}
+              style={[styles.googleButton, { backgroundColor: theme.button.primary }, isLoading && styles.googleButtonDisabled]}
               onPress={handleSignInWithGoogle}
               disabled={isLoading}
             >
               <View style={styles.googleButtonContent}>
-                <Text style={styles.googleButtonText}>
+                <Text style={[styles.googleButtonText, { color: theme.text.inverse }]}>
                   {isLoading ? 'Signing in...' : 'Sign in with Google'}
                 </Text>
               </View>
@@ -154,7 +156,7 @@ export default function SignInScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
+          <Text style={[styles.footerText, { color: theme.text.tertiary }]}>
             By continuing, you agree to our Terms of Service and Privacy Policy
           </Text>
         </View>
@@ -166,7 +168,6 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   content: {
     flex: 1,
@@ -181,12 +182,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1a1a1a',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -198,11 +197,9 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1a1a1a',
     marginBottom: 24,
   },
   primaryButton: {
-    backgroundColor: '#007AFF',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
@@ -211,7 +208,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButtonText: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -221,22 +217,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
     minWidth: 280,
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#666',
     fontSize: 16,
     fontWeight: '500',
   },
   googleButton: {
-    backgroundColor: 'white',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
     marginBottom: 16,
     minWidth: 280,
     alignItems: 'center',
@@ -254,7 +246,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   googleButtonText: {
-    color: '#1a1a1a',
     fontSize: 16,
     fontWeight: '500',
   },
@@ -264,7 +255,6 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: '#999',
     textAlign: 'center',
     lineHeight: 18,
   },

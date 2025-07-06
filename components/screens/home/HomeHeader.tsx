@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface HomeHeaderProps {
   title?: string;
@@ -14,13 +15,14 @@ export default function HomeHeader({
 }: HomeHeaderProps) {
   const navigation = useNavigation<any>();
   const { user } = useAuthContext();
+  const { theme } = useTheme();
 
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { backgroundColor: theme.background.primary, borderBottomColor: theme.border.secondary }]}>
       <View style={styles.headerTop}>
         <View style={styles.headerLeft}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
+          <Text style={[styles.title, { color: theme.text.primary }]}>{title}</Text>
+          <Text style={[styles.subtitle, { color: theme.text.secondary }]}>{subtitle}</Text>
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity 
@@ -30,8 +32,8 @@ export default function HomeHeader({
             {user?.imageUrl ? (
               <Image source={{ uri: user.imageUrl }} style={styles.profileImage} />
             ) : (
-              <View style={styles.profilePlaceholder}>
-                <Text style={styles.profilePlaceholderText}>
+              <View style={[styles.profilePlaceholder, { backgroundColor: theme.special.avatarPlaceholder }]}>
+                <Text style={[styles.profilePlaceholderText, { color: theme.text.secondary }]}>
                   {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
                 </Text>
               </View>
@@ -45,12 +47,10 @@ export default function HomeHeader({
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: '#fff',
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   headerTop: {
     flexDirection: 'row',
@@ -66,12 +66,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1a1a1a',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
     lineHeight: 22,
   },
   profileButton: {
@@ -87,13 +85,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#e1e5e9',
     justifyContent: 'center',
     alignItems: 'center',
   },
   profilePlaceholderText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#666',
   },
 }); 

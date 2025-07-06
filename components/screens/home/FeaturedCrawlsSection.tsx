@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
 import { Crawl } from '../../../types/crawl';
 import { getHeroImageSource } from '../../auto-generated/ImageLoader';
+import { useTheme } from '../../context/ThemeContext';
 
 interface FeaturedCrawlsSectionProps {
   featuredCrawls: Crawl[];
@@ -16,15 +17,16 @@ export default function FeaturedCrawlsSection({
   onCrawlStart,
   onViewAllPress,
 }: FeaturedCrawlsSectionProps) {
+  const { theme } = useTheme();
   const renderCrawlItem = ({ item }: { item: Crawl }) => {
     const heroImageSource = getHeroImageSource(item.assetFolder);
 
     return (
       <TouchableOpacity
-        style={styles.crawlCard}
+        style={[styles.crawlCard, { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary }]}
         onPress={() => onCrawlPress(item)}
       >
-        <View style={styles.crawlImageContainer}>
+        <View style={[styles.crawlImageContainer, { backgroundColor: theme.background.tertiary }]}>
           <Image 
             source={heroImageSource} 
             style={styles.crawlImage}
@@ -33,17 +35,17 @@ export default function FeaturedCrawlsSection({
           />
         </View>
         <View style={styles.crawlContent}>
-          <Text style={styles.crawlTitle}>{item.name}</Text>
-          <Text style={styles.crawlDescription} numberOfLines={2}>
+          <Text style={[styles.crawlTitle, { color: theme.text.primary }]}>{item.name}</Text>
+          <Text style={[styles.crawlDescription, { color: theme.text.secondary }]} numberOfLines={2}>
             {item.description}
           </Text>
           <View style={styles.crawlMeta}>
-            <Text style={styles.crawlStops}>{item.stops?.length || 0} stops</Text>
+            <Text style={[styles.crawlStops, { color: theme.button.primary }]}>{item.stops?.length || 0} stops</Text>
             <TouchableOpacity
-              style={styles.startButton}
+              style={[styles.startButton, { backgroundColor: theme.button.primary }]}
               onPress={() => onCrawlStart(item)}
             >
-              <Text style={styles.startButtonText}>Start</Text>
+              <Text style={[styles.startButtonText, { color: theme.text.inverse }]}>Start</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -58,9 +60,9 @@ export default function FeaturedCrawlsSection({
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Featured Crawls</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Featured Crawls</Text>
         <TouchableOpacity onPress={onViewAllPress}>
-          <Text style={styles.viewAllText}>View All</Text>
+          <Text style={[styles.viewAllText, { color: theme.button.primary }]}>View All</Text>
         </TouchableOpacity>
       </View>
       
@@ -90,22 +92,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1a1a1a',
   },
   viewAllText: {
     fontSize: 16,
-    color: '#007AFF',
     fontWeight: '500',
   },
   horizontalListContainer: {
     paddingHorizontal: 4,
   },
   crawlCard: {
-    backgroundColor: 'white',
     marginRight: 16,
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -114,7 +112,6 @@ const styles = StyleSheet.create({
   },
   crawlImageContainer: {
     height: 180,
-    backgroundColor: '#f8f9fa',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -128,12 +125,10 @@ const styles = StyleSheet.create({
   crawlTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1a1a1a',
     marginBottom: 4,
   },
   crawlDescription: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
     lineHeight: 20,
   },
@@ -144,17 +139,14 @@ const styles = StyleSheet.create({
   },
   crawlStops: {
     fontSize: 14,
-    color: '#007AFF',
     fontWeight: '500',
   },
   startButton: {
-    backgroundColor: '#007AFF',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
   },
   startButtonText: {
-    color: 'white',
     fontSize: 14,
     fontWeight: '600',
   },

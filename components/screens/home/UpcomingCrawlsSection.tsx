@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native
 import { formatTimeRemaining } from '../../../utils/crawlStatus';
 import { getHeroImageSource } from '../../auto-generated/ImageLoader';
 import { useAuthContext } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface PublicCrawl {
   id: string;
@@ -31,6 +32,7 @@ export default function UpcomingCrawlsSection({
   onSignUpPress,
 }: UpcomingCrawlsSectionProps) {
   const { user } = useAuthContext();
+  const { theme } = useTheme();
 
   if (upcomingCrawls.length === 0) {
     return null;
@@ -49,31 +51,31 @@ export default function UpcomingCrawlsSection({
 
     return (
       <TouchableOpacity
-        style={styles.crawlCard}
+        style={[styles.crawlCard, { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary }]}
         onPress={() => onCrawlPress(item.id)}
       >
-        <View style={styles.crawlImageContainer}>
+        <View style={[styles.crawlImageContainer, { backgroundColor: theme.background.tertiary }]}>
           <Text style={styles.crawlImage}>🖼️</Text>
         </View>
         <View style={styles.crawlContent}>
-          <Text style={styles.crawlTitle}>{item.title || item.name}</Text>
-          <Text style={styles.crawlDescription} numberOfLines={2}>
+          <Text style={[styles.crawlTitle, { color: theme.text.primary }]}>{item.title || item.name}</Text>
+          <Text style={[styles.crawlDescription, { color: theme.text.secondary }]} numberOfLines={2}>
             {item.description}
           </Text>
           <View style={styles.crawlMeta}>
-            <Text style={styles.crawlTime}>{timeRemaining}</Text>
+            <Text style={[styles.crawlTime, { color: theme.button.primary }]}>{timeRemaining}</Text>
             {isSignedUp && (
-              <View style={styles.signedUpBadge}>
-                <Text style={styles.signedUpText}>Signed Up</Text>
+              <View style={[styles.signedUpBadge, { backgroundColor: theme.status.success }]}>
+                <Text style={[styles.signedUpText, { color: theme.text.inverse }]}>Signed Up</Text>
               </View>
             )}
           </View>
           {!isSignedUp && user && (
             <TouchableOpacity
-              style={styles.signUpButton}
+              style={[styles.signUpButton, { backgroundColor: theme.button.primary }]}
               onPress={() => onSignUpPress(item.id)}
             >
-              <Text style={styles.signUpButtonText}>Sign Up</Text>
+              <Text style={[styles.signUpButtonText, { color: theme.text.inverse }]}>Sign Up</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -84,9 +86,9 @@ export default function UpcomingCrawlsSection({
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Upcoming Public Crawls</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Upcoming Public Crawls</Text>
         <TouchableOpacity onPress={onViewAllPress}>
-          <Text style={styles.viewAllText}>View All</Text>
+          <Text style={[styles.viewAllText, { color: theme.button.primary }]}>View All</Text>
         </TouchableOpacity>
       </View>
       
@@ -116,22 +118,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1a1a1a',
   },
   viewAllText: {
     fontSize: 16,
-    color: '#007AFF',
     fontWeight: '500',
   },
   horizontalListContainer: {
     paddingHorizontal: 4,
   },
   crawlCard: {
-    backgroundColor: 'white',
     marginRight: 16,
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -140,7 +138,6 @@ const styles = StyleSheet.create({
   },
   crawlImageContainer: {
     height: 120,
-    backgroundColor: '#f8f9fa',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -153,12 +150,10 @@ const styles = StyleSheet.create({
   crawlTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   crawlDescription: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
     lineHeight: 20,
   },
@@ -170,29 +165,24 @@ const styles = StyleSheet.create({
   },
   crawlTime: {
     fontSize: 12,
-    color: '#007AFF',
     fontWeight: '500',
   },
   signedUpBadge: {
-    backgroundColor: '#28a745',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
   },
   signedUpText: {
-    color: 'white',
     fontSize: 10,
     fontWeight: '600',
   },
   signUpButton: {
-    backgroundColor: '#007AFF',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: 'center',
   },
   signUpButtonText: {
-    color: 'white',
     fontSize: 14,
     fontWeight: '600',
   },

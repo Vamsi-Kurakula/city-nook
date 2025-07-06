@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, StatusBar, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import yaml from 'js-yaml';
 import CrawlList from '../ui/CrawlList';
+import { useTheme } from '../context/ThemeContext';
 import { Crawl } from '../../types/crawl';
 import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
 import { useNavigation, CommonActions } from '@react-navigation/native';
@@ -17,6 +18,7 @@ const PublicCrawls: React.FC = () => {
   const [crawls, setCrawls] = useState<Crawl[]>([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<any>();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const loadCrawls = async () => {
@@ -84,33 +86,33 @@ const PublicCrawls: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" style={{ marginTop: 40 }} />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+        <ActivityIndicator size="large" color={theme.button.primary} style={{ marginTop: 40 }} />
       </SafeAreaView>
     );
   }
 
   if (crawls.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.headerContainer}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.backButtonText}>← Back</Text>
+            <Text style={[styles.backButtonText, { color: theme.text.primary }]}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.header}>Public Crawls</Text>
+          <Text style={[styles.header, { color: theme.text.primary }]}>Public Crawls</Text>
         </View>
-        <Text style={styles.errorText}>No public crawls available yet.</Text>
+        <Text style={[styles.errorText, { color: theme.text.tertiary }]}>No public crawls available yet.</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <View style={styles.headerContainer}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>← Back</Text>
+          <Text style={[styles.backButtonText, { color: theme.text.primary }]}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.header}>Public Crawls</Text>
+        <Text style={[styles.header, { color: theme.text.primary }]}>Public Crawls</Text>
       </View>
       <CrawlList
         crawls={crawls}
@@ -124,7 +126,6 @@ const PublicCrawls: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     paddingTop: StatusBar.currentHeight || 0,
   },
   headerContainer: {
@@ -146,7 +147,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 18,
-    color: '#999',
     textAlign: 'center',
     marginTop: 40,
   },
