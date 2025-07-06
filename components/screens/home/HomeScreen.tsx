@@ -10,43 +10,23 @@ import FeaturedCrawlsSection from './FeaturedCrawlsSection';
 import { useHomeData } from './hooks/useHomeData';
 import { useCrawlActions } from './hooks/useCrawlActions';
 
-interface CrawlProgress {
-  crawlId: string;
-  currentStep: number;
-  completedSteps: number[];
-  startTime: string;
-  isPublicCrawl: boolean;
-}
-
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const { user, isLoading } = useAuthContext();
   const { hasCrawlInProgress, getCurrentCrawlName } = useCrawlContext();
   const userId = user?.id;
 
-  // Add debugging
-  console.log('HomeScreen render:', { 
-    user: user ? 'defined' : 'undefined', 
-    userId, 
-    isLoading,
-    userEmail: user?.emailAddresses?.[0]?.emailAddress 
-  });
+
 
   const {
-    featuredCrawls,
     fullFeaturedCrawls,
     upcomingCrawls,
     userSignups,
     currentCrawl,
-    inProgressCrawls,
-    allLibraryCrawls,
     loading,
-    loadHomeData,
   } = useHomeData(userId, isLoading);
 
   const {
-    handleContinueCrawl,
-    handleFeaturedCrawlPress,
     handleFeaturedCrawlCardPress,
     handleFeaturedCrawlCardStart,
     handleInProgressCrawlPress,
@@ -90,7 +70,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.halfWidthButton} 
-              onPress={() => console.log('Join crawl button pressed')}
+              onPress={() => navigation.navigate('PublicCrawls')}
             >
               <Text style={styles.halfWidthButtonText}>🎯 Join Crawl</Text>
             </TouchableOpacity>

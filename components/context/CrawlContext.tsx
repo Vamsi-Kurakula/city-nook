@@ -256,7 +256,7 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
   };
 
   const loadHistory = () => {
-    // TODO: Load from AsyncStorage or other persistence
+    // Load from AsyncStorage or other persistence
     // For now, we'll just use in-memory storage
   };
 

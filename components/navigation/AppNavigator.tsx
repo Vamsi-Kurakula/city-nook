@@ -15,7 +15,7 @@ import CrawlLibraryFilters from '../screens/CrawlLibraryFilters';
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
-  console.log('AppNavigator rendering');
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Home" component={HomeScreen} />
