@@ -34,6 +34,7 @@ const CrawlDetailScreen: React.FC = () => {
     startCrawlWithNavigation, 
     hasCrawlInProgress, 
     getCurrentCrawlName, 
+    checkDatabaseForActiveCrawl,
     endCurrentCrawlAndStartNew 
   } = useCrawlContext();
   const { user, isLoading } = useAuthContext();
@@ -44,29 +45,21 @@ const CrawlDetailScreen: React.FC = () => {
       if (user?.id && crawl?.id && !isLoading) {
         console.log('CrawlDetailScreen fetching progress for:', { userId: user.id, crawlId: crawl.id });
         
-        // First, let's check all progress records for this user
-        const { data: allProgress, error: allError } = await supabase
-          .from('crawl_progress')
-          .select('*')
-          .eq('user_id', user.id);
-        
-        console.log('All progress records for user:', allProgress, 'Error:', allError);
-        
-        // Now check for this specific crawl
+        // Get the user's current crawl progress (only 1 record per user now)
         const { data, error } = await supabase
           .from('crawl_progress')
           .select('*')
           .eq('user_id', user.id)
-          .eq('crawl_id', crawl.id)
           .single();
         
         console.log('CrawlDetailScreen progress query result:', { data, error });
         
-        if (data && !data.completed_at) {
+        // Check if the current progress is for this specific crawl
+        if (data && !data.completed_at && data.crawl_id === crawl.id && data.is_public === (crawl['public-crawl'] || false)) {
           console.log('Setting resume progress:', data);
           setResumeProgress(data);
         } else {
-          console.log('No resume progress found or crawl completed');
+          console.log('No resume progress found or crawl completed or different crawl');
           setResumeProgress(null);
         }
       }
@@ -101,10 +94,19 @@ const CrawlDetailScreen: React.FC = () => {
     }
   };
 
-  const handleStartCrawl = () => {
-    // Check if there's already a crawl in progress
-    if (hasCrawlInProgress()) {
-      const currentCrawlName = getCurrentCrawlName();
+  const handleStartCrawl = async () => {
+    // Check if there's already a crawl in progress (both local state and database)
+    let hasActiveCrawl = hasCrawlInProgress();
+    let currentCrawlName = getCurrentCrawlName();
+    
+    // If no active crawl in local state, check database
+    if (!hasActiveCrawl && user?.id) {
+      const dbCheck = await checkDatabaseForActiveCrawl(user.id);
+      hasActiveCrawl = dbCheck.hasActive;
+      currentCrawlName = dbCheck.crawlName || 'Current Crawl';
+    }
+    
+    if (hasActiveCrawl) {
       Alert.alert(
         'Crawl in Progress',
         `You have "${currentCrawlName}" in progress. Would you like to end that crawl and start "${crawl.name}"?`,
@@ -121,7 +123,7 @@ const CrawlDetailScreen: React.FC = () => {
                     params: { crawl },
                   })
                 );
-              });
+              }, user?.id);
             },
           },
         ]
@@ -141,18 +143,61 @@ const CrawlDetailScreen: React.FC = () => {
   if (resumeProgress && crawl?.stops) {
     const completedCount = resumeProgress.completed_stops?.length || 0;
     const currentStopNum = resumeProgress.current_stop;
-    const currentStop = crawl.stops.find(s => s.stop_number === currentStopNum);
-    const locationName = currentStop?.stop_components?.location_name || currentStop?.stop_components?.description || currentStop?.stop_components?.riddle || '';
-    resumeInfo = (
-      <View style={{ marginTop: 16, marginBottom: 4, alignItems: 'flex-start' }}>
-        <Text style={{ color: '#888', fontSize: 15 }}>
-          {`You have completed ${completedCount} stop${completedCount === 1 ? '' : 's'}.`}
-        </Text>
-        <Text style={{ color: '#888', fontSize: 15 }}>
-          {`Current stop: ${currentStopNum}${locationName ? ` - ${locationName}` : ''}`}
-        </Text>
-      </View>
-    );
+    const totalStops = crawl.stops.length;
+    
+    // Debug logging
+    console.log('CrawlDetailScreen resume info:', {
+      currentStopNum,
+      completedCount,
+      totalStops,
+      completedStops: resumeProgress.completed_stops,
+      resumeProgress: resumeProgress,
+      stops: crawl.stops.map(s => ({ 
+        stop_number: s.stop_number, 
+        location_name: s.stop_components?.location_name,
+        description: s.stop_components?.description 
+      }))
+    });
+    
+    // Calculate the actual current stop based on completed stops
+    // If user has completed 2 stops, they should be on stop 3
+    const actualCurrentStop = completedCount + 1;
+    
+    // Determine if the crawl is completed
+    const isCompleted = actualCurrentStop > totalStops || resumeProgress.completed;
+    
+    if (isCompleted) {
+      resumeInfo = (
+        <View style={{ marginTop: 16, marginBottom: 4, alignItems: 'flex-start' }}>
+          <Text style={{ color: '#28a745', fontSize: 15, fontWeight: 'bold' }}>
+            🎉 Crawl completed! You finished all {totalStops} stops.
+          </Text>
+        </View>
+      );
+    } else {
+      // Find the current stop by stop_number using the calculated actual current stop
+      const currentStop = crawl.stops.find(s => s.stop_number === actualCurrentStop);
+      
+      // If we can't find the stop by stop_number, try using array index (0-indexed)
+      const currentStopByIndex = crawl.stops[actualCurrentStop - 1];
+      
+      const finalStop = currentStop || currentStopByIndex;
+      const locationName = finalStop?.stop_components?.location_name || 
+                          finalStop?.stop_components?.description || 
+                          finalStop?.stop_components?.riddle || 
+                          finalStop?.location_name || '';
+      
+      resumeInfo = (
+        <View style={{ marginTop: 16, marginBottom: 4, alignItems: 'flex-start' }}>
+          <Text style={{ color: '#888', fontSize: 15 }}>
+            {`You have completed ${completedCount} stop${completedCount === 1 ? '' : 's'}.`}
+          </Text>
+          <Text style={{ color: '#888', fontSize: 15 }}>
+            {`Current stop: ${actualCurrentStop}${locationName ? ` - ${locationName}` : ''}`}
+          </Text>
+        </View>
+      );
+    }
   }
 
   return (
@@ -259,21 +304,6 @@ const CrawlDetailScreen: React.FC = () => {
         )}
         
         {resumeInfo}
-        
-        {/* Debug info */}
-        {__DEV__ && (
-          <View style={{ marginTop: 16, padding: 12, backgroundColor: '#f0f0f0', borderRadius: 8 }}>
-            <Text style={{ fontSize: 12, color: '#666' }}>
-              Debug: resumeProgress = {resumeProgress ? 'defined' : 'null'}
-            </Text>
-            <Text style={{ fontSize: 12, color: '#666' }}>
-              User ID: {user?.id || 'null'}
-            </Text>
-            <Text style={{ fontSize: 12, color: '#666' }}>
-              Crawl ID: {crawl?.id || 'null'}
-            </Text>
-          </View>
-        )}
         
         {/* Show Resume button if there's progress to resume */}
         {resumeProgress && (

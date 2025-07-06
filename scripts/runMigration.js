@@ -50,6 +50,7 @@ async function runMigration() {
     const testData = {
       user_id: 'test-user',
       crawl_id: 'test-crawl',
+      is_public: false,
       current_stop: 1,
       completed_stops: []
     };
@@ -73,7 +74,8 @@ async function runMigration() {
         .from('crawl_progress')
         .delete()
         .eq('user_id', 'test-user')
-        .eq('crawl_id', 'test-crawl');
+        .eq('crawl_id', 'test-crawl')
+        .eq('is_public', false);
       
       console.log('✅ Migration completed successfully!');
     }

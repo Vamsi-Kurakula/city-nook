@@ -17,18 +17,19 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 );
 
 -- Create crawl_progress table
--- Tracks in-progress crawls for each user
+-- Tracks in-progress crawls for each user (only 1 record per user)
 CREATE TABLE IF NOT EXISTS crawl_progress (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id TEXT NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
   crawl_id TEXT NOT NULL, -- References crawl ID from YAML files
+  is_public BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE for public crawls, FALSE for crawl library
   current_stop INTEGER DEFAULT 1, -- Current stop number (1-based)
   completed_stops INTEGER[] DEFAULT '{}', -- Array of completed stop numbers
   started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   completed_at TIMESTAMP WITH TIME ZONE, -- NULL if crawl is in progress
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(user_id, crawl_id) -- One active crawl per user per crawl type
+  CONSTRAINT crawl_progress_user_id_key UNIQUE(user_id) -- Only one active crawl per user (enforces single crawl per user)
 );
 
 -- Create user_crawl_history table
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS user_crawl_history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id TEXT NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
   crawl_id TEXT NOT NULL, -- References crawl ID from YAML files
+  is_public BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE for public crawls, FALSE for crawl library
   completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   total_time_minutes INTEGER, -- Time taken to complete the crawl
   score INTEGER, -- Optional score/rating for the crawl
@@ -46,8 +48,10 @@ CREATE TABLE IF NOT EXISTS user_crawl_history (
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_crawl_progress_user_id ON crawl_progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_crawl_progress_crawl_id ON crawl_progress(crawl_id);
+CREATE INDEX IF NOT EXISTS idx_crawl_progress_is_public ON crawl_progress(is_public);
 CREATE INDEX IF NOT EXISTS idx_user_crawl_history_user_id ON user_crawl_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_crawl_history_crawl_id ON user_crawl_history(crawl_id);
+CREATE INDEX IF NOT EXISTS idx_user_crawl_history_is_public ON user_crawl_history(is_public);
 
 -- Enable Row Level Security
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
@@ -112,12 +116,14 @@ CREATE TABLE IF NOT EXISTS public_crawl_signups (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id TEXT NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
   crawl_id TEXT NOT NULL, -- References public crawl ID
+  is_public BOOLEAN NOT NULL DEFAULT TRUE, -- Always TRUE for public crawl signups
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(user_id, crawl_id) -- One signup per user per public crawl
+  UNIQUE(user_id, crawl_id, is_public) -- One signup per user per public crawl
 );
 
 CREATE INDEX IF NOT EXISTS idx_public_crawl_signups_crawl_id ON public_crawl_signups(crawl_id);
 CREATE INDEX IF NOT EXISTS idx_public_crawl_signups_user_id ON public_crawl_signups(user_id);
+CREATE INDEX IF NOT EXISTS idx_public_crawl_signups_is_public ON public_crawl_signups(is_public);
 
 -- Additional useful indexes for performance
 CREATE INDEX IF NOT EXISTS idx_crawl_progress_completed_at ON crawl_progress(completed_at);
@@ -130,7 +136,7 @@ CREATE POLICY "Allow all operations for now" ON public_crawl_signups FOR ALL USI
 
 -- Add comments to tables for better documentation
 COMMENT ON TABLE user_profiles IS 'User profile information synced from Clerk authentication';
-COMMENT ON TABLE crawl_progress IS 'Tracks in-progress crawls for each user';
+COMMENT ON TABLE crawl_progress IS 'Tracks in-progress crawls for each user (only 1 record per user)';
 COMMENT ON TABLE user_crawl_history IS 'Stores completed crawl records for statistics and history';
 COMMENT ON TABLE public_crawl_signups IS 'Tracks user signups for scheduled public crawls';
 
@@ -138,3 +144,6 @@ COMMENT ON TABLE public_crawl_signups IS 'Tracks user signups for scheduled publ
 COMMENT ON COLUMN crawl_progress.completed_stops IS 'Array of completed stop numbers (1-based indexing)';
 COMMENT ON COLUMN crawl_progress.current_stop IS 'Current stop number (1-based indexing)';
 COMMENT ON COLUMN crawl_progress.completed_at IS 'NULL if crawl is in progress, timestamp when completed';
+COMMENT ON COLUMN crawl_progress.is_public IS 'TRUE for public crawls, FALSE for crawl library crawls';
+COMMENT ON COLUMN user_crawl_history.is_public IS 'TRUE for public crawls, FALSE for crawl library crawls';
+COMMENT ON COLUMN public_crawl_signups.is_public IS 'Always TRUE for public crawl signups';

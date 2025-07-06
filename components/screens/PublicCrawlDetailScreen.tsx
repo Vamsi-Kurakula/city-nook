@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import { supabase } from '../../utils/supabase';
 import { useAuthContext } from '../context/AuthContext';
+import { useCrawlContext } from '../context/CrawlContext';
+import { Alert } from 'react-native';
 import { getHeroImageSource } from '../auto-generated/ImageLoader';
 import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
 import { Crawl, CrawlStops } from '../../types/crawl';
@@ -13,6 +15,7 @@ const PublicCrawlDetailScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
   const { user, isSignedIn, isLoading } = useAuthContext();
+  const { hasCrawlInProgress, getCurrentCrawlName, endCurrentCrawlAndStartNew } = useCrawlContext();
   
   // Defensive extraction and logging
   const routeParams = route.params as { crawl?: Crawl; crawlId?: string } | undefined;
@@ -120,14 +123,14 @@ const PublicCrawlDetailScreen: React.FC = () => {
 
   const handleSignUp = async () => {
     if (!user?.id) return;
-    await supabase.from('public_crawl_signups').upsert({ user_id: user.id, crawl_id: crawlData.id });
+    await supabase.from('public_crawl_signups').upsert({ user_id: user.id, crawl_id: crawlData.id, is_public: true });
     setIsSignedUp(true);
     setSignups([...signups, { user_id: user.id, user_profiles: { avatar_url: user.imageUrl, full_name: user.fullName } }]);
   };
 
   const handleCancelSignUp = async () => {
     if (!user?.id) return;
-    await supabase.from('public_crawl_signups').delete().eq('user_id', user.id).eq('crawl_id', crawlData.id);
+    await supabase.from('public_crawl_signups').delete().eq('user_id', user.id).eq('crawl_id', crawlData.id).eq('is_public', true);
     setIsSignedUp(false);
     setSignups(signups.filter(s => s.user_id !== user.id));
   };
@@ -216,12 +219,39 @@ const PublicCrawlDetailScreen: React.FC = () => {
             )}
             {isSignedUp && (
               <TouchableOpacity style={styles.joinButton} onPress={() => {
-                navigation.dispatch(
-                  CommonActions.navigate({
-                    name: 'CrawlSession',
-                    params: { crawl: crawlData },
-                  })
-                );
+                // Check if there's already a crawl in progress
+                if (hasCrawlInProgress()) {
+                  const currentCrawlName = getCurrentCrawlName();
+                  Alert.alert(
+                    'Crawl in Progress',
+                    `You have "${currentCrawlName}" in progress. Would you like to end that crawl and join "${crawlData.name}"?`,
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Yes, Join New Crawl',
+                        style: 'destructive',
+                        onPress: () => {
+                          endCurrentCrawlAndStartNew(crawlData, () => {
+                            navigation.dispatch(
+                              CommonActions.navigate({
+                                name: 'CrawlSession',
+                                params: { crawl: crawlData },
+                              })
+                            );
+                          }, user?.id);
+                        },
+                      },
+                    ]
+                  );
+                } else {
+                  // No crawl in progress, join normally
+                  navigation.dispatch(
+                    CommonActions.navigate({
+                      name: 'CrawlSession',
+                      params: { crawl: crawlData },
+                    })
+                  );
+                }
               }}>
                 <Text style={styles.joinButtonText}>Join Crawl</Text>
               </TouchableOpacity>

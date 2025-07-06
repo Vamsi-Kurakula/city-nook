@@ -13,6 +13,7 @@ import {
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuthContext } from '../context/AuthContext';
+import { useCrawlContext } from '../context/CrawlContext';
 import { SafeAreaView as SafeAreaViewRN } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
@@ -50,6 +51,7 @@ interface CrawlProgress {
 export default function HomeScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { user, isLoading } = useAuthContext();
+  const { hasCrawlInProgress, getCurrentCrawlName, endCurrentCrawlAndStartNew } = useCrawlContext();
   const userId = user?.id;
   const [featuredCrawls, setFeaturedCrawls] = useState<FeaturedCrawl[]>([]);
   const [fullFeaturedCrawls, setFullFeaturedCrawls] = useState<Crawl[]>([]);
@@ -177,19 +179,19 @@ export default function HomeScreen() {
     if (!userId) return;
 
     try {
-      console.log('Loading current crawls for user:', userId);
+      console.log('Loading current crawl for user:', userId);
       
-      // Get all in-progress crawls (both public and library)
-      const { data: allProgress, error } = await supabase
+      // Get the user's current crawl progress (only 1 record per user now)
+      const { data: progress, error } = await supabase
         .from('crawl_progress')
         .select('*')
         .eq('user_id', userId)
         .is('completed_at', null)
-        .order('started_at', { ascending: false });
+        .single();
 
-      console.log('All progress:', allProgress, 'Error:', error);
+      console.log('Current progress:', progress, 'Error:', error);
 
-      if (allProgress && allProgress.length > 0) {
+      if (progress) {
         // Load all crawl data to determine which are public crawls
         const [publicCrawls, libraryCrawls] = await Promise.all([
           loadPublicCrawls(),
@@ -227,28 +229,28 @@ export default function HomeScreen() {
         // Store all library crawls for use in rendering
         setAllLibraryCrawls(libraryCrawls);
 
-        const inProgressCrawlsData: CrawlProgress[] = allProgress.map(progress => {
-          // Check if this is a public crawl
-          const isPublicCrawl = publicCrawls.some(crawl => crawl.id === progress.crawl_id);
-          
-          return {
-            crawlId: progress.crawl_id,
-            currentStep: progress.current_stop,
-            completedSteps: progress.completed_stops || [],
-            startTime: progress.started_at,
-            isPublicCrawl
-          };
-        });
+        // Use the is_public field from the database to determine if this is a public crawl
+        const isPublicCrawl = progress.is_public;
+        
+        const inProgressCrawlData: CrawlProgress = {
+          crawlId: progress.crawl_id,
+          currentStep: progress.current_stop,
+          completedSteps: progress.completed_stops || [],
+          startTime: progress.started_at,
+          isPublicCrawl
+        };
 
-        console.log('All in-progress crawls:', inProgressCrawlsData);
-        setInProgressCrawls(inProgressCrawlsData);
-        setCurrentCrawl(inProgressCrawlsData[0]);
+        console.log('Current in-progress crawl:', inProgressCrawlData);
+        setInProgressCrawls([inProgressCrawlData]);
+        setCurrentCrawl(inProgressCrawlData);
       } else {
         setInProgressCrawls([]);
         setCurrentCrawl(null);
       }
     } catch (error) {
       console.error('Error loading current crawl:', error);
+      setInProgressCrawls([]);
+      setCurrentCrawl(null);
     }
   };
 
@@ -292,21 +294,15 @@ export default function HomeScreen() {
       if (currentCrawl.isPublicCrawl) {
         navigation.dispatch(
           CommonActions.navigate({
-            name: 'PublicCrawlSession',
-            params: {
-              crawl: crawlData,
-              resumeData
-            },
+            name: 'PublicCrawlDetail',
+            params: { crawlId: currentCrawl.crawlId },
           })
         );
       } else {
         navigation.dispatch(
           CommonActions.navigate({
-            name: 'CrawlSession',
-            params: {
-              crawl: crawlData,
-              resumeData
-            },
+            name: 'CrawlDetail',
+            params: { crawl: crawlData },
           })
         );
       }
@@ -333,6 +329,7 @@ export default function HomeScreen() {
           stops: stopsData?.stops || [],
         };
         
+        // Simply navigate to the detail screen without checking for existing crawl
         navigation.dispatch(
           CommonActions.navigate({
             name: 'CrawlDetail',

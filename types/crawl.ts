@@ -24,6 +24,7 @@ export interface UserStopProgress {
 
 export interface CrawlProgress {
   crawl_id: string;
+  is_public: boolean;
   current_stop: number;
   completed_stops: UserStopProgress[];
   started_at: Date;

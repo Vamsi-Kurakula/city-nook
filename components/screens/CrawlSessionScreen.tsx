@@ -8,7 +8,7 @@ import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
 import { StopComponent } from '../ui/StopComponents';
 import CrawlMap from '../ui/CrawlMap';
 import { useAuthContext } from '../context/AuthContext';
-import { saveCrawlProgress, addCrawlHistory, supabase } from '../../utils/supabase';
+import { saveCrawlProgress, addCrawlHistory, deleteCrawlProgress, supabase } from '../../utils/supabase';
 import { extractAllCoordinates, LocationCoordinates } from '../../utils/coordinateExtractor';
 
 const CrawlSessionScreen: React.FC = () => {
@@ -39,6 +39,7 @@ const CrawlSessionScreen: React.FC = () => {
     completeStop,
     nextStop,
     getCurrentStop,
+    loadProgressFromDatabase,
     clearCrawlSession,
     saveAndClearCrawlSession,
   } = useCrawlContext();
@@ -51,6 +52,8 @@ const CrawlSessionScreen: React.FC = () => {
   const [showMap, setShowMap] = useState(false);
   const [isGateCompleted, setIsGateCompleted] = useState(false);
   const [isNextStopRevealed, setIsNextStopRevealed] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [crawlCompleted, setCrawlCompleted] = useState(false);
 
   // Load crawl data if we only have crawlId
   useEffect(() => {
@@ -90,56 +93,117 @@ const CrawlSessionScreen: React.FC = () => {
 
   // Start session if not already
   useEffect(() => {
-    if (crawlData && (!isCrawlActive || !currentCrawl || currentCrawl.id !== crawlData.id)) {
-      setCurrentCrawl({ ...crawlData, stops });
-      setIsCrawlActive(true);
-      const resumeDataToUse = routeParams?.resumeData || routeParams?.resumeProgress;
-      if (resumeDataToUse) {
-        setCurrentProgress({
-          crawl_id: crawlData.id,
-          current_stop: resumeDataToUse.currentStop || resumeDataToUse.current_stop,
-          completed_stops: (resumeDataToUse.completedStops || resumeDataToUse.completed_stops || []).map((stopNum: number, idx: number) => ({
-            stop_number: stopNum,
-            completed: true,
-            user_answer: '', // If you want to store answers, update this
-            completed_at: undefined,
-          })),
-          started_at: resumeDataToUse.startTime || resumeDataToUse.started_at ? new Date(resumeDataToUse.startTime || resumeDataToUse.started_at) : new Date(),
-          last_updated: resumeDataToUse.updated_at ? new Date(resumeDataToUse.updated_at) : new Date(),
-          completed: false,
-        });
-      } else {
-        setCurrentProgress({
-          crawl_id: crawlData.id,
-          current_stop: 1,
-          completed_stops: [],
-          started_at: new Date(),
-          last_updated: new Date(),
-          completed: false,
-        });
+    const setupSession = async () => {
+      if (crawlData && (!isCrawlActive || !currentCrawl || currentCrawl.id !== crawlData.id) && !isCompleting) {
+        console.log('Setting up new crawl session for:', crawlData.id);
+        setCurrentCrawl({ ...crawlData, stops });
+        setIsCrawlActive(true);
+        
+        // Load progress from database if user is logged in
+        if (user?.id) {
+          const isPublic = crawlData['public-crawl'] || false;
+          const progressFound = await loadProgressFromDatabase(user.id, crawlData.id, isPublic);
+          
+          if (progressFound) {
+            // Progress was found for this specific crawl
+            console.log('Loaded existing progress for crawl:', crawlData.id, 'isPublic:', isPublic);
+          } else {
+            // No progress was loaded from database, initialize new progress for this crawl
+            console.log('Initializing new progress for crawl:', crawlData.id, 'isPublic:', isPublic);
+            setCurrentProgress({
+              crawl_id: crawlData.id,
+              is_public: isPublic,
+              current_stop: 1,
+              completed_stops: [],
+              started_at: new Date(),
+              last_updated: new Date(),
+              completed: false,
+            });
+          }
+        } else {
+          // Fallback to resume data if no user (for backward compatibility)
+          const resumeDataToUse = routeParams?.resumeData || routeParams?.resumeProgress;
+          if (resumeDataToUse) {
+            console.log('Setting up resume progress with data:', resumeDataToUse);
+            
+            // Calculate the correct current stop based on completed stops
+            const completedStops = resumeDataToUse.completedStops || resumeDataToUse.completed_stops || [];
+            const completedCount = completedStops.length;
+            const totalStops = stops.length;
+            
+            // If user has completed N stops, they should be on stop N+1
+            // But don't exceed the total number of stops
+            const calculatedCurrentStop = Math.min(completedCount + 1, totalStops);
+            
+            console.log('Resume calculation:', {
+              completedStops,
+              completedCount,
+              totalStops,
+              calculatedCurrentStop,
+              originalCurrentStop: resumeDataToUse.currentStop || resumeDataToUse.current_stop
+            });
+            
+            const newProgress = {
+              crawl_id: crawlData.id,
+              is_public: crawlData['public-crawl'] || false,
+              current_stop: calculatedCurrentStop,
+              completed_stops: completedStops.map((stopNum: number, idx: number) => ({
+                stop_number: stopNum,
+                completed: true,
+                user_answer: '', // If you want to store answers, update this
+                completed_at: undefined,
+              })),
+              started_at: resumeDataToUse.startTime || resumeDataToUse.started_at ? new Date(resumeDataToUse.startTime || resumeDataToUse.started_at) : new Date(),
+              last_updated: resumeDataToUse.updated_at ? new Date(resumeDataToUse.updated_at) : new Date(),
+              completed: completedCount >= totalStops,
+            };
+            console.log('Setting current progress to:', newProgress);
+            setCurrentProgress(newProgress);
+          } else {
+            setCurrentProgress({
+              crawl_id: crawlData.id,
+              is_public: crawlData['public-crawl'] || false,
+              current_stop: 1,
+              completed_stops: [],
+              started_at: new Date(),
+              last_updated: new Date(),
+              completed: false,
+            });
+          }
+        }
       }
-    }
-  }, [isCrawlActive, currentCrawl, crawlData, setCurrentCrawl, setIsCrawlActive, setCurrentProgress, stops, routeParams?.resumeData, routeParams?.resumeProgress]);
+    };
+    
+    setupSession();
+  }, [crawlData?.id, user?.id, routeParams?.resumeData, routeParams?.resumeProgress, stops.length, isCompleting]);
 
   // Save progress to database when session starts
   useEffect(() => {
     const saveInitialProgress = async () => {
-      if (user?.id && currentProgress && currentCrawl && !routeParams?.resumeData && !routeParams?.resumeProgress) {
+      if (user?.id && currentProgress && currentCrawl && crawlData && !routeParams?.resumeData && !routeParams?.resumeProgress) {
         // Only save if this is a new session (not resuming)
         console.log('Saving initial progress to database:', currentProgress);
+        console.log('Crawl data:', crawlData);
+        
+        // Ensure is_public is set correctly
+        const isPublic = currentProgress.is_public ?? (crawlData?.['public-crawl'] || false);
+        console.log('Determined is_public value:', isPublic, 'from currentProgress.is_public:', currentProgress.is_public, 'from crawlData:', crawlData?.['public-crawl']);
         
         // Temporarily save without completed_stops until database schema is fixed
         const progressData = {
           user_id: user.id,
           crawl_id: currentProgress.crawl_id,
+          is_public: isPublic,
           current_stop: currentProgress.current_stop,
           started_at: new Date(currentProgress.started_at).toISOString(),
           completed_at: undefined,
         };
         
+        console.log('Progress data to save:', progressData);
+        
         const { error } = await supabase
           .from('crawl_progress')
-          .upsert([progressData], { onConflict: 'user_id,crawl_id' });
+          .upsert([progressData], { onConflict: 'user_id' });
           
         if (error) {
           console.error('Error saving initial progress:', error);
@@ -150,12 +214,15 @@ const CrawlSessionScreen: React.FC = () => {
     };
     
     saveInitialProgress();
-  }, [user?.id, currentProgress, currentCrawl, routeParams?.resumeData, routeParams?.resumeProgress]);
+  }, [user?.id, currentProgress, currentCrawl, crawlData, routeParams?.resumeData, routeParams?.resumeProgress]);
 
   const currentStopNumber = getCurrentStop();
   const totalStops = stops.length;
   const isCompleted = currentProgress?.completed || false;
   const completedStops = currentProgress?.completed_stops || [];
+  
+  // Debug logging
+  console.log('CrawlSessionScreen render - currentStopNumber:', currentStopNumber, 'currentProgress:', currentProgress, 'isCompleted:', isCompleted, 'isCompleting:', isCompleting, 'crawlCompleted:', crawlCompleted);
 
   const handleExit = useCallback(async () => {
     // Automatically save progress before exiting
@@ -168,6 +235,7 @@ const CrawlSessionScreen: React.FC = () => {
       await saveCrawlProgress({
         userId: user.id,
         crawlId: currentProgress.crawl_id,
+        isPublic: currentProgress.is_public ?? (crawlData?.['public-crawl'] || false),
         currentStop: currentProgress.current_stop,
         completedStops: completedStopNumbers,
         startedAt: new Date(currentProgress.started_at).toISOString(),
@@ -178,17 +246,17 @@ const CrawlSessionScreen: React.FC = () => {
     navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
   }, [saveAndClearCrawlSession, navigation, user, currentProgress]);
 
-  const handleStopComplete = (userAnswer: string) => {
-    completeStop(currentStopNumber, userAnswer);
+  const handleStopComplete = async (userAnswer: string) => {
+    await completeStop(currentStopNumber, userAnswer, user?.id);
     setIsGateCompleted(true);
     setIsNextStopRevealed(true);
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     if (isGateCompleted) {
       setIsGateCompleted(false);
       setIsNextStopRevealed(false);
-      nextStop();
+      await nextStop(user?.id);
     }
   };
 
@@ -197,52 +265,74 @@ const CrawlSessionScreen: React.FC = () => {
   const progressPercent = totalStops > 0 ? Math.round(((currentStopNumber - 1) / totalStops) * 100) : 0;
 
   useEffect(() => {
-    if (isCompleted && user?.id && currentProgress && currentCrawl) {
-      const started = new Date(currentProgress.started_at);
-      const completed = new Date();
-      const totalTimeMinutes = Math.round((completed.getTime() - started.getTime()) / 60000);
+    console.log('Completion useEffect triggered - isCompleted:', isCompleted, 'user:', !!user?.id, 'currentProgress:', !!currentProgress, 'currentCrawl:', !!currentCrawl, 'isCompleting:', isCompleting);
+    if (isCompleted && user?.id && currentProgress && currentCrawl && !isCompleting) {
+      console.log('Starting crawl completion process');
+      setIsCompleting(true);
+      
+      // Store completion data before clearing session
+      const completionData = {
+        started: new Date(currentProgress.started_at),
+        completed: new Date(),
+        crawlId: currentCrawl.id,
+        isPublic: currentProgress.is_public ?? (crawlData?.['public-crawl'] || false),
+      };
+      
       (async () => {
-        await addCrawlHistory({
-          userId: user.id,
-          crawlId: currentCrawl.id,
-          completedAt: completed.toISOString(),
-          totalTimeMinutes,
-        });
-        
-        // Convert completed_stops to array of numbers
-        const completedStopNumbers = currentProgress.completed_stops.map((s: any) => 
-          typeof s === 'number' ? s : s.stop_number
-        );
-        
-        await saveCrawlProgress({
-          userId: user.id,
-          crawlId: currentCrawl.id,
-          currentStop: currentProgress.current_stop,
-          completedStops: completedStopNumbers,
-          startedAt: started.toISOString(),
-          completedAt: completed.toISOString(),
-        });
+        try {
+          const totalTimeMinutes = Math.round((completionData.completed.getTime() - completionData.started.getTime()) / 60000);
+          
+          // Add to history first
+          await addCrawlHistory({
+            userId: user.id,
+            crawlId: completionData.crawlId,
+            isPublic: completionData.isPublic,
+            completedAt: completionData.completed.toISOString(),
+            totalTimeMinutes,
+          });
+          
+          // Delete the progress record since crawl is completed
+          await deleteCrawlProgress({
+            userId: user.id,
+          });
+          
+          console.log('Crawl completed and progress record deleted');
+          
+          // Clear local state to prevent further database queries
+          await clearCrawlSession();
+          
+          // Reset the completing flag and mark crawl as completed
+          setIsCompleting(false);
+          setCrawlCompleted(true);
+        } catch (error) {
+          console.error('Error completing crawl:', error);
+          setIsCompleting(false);
+        }
       })();
     }
-  }, [isCompleted, user, currentProgress, currentCrawl, clearCrawlSession, navigation]);
+  }, [isCompleted, user, currentProgress, currentCrawl, clearCrawlSession, navigation, isCompleting]);
 
   const isPublicCrawl = crawlData?.start_time && stops && stops.some((s: CrawlStop) => s.reveal_after_minutes !== undefined);
 
-  if (loading || !crawlData || !stops.length) {
+  if (loading || !crawlData || !stops.length || isCompleting) {
     return (
       <SafeAreaView style={styles.container}>
         <ActivityIndicator size="large" />
+        {isCompleting && <Text style={{ marginTop: 16, textAlign: 'center' }}>Completing crawl...</Text>}
       </SafeAreaView>
     );
   }
 
-  if (isCompleted) {
+  if ((isCompleted || crawlCompleted) && !isCompleting) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centered}>
           <Text style={styles.completionTitle}>🎉 Crawl Completed!</Text>
           <Text style={styles.completionText}>You finished all stops of this crawl. Your progress has been saved.</Text>
           <TouchableOpacity style={styles.completionExitButton} onPress={async () => {
+            // Progress record is already deleted in the completion useEffect
+            setIsCompleting(false);
+            setCrawlCompleted(false);
             await clearCrawlSession();
             navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
           }}>

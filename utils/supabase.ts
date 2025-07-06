@@ -20,6 +20,7 @@ export interface CrawlProgress {
   id: string;
   user_id: string;
   crawl_id: string;
+  is_public: boolean;
   current_stop: number;
   completed_stops: number[];
   started_at: string;
@@ -32,6 +33,7 @@ export interface UserCrawlHistory {
   id: string;
   user_id: string;
   crawl_id: string;
+  is_public: boolean;
   completed_at: string;
   total_time_minutes: number;
   score?: number;
@@ -41,9 +43,10 @@ export interface UserCrawlHistory {
 /**
  * Upsert crawl progress for a user
  */
-export async function saveCrawlProgress({ userId, crawlId, currentStop, completedStops, startedAt, completedAt }: {
+export async function saveCrawlProgress({ userId, crawlId, isPublic, currentStop, completedStops, startedAt, completedAt }: {
   userId: string;
   crawlId: string;
+  isPublic: boolean;
   currentStop: number;
   completedStops: number[];
   startedAt: string;
@@ -53,20 +56,22 @@ export async function saveCrawlProgress({ userId, crawlId, currentStop, complete
     {
       user_id: userId,
       crawl_id: crawlId,
+      is_public: isPublic,
       current_stop: currentStop,
       completed_stops: completedStops,
       started_at: startedAt,
       completed_at: completedAt || null,
     }
-  ], { onConflict: 'user_id,crawl_id' });
+  ], { onConflict: 'user_id' });
 }
 
 /**
  * Add a crawl completion record to user_crawl_history
  */
-export async function addCrawlHistory({ userId, crawlId, completedAt, totalTimeMinutes, score }: {
+export async function addCrawlHistory({ userId, crawlId, isPublic, completedAt, totalTimeMinutes, score }: {
   userId: string;
   crawlId: string;
+  isPublic: boolean;
   completedAt: string;
   totalTimeMinutes: number;
   score?: number;
@@ -75,11 +80,48 @@ export async function addCrawlHistory({ userId, crawlId, completedAt, totalTimeM
     {
       user_id: userId,
       crawl_id: crawlId,
+      is_public: isPublic,
       completed_at: completedAt,
       total_time_minutes: totalTimeMinutes,
       score: score || null,
     }
   ]);
+}
+
+/**
+ * Get current crawl progress for a user
+ */
+export async function getCurrentCrawlProgress(userId: string) {
+  const { data, error } = await supabase
+    .from('crawl_progress')
+    .select('*')
+    .eq('user_id', userId)
+    .is('completed_at', null)
+    .single();
+
+  if (error) {
+    // PGRST116 means no rows found, which is expected when no progress exists
+    if (error.code === 'PGRST116') {
+      console.log('No current crawl progress found for user');
+      return null;
+    }
+    console.error('Error fetching current crawl progress:', error);
+    return null;
+  }
+
+  return data;
+}
+
+/**
+ * Delete a crawl progress record from the database
+ */
+export async function deleteCrawlProgress({ userId }: {
+  userId: string;
+}) {
+  return supabase
+    .from('crawl_progress')
+    .delete()
+    .eq('user_id', userId);
 }
 
 /**
@@ -89,7 +131,7 @@ export async function getCrawlStats(userId: string) {
   // Get completed crawls from history
   const { data: completedCrawls, error: historyError } = await supabase
     .from('user_crawl_history')
-    .select('crawl_id')
+    .select('crawl_id, is_public')
     .eq('user_id', userId);
 
   if (historyError) {
@@ -97,12 +139,13 @@ export async function getCrawlStats(userId: string) {
     return null;
   }
 
-  // Get in-progress crawls from progress table
-  const { data: inProgressCrawls, error: progressError } = await supabase
+  // Get in-progress crawl from progress table (only 1 per user now)
+  const { data: inProgressCrawl, error: progressError } = await supabase
     .from('crawl_progress')
-    .select('crawl_id, completed_at')
+    .select('crawl_id, is_public, completed_at')
     .eq('user_id', userId)
-    .is('completed_at', null);
+    .is('completed_at', null)
+    .single();
 
   if (progressError) {
     console.error('Error fetching crawl progress:', progressError);
@@ -111,8 +154,8 @@ export async function getCrawlStats(userId: string) {
 
   // Calculate stats
   const totalCompleted = completedCrawls?.length || 0;
-  const uniqueCompleted = new Set(completedCrawls?.map(c => c.crawl_id) || []).size;
-  const inProgress = inProgressCrawls?.length || 0;
+  const uniqueCompleted = new Set(completedCrawls?.map(c => `${c.crawl_id}-${c.is_public}`) || []).size;
+  const inProgress = inProgressCrawl ? 1 : 0;
 
   return {
     totalCompleted,
@@ -130,6 +173,7 @@ export async function getCrawlHistory(userId: string) {
     .select(`
       id,
       crawl_id,
+      is_public,
       completed_at,
       total_time_minutes,
       score,
@@ -226,5 +270,3 @@ export async function getCrawlAssetFolder(crawlId: string): Promise<string | nul
     return null;
   }
 }
-
- 

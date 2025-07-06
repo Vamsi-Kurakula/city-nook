@@ -8,6 +8,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import CrawlList from '../ui/CrawlList';
 import { useCrawlContext } from '../context/CrawlContext';
+import { Alert } from 'react-native';
 import { useAuthContext } from '../context/AuthContext';
 import { RootStackParamList } from '../../types/navigation';
 import { Crawl } from '../../types/crawl';
@@ -35,7 +36,7 @@ const CrawlLibrary: React.FC = () => {
   const [minStops, setMinStops] = useState(initialMinStops);
   const [maxDistanceMiles, setMaxDistanceMiles] = useState(initialMaxDistanceMiles);
   
-  const { startCrawlWithNavigation } = useCrawlContext();
+  const { startCrawlWithNavigation, hasCrawlInProgress, getCurrentCrawlName, endCurrentCrawlAndStartNew } = useCrawlContext();
   const { user } = useAuthContext();
 
   useEffect(() => {
@@ -106,11 +107,33 @@ const CrawlLibrary: React.FC = () => {
     if (!isStartingCrawl) {
       setIsStartingCrawl(true);
       
-      // Use the context function to handle state updates and navigation
-      startCrawlWithNavigation(crawl, () => {
-        (navigation as any).navigate('CrawlSession', { crawl });
-        setIsStartingCrawl(false);
-      });
+      // Check if there's already a crawl in progress
+      if (hasCrawlInProgress()) {
+        const currentCrawlName = getCurrentCrawlName();
+        Alert.alert(
+          'Crawl in Progress',
+          `You have "${currentCrawlName}" in progress. Would you like to end that crawl and start "${crawl.name}"?`,
+          [
+            { text: 'Cancel', style: 'cancel', onPress: () => setIsStartingCrawl(false) },
+            {
+              text: 'Yes, Start New Crawl',
+              style: 'destructive',
+              onPress: () => {
+                endCurrentCrawlAndStartNew(crawl, () => {
+                  (navigation as any).navigate('CrawlSession', { crawl });
+                  setIsStartingCrawl(false);
+                }, user?.id);
+              },
+            },
+          ]
+        );
+      } else {
+        // No crawl in progress, start normally
+        startCrawlWithNavigation(crawl, () => {
+          (navigation as any).navigate('CrawlSession', { crawl });
+          setIsStartingCrawl(false);
+        });
+      }
     }
   };
 
