@@ -1,16 +1,33 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Text, TouchableOpacity, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useOAuth } from '@clerk/clerk-expo';
+import { useOAuth, useAuth } from '@clerk/clerk-expo';
+import { useAuthContext } from '../context/AuthContext';
 import * as WebBrowser from 'expo-web-browser';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const SignInScreen: React.FC = () => {
+export default function SignInScreen() {
   const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
-  const [isLoading, setIsLoading] = useState(false);
+  const { isSignedIn } = useAuth();
+  const { signOut } = useAuthContext();
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const onPress = React.useCallback(async () => {
+  const handleContinueWithCurrentAccount = async () => {
+    try {
+      if (isSignedIn) {
+        // User is already signed in, AuthNavigator will handle navigation
+        console.log('User is signed in, continuing...');
+      } else {
+        // This shouldn't happen if we're on the sign-in screen
+        console.log('User not signed in');
+      }
+    } catch (error) {
+      console.error('Error continuing with current account:', error);
+    }
+  };
+
+  const handleSignInWithGoogle = async () => {
     if (isLoading) return;
     
     setIsLoading(true);
@@ -24,13 +41,13 @@ const SignInScreen: React.FC = () => {
         console.log('Session created, setting active...');
         await setActive!({ session: createdSessionId });
         console.log('Session activated successfully');
+        // AuthNavigator will handle navigation automatically
       } else {
         console.log('No session created, checking signIn/signUp...');
         
-        // Prioritize signUp if both are present (which is the case here)
+        // Prioritize signUp if both are present
         if (signUp && signUp.status === 'missing_requirements') {
           console.log('Sign up required with missing requirements');
-          // Complete the sign up with required fields
           try {
             const email = signUp.emailAddress;
             const firstName = signUp.firstName || '';
@@ -45,7 +62,6 @@ const SignInScreen: React.FC = () => {
             
             console.log('Completing sign up with:', { email, firstName, lastName, username });
             
-            // Try using upsert instead of create for OAuth flows
             const result = await signUp.upsert({
               username,
               emailAddress: email,
@@ -82,92 +98,177 @@ const SignInScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading]);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      // Stay on sign-in screen after sign out
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
+        {/* App Logo/Title */}
         <View style={styles.header}>
           <Text style={styles.title}>City Crawler</Text>
-          <Text style={styles.subtitle}>Discover your city through interactive adventures</Text>
+          <Text style={styles.subtitle}>Discover your city, one crawl at a time</Text>
         </View>
 
-        <View style={styles.authSection}>
-          <TouchableOpacity 
-            style={[styles.googleButton, isLoading && styles.googleButtonDisabled]} 
-            onPress={onPress}
-            disabled={isLoading}
-          >
-            <Text style={styles.googleButtonText}>
-              {isLoading ? 'Signing in...' : 'Continue with Google'}
-            </Text>
-          </TouchableOpacity>
+        {/* Sign In Options */}
+        <View style={styles.signInOptions}>
+          {isSignedIn ? (
+            <>
+              <Text style={styles.welcomeText}>Welcome back!</Text>
+              <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={handleContinueWithCurrentAccount}
+              >
+                <Text style={styles.primaryButtonText}>Continue with Current Account</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={handleSignOut}
+              >
+                <Text style={styles.secondaryButtonText}>Sign Out</Text>
+              </TouchableOpacity>
+            </>
+                    ) : (
+            <TouchableOpacity
+              style={[styles.googleButton, isLoading && styles.googleButtonDisabled]}
+              onPress={handleSignInWithGoogle}
+              disabled={isLoading}
+            >
+              <View style={styles.googleButtonContent}>
+                <Text style={styles.googleButtonText}>
+                  {isLoading ? 'Signing in...' : 'Sign in with Google'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        </View>
 
-          <Text style={styles.termsText}>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
             By continuing, you agree to our Terms of Service and Privacy Policy
           </Text>
         </View>
       </View>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f8f9fa',
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 24,
+    justifyContent: 'space-between',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 60,
+    marginTop: 60,
+    marginBottom: 40,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
+    color: '#1a1a1a',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
     lineHeight: 24,
-    maxWidth: 280,
   },
-  authSection: {
-    width: '100%',
-    maxWidth: 300,
+  signInOptions: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  googleButton: {
-    backgroundColor: '#4285F4',
+  welcomeText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 24,
+  },
+  primaryButton: {
+    backgroundColor: '#007AFF',
     paddingVertical: 16,
     paddingHorizontal: 32,
-    borderRadius: 8,
-    width: '100%',
+    borderRadius: 12,
+    marginBottom: 16,
+    minWidth: 280,
     alignItems: 'center',
-    marginBottom: 20,
   },
-  googleButtonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  googleButtonText: {
-    color: '#fff',
+  primaryButtonText: {
+    color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },
-  termsText: {
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    minWidth: 280,
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  googleButton: {
+    backgroundColor: 'white',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 16,
+    minWidth: 280,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  googleButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  googleButtonText: {
+    color: '#1a1a1a',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  footer: {
+    paddingBottom: 24,
+    alignItems: 'center',
+  },
+  footerText: {
     fontSize: 12,
     color: '#999',
     textAlign: 'center',
     lineHeight: 18,
   },
-});
-
-export default SignInScreen; 
+  googleButtonDisabled: {
+    opacity: 0.6,
+  },
+}); 

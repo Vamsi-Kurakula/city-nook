@@ -20,9 +20,22 @@
 
 1. Go to [clerk.com](https://clerk.com) and create an account
 2. Create a new application and choose React Native
-3. Enable Google OAuth in Social Connections
+3. Enable Google OAuth in Social Connections:
+   - Go to your Clerk dashboard
+   - Navigate to User & Authentication > Social Connections
+   - Enable Google OAuth
+   - Add your Google OAuth credentials (Client ID and Client Secret)
 4. Copy your publishable key from API Keys section
 5. Add the key to your `.env` file or `utils/config.ts`
+
+## Sign-In Flow
+
+The app now includes a sign-in screen that appears before the main app:
+
+- **Continue with Current Account**: If a user is already signed in, they can continue with their existing session
+- **Sign in with Google**: Users can authenticate using their Google account
+
+The authentication state is managed by the `AuthNavigator` component, which automatically shows the sign-in screen for unauthenticated users and the main app for authenticated users.
 
 ## Supabase Database Setup
 

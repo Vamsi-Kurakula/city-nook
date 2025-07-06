@@ -1,16 +1,16 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import HomeScreen from './components/screens/HomeScreen';
-import PublicCrawls from './components/screens/PublicCrawls';
-import CrawlLibrary from './components/screens/CrawlLibrary';
-import UserProfile from './components/screens/UserProfile';
-import CrawlDetailScreen from './components/screens/CrawlDetailScreen';
-import CrawlSessionScreen from './components/screens/CrawlSessionScreen';
-import PublicCrawlDetailScreen from './components/screens/PublicCrawlDetailScreen';
-import CrawlStatsScreen from './components/screens/CrawlStatsScreen';
-import CrawlHistoryScreen from './components/screens/CrawlHistoryScreen';
-import CrawlHistoryDetailScreen from './components/screens/CrawlHistoryDetailScreen';
-import CrawlLibraryFilters from './components/screens/CrawlLibraryFilters';
+import HomeScreen from '../screens/HomeScreen';
+import PublicCrawls from '../screens/PublicCrawls';
+import CrawlLibrary from '../screens/CrawlLibrary';
+import UserProfile from '../screens/UserProfile';
+import CrawlDetailScreen from '../screens/CrawlDetailScreen';
+import CrawlSessionScreen from '../screens/CrawlSessionScreen';
+import PublicCrawlDetailScreen from '../screens/PublicCrawlDetailScreen';
+import CrawlStatsScreen from '../screens/CrawlStatsScreen';
+import CrawlHistoryScreen from '../screens/CrawlHistoryScreen';
+import CrawlHistoryDetailScreen from '../screens/CrawlHistoryDetailScreen';
+import CrawlLibraryFilters from '../screens/CrawlLibraryFilters';
 
 const Stack = createStackNavigator();
 

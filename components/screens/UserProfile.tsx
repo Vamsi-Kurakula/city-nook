@@ -3,56 +3,43 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthContext } from '../context/AuthContext';
-import { useOAuth } from '@clerk/clerk-expo';
-import * as WebBrowser from 'expo-web-browser';
-
-WebBrowser.maybeCompleteAuthSession();
 
 const UserProfile: React.FC = () => {
   const { user, userProfile, signOut, isLoading, isSignedIn } = useAuthContext();
   const navigation = useNavigation<any>();
-  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: signOut },
+        { 
+          text: 'Sign Out', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              await signOut();
+              // AuthNavigator will automatically show the sign-in screen
+              // when isSignedIn becomes false
+            } catch (error) {
+              console.error('Error during sign out:', error);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            }
+          }
+        },
       ]
     );
   };
 
-  const handleSignIn = async () => {
-    try {
-      console.log('Starting OAuth flow...');
-      const { createdSessionId, signIn, signUp, setActive } = await startOAuthFlow();
-
-      if (createdSessionId) {
-        await setActive!({ session: createdSessionId });
-        console.log('Session activated successfully');
-      } else if (signUp && signUp.status === 'missing_requirements') {
-        const email = signUp.emailAddress || '';
-        const username = email ? email.split('@')[0] + Math.floor(Math.random() * 1000) : '';
-        
-        const result = await signUp.upsert({
-          username,
-          emailAddress: email,
-        });
-        
-        if (result.status === 'complete' && result.createdSessionId) {
-          await setActive!({ session: result.createdSessionId });
-        }
-      }
-    } catch (err) {
-      console.error('OAuth error:', err);
-      Alert.alert(
-        'Sign In Error',
-        `Failed to sign in: ${err instanceof Error ? err.message : 'Unknown error'}`,
-        [{ text: 'OK' }]
-      );
-    }
+  const handleSignIn = () => {
+    // This should not be needed anymore since AuthNavigator handles sign-in flow
+    // But keeping it as a fallback that shows an alert
+    Alert.alert(
+      'Sign In',
+      'Please use the sign-in screen to authenticate.',
+      [{ text: 'OK' }]
+    );
   };
 
   const handleCrawlStats = () => {
@@ -81,7 +68,7 @@ const UserProfile: React.FC = () => {
     );
   }
 
-  // Show sign-in screen if user is not authenticated
+  // Show sign-in prompt if user is not authenticated
   if (!isSignedIn) {
     return (
       <SafeAreaView style={styles.container}>
@@ -94,9 +81,12 @@ const UserProfile: React.FC = () => {
           <View style={styles.authSection}>
             <TouchableOpacity 
               style={styles.googleButton} 
-              onPress={handleSignIn}
+              onPress={() => {
+                // Navigate back to trigger AuthNavigator to show sign-in screen
+                navigation.goBack();
+              }}
             >
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
+              <Text style={styles.googleButtonText}>Go to Sign In</Text>
             </TouchableOpacity>
 
             <Text style={styles.termsText}>

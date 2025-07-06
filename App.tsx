@@ -1,11 +1,10 @@
 import React from 'react';
-import AppNavigator from './AppNavigator';
+import { AuthNavigator } from './components/navigation';
 import { ClerkProvider, tokenCache, CLERK_PUBLISHABLE_KEY } from './utils/clerk';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from './components/context/AuthContext';
 import { CrawlProvider } from './components/context/CrawlContext';
-import { NavigationContainer } from '@react-navigation/native';
 
 export default function App() {
   return (
@@ -17,9 +16,7 @@ export default function App() {
         <GestureHandlerRootView style={{ flex: 1 }}>
           <AuthProvider>
             <CrawlProvider>
-              <NavigationContainer>
-                <AppNavigator />
-              </NavigationContainer>
+              <AuthNavigator />
             </CrawlProvider>
           </AuthProvider>
         </GestureHandlerRootView>
