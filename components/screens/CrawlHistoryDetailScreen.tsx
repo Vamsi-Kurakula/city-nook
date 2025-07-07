@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useTheme } from '../context/ThemeContext';
 import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
 import { getCrawlNameMapping, getCrawlAssetFolder } from '../../utils/database';
 import { CrawlStop } from '../../types/crawl';
@@ -16,6 +17,7 @@ interface CrawlHistoryDetailParams {
 const CrawlHistoryDetailScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute();
+  const { theme } = useTheme();
   const { crawlId, completedAt, totalTimeMinutes, score } = route.params as CrawlHistoryDetailParams;
   
   const [stops, setStops] = useState<CrawlStop[]>([]);
@@ -71,13 +73,13 @@ const CrawlHistoryDetailScreen: React.FC = () => {
   };
 
   const renderStop = ({ item, index }: { item: CrawlStop; index: number }) => (
-    <View style={styles.stopItem}>
+    <View style={[styles.stopItem, { backgroundColor: 'transparent', borderColor: theme.background.secondary }]}>
       <View style={styles.stopHeader}>
-        <Text style={styles.stopNumber}>Stop {item.stop_number}</Text>
-        <Text style={styles.stopType}>{item.stop_type}</Text>
+        <Text style={[styles.stopNumber, { color: theme.text.primary }]}>Stop {item.stop_number}</Text>
+        <Text style={[styles.stopType, { color: theme.text.secondary, backgroundColor: theme.background.secondary }]}>{item.stop_type}</Text>
       </View>
       
-      <Text style={styles.stopDescription}>
+      <Text style={[styles.stopDescription, { color: theme.text.secondary }]}>
         {item.stop_components.description || 
          item.stop_components.location_name || 
          item.stop_components.riddle || 
@@ -86,7 +88,7 @@ const CrawlHistoryDetailScreen: React.FC = () => {
       </Text>
       
       {item.location_link && (
-        <Text style={styles.rewardLocation}>
+        <Text style={[styles.rewardLocation, { color: theme.button.primary }]}>
           📍 Reward Location Available
         </Text>
       )}
@@ -95,35 +97,35 @@ const CrawlHistoryDetailScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.content}>
-          <ActivityIndicator size="large" />
-          <Text style={styles.loadingText}>Loading crawl details...</Text>
+          <ActivityIndicator size="large" color={theme.button.primary} />
+          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading crawl details...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
-          <Text style={styles.title}>{crawlName}</Text>
+          <Text style={[styles.title, { color: theme.text.primary }]}>{crawlName}</Text>
           
-          <View style={styles.completionInfo}>
-            <Text style={styles.completionDate}>
+          <View style={[styles.completionInfo, { backgroundColor: 'transparent', borderColor: theme.background.secondary }]}>
+            <Text style={[styles.completionDate, { color: theme.text.primary }]}>
               Completed on {formatDate(completedAt)}
             </Text>
-            <Text style={styles.completionTime}>
+            <Text style={[styles.completionTime, { color: theme.text.secondary }]}>
               Total Time: {formatTime(totalTimeMinutes)}
             </Text>
             {score !== null && score !== undefined && (
-              <Text style={styles.score}>Score: {score}</Text>
+              <Text style={[styles.score, { color: theme.button.primary }]}>Score: {score}</Text>
             )}
           </View>
           
           <View style={styles.stopsSection}>
-            <Text style={styles.sectionTitle}>Crawl Stops</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Crawl Stops</Text>
             {stops.length > 0 ? (
               <FlatList
                 data={stops}
@@ -133,7 +135,7 @@ const CrawlHistoryDetailScreen: React.FC = () => {
                 contentContainerStyle={styles.stopsList}
               />
             ) : (
-              <Text style={styles.noStopsText}>
+              <Text style={[styles.noStopsText, { color: theme.text.secondary }]}>
                 No stops available for this crawl.
               </Text>
             )}
@@ -142,7 +144,7 @@ const CrawlHistoryDetailScreen: React.FC = () => {
       </ScrollView>
       
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>Back to History</Text>
+        <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>Back to History</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { getCrawlHistory, getCrawlNameMapping } from '../../utils/database';
 
 interface CrawlHistoryItem {
@@ -18,6 +19,7 @@ interface CrawlHistoryItem {
 const CrawlHistoryScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { user, isLoading } = useAuthContext();
+  const { theme } = useTheme();
   const [history, setHistory] = useState<CrawlHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,7 +51,12 @@ const CrawlHistoryScreen: React.FC = () => {
     navigation.dispatch(
       CommonActions.navigate({
         name: 'CrawlHistoryDetail',
-        params: { crawlId: item.crawl_id },
+        params: { 
+          crawlId: item.crawl_id,
+          completedAt: item.completed_at,
+          totalTimeMinutes: item.total_time_minutes,
+          score: item.score,
+        },
       })
     );
   };
@@ -71,15 +78,15 @@ const CrawlHistoryScreen: React.FC = () => {
   // Show loading if auth is still loading
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← Back</Text>
+            <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <ActivityIndicator size="large" color={theme.button.primary} />
+          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -87,33 +94,33 @@ const CrawlHistoryScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← Back</Text>
+            <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" />
-          <Text style={styles.loadingText}>Loading history...</Text>
+          <ActivityIndicator size="large" color={theme.button.primary} />
+          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading history...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Back</Text>
+          <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.title}>Crawl History</Text>
+      <Text style={[styles.title, { color: theme.text.primary }]}>Crawl History</Text>
       
       {history.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No crawl history yet.</Text>
-          <Text style={styles.emptySubtext}>Complete your first crawl to see it here!</Text>
+          <Text style={[styles.emptyText, { color: theme.text.secondary }]}>No crawl history yet.</Text>
+          <Text style={[styles.emptySubtext, { color: theme.text.tertiary }]}>Complete your first crawl to see it here!</Text>
         </View>
       ) : (
         <FlatList
@@ -121,19 +128,19 @@ const CrawlHistoryScreen: React.FC = () => {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.historyItem}
+              style={[styles.historyItem, { backgroundColor: 'transparent', borderColor: theme.background.secondary }]}
               onPress={() => handleHistoryItemPress(item)}
             >
               <View style={styles.historyContent}>
-                <Text style={styles.crawlName}>{item.crawlName}</Text>
-                <Text style={styles.completionDate}>
+                <Text style={[styles.crawlName, { color: theme.text.primary }]}>{item.crawlName}</Text>
+                <Text style={[styles.completionDate, { color: theme.text.secondary }]}>
                   Completed: {formatDate(item.completed_at)}
                 </Text>
-                <Text style={styles.duration}>
+                <Text style={[styles.duration, { color: theme.button.primary }]}>
                   Duration: {formatDuration(item.total_time_minutes)}
                 </Text>
               </View>
-              <Text style={styles.arrow}>→</Text>
+              <Text style={[styles.arrow, { color: theme.text.tertiary }]}>→</Text>
             </TouchableOpacity>
           )}
           contentContainerStyle={styles.listContainer}
@@ -191,14 +198,12 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   historyItem: {
-    backgroundColor: '#f8f9fa',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e9ecef',
   },
   historyContent: {
     flex: 1,

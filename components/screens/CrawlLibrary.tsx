@@ -215,7 +215,7 @@ const CrawlLibrary: React.FC = () => {
         </View>
         {/* Action buttons row */}
         <View style={styles.actionRow}>
-          <TouchableOpacity onPress={() => navigation.navigate('Home')} style={[styles.backToHomeButton, { backgroundColor: theme.button.secondary }]}>
+          <TouchableOpacity onPress={() => navigation.navigate('Home')} style={[styles.backToHomeButton, { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary }]}>
             <Text style={[styles.backToHomeText, { color: theme.text.primary }]}>Back to Home</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('CrawlLibraryFilters', { minStops, maxDistanceMiles })} style={[styles.filtersButton, { backgroundColor: theme.background.tertiary }]}>
@@ -290,19 +290,27 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   backToHomeButton: {
-    height: 44,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
     justifyContent: 'center',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 12,
+    marginRight: 8,
   },
   backToHomeText: {
     fontSize: 16,
     fontWeight: '600',
-    textDecorationLine: 'underline',
   },
   filtersButton: {
-    height: 44,
-    justifyContent: 'center',
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   filtersButtonText: {
     fontSize: 16,
@@ -312,9 +320,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'stretch',
-    height: 44,
-    marginBottom: 8,
-    marginTop: 4,
+    marginBottom: 16,
+    marginTop: 8,
   },
 });
 

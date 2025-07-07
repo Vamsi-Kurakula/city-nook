@@ -3,11 +3,13 @@ import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { getCrawlStats } from '../../utils/database';
 
 const CrawlStatsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { user, isLoading } = useAuthContext();
+  const { theme } = useTheme();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,15 +29,15 @@ const CrawlStatsScreen: React.FC = () => {
   // Show loading if auth is still loading
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← Back</Text>
+            <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.content}>
-          <ActivityIndicator size="large" />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <ActivityIndicator size="large" color={theme.button.primary} />
+          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -43,44 +45,44 @@ const CrawlStatsScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← Back</Text>
+            <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.content}>
-          <ActivityIndicator size="large" />
-          <Text style={styles.loadingText}>Loading stats...</Text>
+          <ActivityIndicator size="large" color={theme.button.primary} />
+          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading stats...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Back</Text>
+          <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.content}>
-        <Text style={styles.title}>Crawl Statistics</Text>
+        <Text style={[styles.title, { color: theme.text.primary }]}>Crawl Statistics</Text>
         
         <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats?.totalCompleted || 0}</Text>
-            <Text style={styles.statLabel}>Total Crawls Completed</Text>
+          <View style={[styles.statCard, { backgroundColor: 'transparent', borderColor: theme.background.secondary }]}>
+            <Text style={[styles.statNumber, { color: theme.text.primary }]}>{stats?.totalCompleted || 0}</Text>
+            <Text style={[styles.statLabel, { color: theme.text.secondary }]}>Total Crawls Completed</Text>
           </View>
           
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats?.uniqueCompleted || 0}</Text>
-            <Text style={styles.statLabel}>Unique Crawls Completed</Text>
+          <View style={[styles.statCard, { backgroundColor: 'transparent', borderColor: theme.background.secondary }]}>
+            <Text style={[styles.statNumber, { color: theme.text.primary }]}>{stats?.uniqueCompleted || 0}</Text>
+            <Text style={[styles.statLabel, { color: theme.text.secondary }]}>Unique Crawls Completed</Text>
           </View>
           
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats?.inProgress || 0}</Text>
-            <Text style={styles.statLabel}>Crawls In Progress</Text>
+          <View style={[styles.statCard, { backgroundColor: 'transparent', borderColor: theme.background.secondary }]}>
+            <Text style={[styles.statNumber, { color: theme.text.primary }]}>{stats?.inProgress || 0}</Text>
+            <Text style={[styles.statLabel, { color: theme.text.secondary }]}>Crawls In Progress</Text>
           </View>
         </View>
       </View>

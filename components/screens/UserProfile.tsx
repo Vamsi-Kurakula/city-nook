@@ -66,9 +66,9 @@ const UserProfile: React.FC = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.content}>
-          <Text style={styles.loadingText}>Loading profile...</Text>
+          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading profile...</Text>
         </View>
       </SafeAreaView>
     );
@@ -77,25 +77,25 @@ const UserProfile: React.FC = () => {
   // Show sign-in prompt if user is not authenticated
   if (!isSignedIn) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.signInContent}>
           <View style={styles.signInHeader}>
-            <Text style={styles.title}>City Crawler</Text>
-            <Text style={styles.subtitle}>Sign in to track your crawl progress and view your history</Text>
+            <Text style={[styles.title, { color: theme.text.primary }]}>City Crawler</Text>
+            <Text style={[styles.subtitle, { color: theme.text.secondary }]}>Sign in to track your crawl progress and view your history</Text>
           </View>
 
           <View style={styles.authSection}>
             <TouchableOpacity 
-              style={styles.googleButton} 
+              style={[styles.googleButton, { backgroundColor: theme.button.primary }]} 
               onPress={() => {
                 // Navigate back to trigger AuthNavigator to show sign-in screen
                 navigation.goBack();
               }}
             >
-              <Text style={styles.googleButtonText}>Go to Sign In</Text>
+              <Text style={[styles.googleButtonText, { color: theme.text.inverse }]}>Go to Sign In</Text>
             </TouchableOpacity>
 
-            <Text style={styles.termsText}>
+            <Text style={[styles.termsText, { color: theme.text.tertiary }]}>
               By continuing, you agree to our Terms of Service and Privacy Policy
             </Text>
           </View>
@@ -108,7 +108,7 @@ const UserProfile: React.FC = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={[styles.backButtonText, { color: theme.text.tertiary }]}>← Back</Text>
+          <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.scrollView}>
@@ -118,30 +118,30 @@ const UserProfile: React.FC = () => {
               {user?.imageUrl ? (
                 <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
               ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarText}>
+                <View style={[styles.avatarPlaceholder, { backgroundColor: theme.background.secondary }]}>
+                  <Text style={[styles.avatarText, { color: theme.text.secondary }]}>
                     {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
                   </Text>
                 </View>
               )}
             </View>
-            <Text style={styles.name}>{user?.fullName || user?.emailAddresses?.[0]?.emailAddress || 'User'}</Text>
-            <Text style={styles.email}>{user?.emailAddresses?.[0]?.emailAddress}</Text>
+            <Text style={[styles.name, { color: theme.text.primary }]}>{user?.fullName || user?.emailAddresses?.[0]?.emailAddress || 'User'}</Text>
+            <Text style={[styles.email, { color: theme.text.secondary }]}>{user?.emailAddresses?.[0]?.emailAddress}</Text>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Profile Information</Text>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Full Name:</Text>
-              <Text style={styles.infoValue}>{userProfile?.full_name || 'Not set'}</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Profile Information</Text>
+            <View style={[styles.infoRow, { borderBottomColor: theme.background.secondary }]}>
+              <Text style={[styles.infoLabel, { color: theme.text.secondary }]}>Full Name:</Text>
+              <Text style={[styles.infoValue, { color: theme.text.primary }]}>{userProfile?.full_name || 'Not set'}</Text>
             </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Email:</Text>
-              <Text style={styles.infoValue}>{userProfile?.email}</Text>
+            <View style={[styles.infoRow, { borderBottomColor: theme.background.secondary }]}>
+              <Text style={[styles.infoLabel, { color: theme.text.secondary }]}>Email:</Text>
+              <Text style={[styles.infoValue, { color: theme.text.primary }]}>{userProfile?.email}</Text>
             </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Member Since:</Text>
-              <Text style={styles.infoValue}>
+            <View style={[styles.infoRow, { borderBottomColor: theme.background.secondary }]}>
+              <Text style={[styles.infoLabel, { color: theme.text.secondary }]}>Member Since:</Text>
+              <Text style={[styles.infoValue, { color: theme.text.primary }]}>
                 {userProfile?.created_at ? new Date(userProfile.created_at).toLocaleDateString() : 'Unknown'}
               </Text>
             </View>
@@ -149,11 +149,11 @@ const UserProfile: React.FC = () => {
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Crawl Activity</Text>
-            <TouchableOpacity style={styles.activityButton} onPress={handleCrawlStats}>
-              <Text style={styles.activityButtonText}>📊 Crawl Statistics</Text>
+            <TouchableOpacity style={[styles.activityButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary }]} onPress={handleCrawlStats}>
+              <Text style={[styles.activityButtonText, { color: theme.text.primary }]}>📊 Crawl Statistics</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.activityButton} onPress={handleCrawlHistory}>
-              <Text style={styles.activityButtonText}>📋 Crawl History</Text>
+            <TouchableOpacity style={[styles.activityButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary }]} onPress={handleCrawlHistory}>
+              <Text style={[styles.activityButtonText, { color: theme.text.primary }]}>📋 Crawl History</Text>
             </TouchableOpacity>
           </View>
 
@@ -202,7 +202,7 @@ const UserProfile: React.FC = () => {
       {/* Sign Out Button at Bottom */}
       <View style={styles.bottomContainer}>
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={styles.signOutButtonText}>Sign Out</Text>
+          <Text style={[styles.signOutButtonText, { color: theme.button.danger }]}>Sign Out</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
