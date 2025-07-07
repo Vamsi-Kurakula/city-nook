@@ -40,34 +40,6 @@ const CrawlDetailScreen: React.FC = () => {
     endCurrentCrawlAndStartNew 
   } = useCrawlContext();
   const { user, isLoading } = useAuthContext();
-  const [resumeProgress, setResumeProgress] = React.useState<any>(null);
-
-  React.useEffect(() => {
-    const fetchProgress = async () => {
-      if (user?.id && crawl?.id && !isLoading) {
-        console.log('CrawlDetailScreen fetching progress for:', { userId: user.id, crawlId: crawl.id });
-        
-        // Get the user's current crawl progress (only 1 record per user now)
-        const { data, error } = await supabase
-          .from('crawl_progress')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-        
-        console.log('CrawlDetailScreen progress query result:', { data, error });
-        
-        // Check if the current progress is for this specific crawl
-        if (data && !data.completed_at && data.crawl_id === crawl.id && data.is_public === (crawl['public-crawl'] || false)) {
-          console.log('Setting resume progress:', data);
-          setResumeProgress(data);
-        } else {
-          console.log('No resume progress found or crawl completed or different crawl');
-          setResumeProgress(null);
-        }
-      }
-    };
-    fetchProgress();
-  }, [user?.id, crawl?.id, isLoading]);
 
   // Show loading if auth is still loading
   if (isLoading) {
@@ -84,17 +56,6 @@ const CrawlDetailScreen: React.FC = () => {
       </SafeAreaView>
     );
   }
-
-  const handleResumeCrawl = () => {
-    if (resumeProgress) {
-      navigation.dispatch(
-        CommonActions.navigate({
-          name: 'CrawlSession',
-          params: { crawl, resumeProgress },
-        })
-      );
-    }
-  };
 
   const handleStartCrawl = async () => {
     // Check if there's already a crawl in progress (both local state and database)
@@ -140,67 +101,6 @@ const CrawlDetailScreen: React.FC = () => {
       );
     }
   };
-
-  let resumeInfo = null;
-  if (resumeProgress && crawl?.stops) {
-    const completedCount = resumeProgress.completed_stops?.length || 0;
-    const currentStopNum = resumeProgress.current_stop;
-    const totalStops = crawl.stops.length;
-    
-    // Debug logging
-    console.log('CrawlDetailScreen resume info:', {
-      currentStopNum,
-      completedCount,
-      totalStops,
-      completedStops: resumeProgress.completed_stops,
-      resumeProgress: resumeProgress,
-      stops: crawl.stops.map(s => ({ 
-        stop_number: s.stop_number, 
-        location_name: s.stop_components?.location_name,
-        description: s.stop_components?.description 
-      }))
-    });
-    
-    // Calculate the actual current stop based on completed stops
-    // If user has completed 2 stops, they should be on stop 3
-    const actualCurrentStop = completedCount + 1;
-    
-    // Determine if the crawl is completed
-    const isCompleted = actualCurrentStop > totalStops || resumeProgress.completed;
-    
-    if (isCompleted) {
-      resumeInfo = (
-        <View style={{ marginTop: 16, marginBottom: 4, alignItems: 'flex-start' }}>
-          <Text style={{ color: theme.status.success, fontSize: 15, fontWeight: 'bold' }}>
-            🎉 Crawl completed! You finished all {totalStops} stops.
-          </Text>
-        </View>
-      );
-    } else {
-      // Find the current stop by stop_number using the calculated actual current stop
-      const currentStop = crawl.stops.find(s => s.stop_number === actualCurrentStop);
-      
-      // If we can't find the stop by stop_number, try using array index (0-indexed)
-      const currentStopByIndex = crawl.stops[actualCurrentStop - 1];
-      
-      const finalStop = currentStop || currentStopByIndex;
-      const locationName = finalStop?.stop_components?.location_name || 
-                          finalStop?.stop_components?.description || 
-                          finalStop?.stop_components?.riddle || 
-                          finalStop?.location_name || '';
-      
-      resumeInfo = (
-        <View style={{ marginTop: 16, marginBottom: 4, alignItems: 'flex-start' }}>
-          <Text style={{ color: theme.text.tertiary, fontSize: 15 }}>
-            {`You have completed ${completedCount} stop${completedCount === 1 ? '' : 's'}.`}
-          </Text>
-          <Text style={{ color: theme.text.tertiary, fontSize: 15 }}>
-            {`Current stop: ${actualCurrentStop}${locationName ? ` - ${locationName}` : ''}`}
-          </Text>
-        </View>
-      );
-    }
-  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
@@ -307,31 +207,22 @@ const CrawlDetailScreen: React.FC = () => {
           </View>
         )}
         
-        {resumeInfo}
-        
-        {/* Show Resume button if there's progress to resume */}
-        {resumeProgress && (
-          <TouchableOpacity style={[styles.startButton, { backgroundColor: theme.button.success, marginTop: 12 }]} onPress={handleResumeCrawl}>
-            <Text style={[styles.startButtonText, { color: theme.text.inverse }]}>Resume Crawl</Text>
-          </TouchableOpacity>
-        )}
-        
         {/* Show Start New Crawl button */}
         <TouchableOpacity 
           style={[
             styles.startButton, 
             { 
-              backgroundColor: resumeProgress ? theme.button.secondary : theme.button.primary,
-              marginTop: resumeProgress ? 12 : 24 
+              backgroundColor: theme.button.primary,
+              marginTop: 24 
             }
           ]} 
           onPress={handleStartCrawl}
         >
           <Text style={[
             styles.startButtonText, 
-            { color: resumeProgress ? theme.text.primary : theme.text.button }
+            { color: theme.text.button }
           ]}>
-            {resumeProgress ? 'Start New Crawl' : 'Start Crawl'}
+            Start Crawl
           </Text>
         </TouchableOpacity>
       </ScrollView>

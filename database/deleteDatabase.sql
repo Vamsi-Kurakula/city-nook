@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS user_profiles CASCADE;
 DROP INDEX IF EXISTS idx_crawl_progress_user_id;
 DROP INDEX IF EXISTS idx_crawl_progress_crawl_id;
 DROP INDEX IF EXISTS idx_crawl_progress_is_public;
+
 DROP INDEX IF EXISTS idx_crawl_progress_completed_at;
 DROP INDEX IF EXISTS idx_crawl_progress_started_at;
 DROP INDEX IF EXISTS idx_user_crawl_history_user_id;
@@ -32,6 +33,7 @@ DROP INDEX IF EXISTS idx_public_crawl_signups_user_id;
 DROP INDEX IF EXISTS idx_public_crawl_signups_is_public;
 
 -- Drop any remaining constraints that might exist
+
 ALTER TABLE IF EXISTS crawl_progress DROP CONSTRAINT IF EXISTS crawl_progress_user_id_crawl_id_is_public_key;
 ALTER TABLE IF EXISTS crawl_progress DROP CONSTRAINT IF EXISTS crawl_progress_user_id_key;
 ALTER TABLE IF EXISTS crawl_progress DROP CONSTRAINT IF EXISTS crawl_progress_pkey;

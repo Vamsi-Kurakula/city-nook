@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { Crawl, CrawlProgress, UserStopProgress } from '../../types/crawl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { deleteCrawlProgress, getCurrentCrawlProgress, saveCrawlProgress, addCrawlHistory, getCrawlNameMapping } from '../../utils/database';
+import { getCrawlProgress } from '../../utils/database/progressOperations';
 
 interface CrawlContextType {
   currentCrawl: Crawl | null;
@@ -136,6 +137,13 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
     // Save to database if userId is provided
     if (userId) {
       const completedStopNumbers = updatedProgress.completed_stops.map(s => s.stop_number);
+      console.log('completeStop - saving to database:', {
+        userId,
+        crawlId: updatedProgress.crawl_id,
+        currentStop: updatedProgress.current_stop,
+        completedStops: completedStopNumbers,
+        completed: updatedProgress.completed
+      });
       await saveCrawlProgress({
         userId,
         crawlId: updatedProgress.crawl_id,
@@ -149,27 +157,38 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
   };
 
   const nextStop = async (userId?: string) => {
-    if (!currentProgress || !currentCrawl) return;
+    console.log('nextStop called - currentProgress:', currentProgress, 'currentCrawl:', currentCrawl);
+    if (!currentProgress || !currentCrawl) {
+      console.log('nextStop early return - no currentProgress or currentCrawl');
+      return;
+    }
     
     const updatedProgress = { ...currentProgress };
+    const oldCurrentStop = updatedProgress.current_stop;
     updatedProgress.current_stop += 1;
     updatedProgress.last_updated = new Date();
     
-    console.log('nextStop - current_stop:', updatedProgress.current_stop, 'total stops:', currentCrawl.stops?.length, 'completed:', updatedProgress.completed);
+    console.log('nextStop - old current_stop:', oldCurrentStop, 'new current_stop:', updatedProgress.current_stop, 'total stops:', currentCrawl.stops?.length, 'completed:', updatedProgress.completed);
     
     // Check if crawl is completed
-    if (updatedProgress.current_stop > (currentCrawl.stops?.length || 0)) {
+    const totalStops = currentCrawl.stops?.length || 0;
+    console.log('Completion check - current_stop:', updatedProgress.current_stop, 'totalStops:', totalStops, 'should complete:', updatedProgress.current_stop > totalStops);
+    if (updatedProgress.current_stop > totalStops) {
       console.log('Crawl completion detected! Setting completed to true');
       updatedProgress.completed = true;
-      updatedProgress.current_stop = currentCrawl.stops?.length || 0; // Keep at last stop
+      updatedProgress.current_stop = totalStops; // Keep at last stop
       addToHistory(updatedProgress);
+    } else {
+      console.log('Not completed yet - continuing to next stop');
     }
     
+    console.log('Setting current progress to:', updatedProgress);
     setCurrentProgress(updatedProgress);
     
     // Save to database if userId is provided
     if (userId) {
       const completedStopNumbers = updatedProgress.completed_stops.map(s => s.stop_number);
+      console.log('Saving progress to database - currentStop:', updatedProgress.current_stop, 'completedStops:', completedStopNumbers);
       await saveCrawlProgress({
         userId,
         crawlId: updatedProgress.crawl_id,
@@ -179,57 +198,83 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
         startedAt: new Date(updatedProgress.started_at).toISOString(),
         completedAt: updatedProgress.completed ? new Date().toISOString() : undefined,
       });
+      console.log('Progress saved to database successfully');
     }
   };
 
   const getCurrentStop = (): number => {
-    return currentProgress?.current_stop || 1;
+    // If we have current progress, use it
+    if (currentProgress) {
+      return currentProgress.current_stop || 1;
+    }
+    
+    // If we have a crawl active but no progress, we're starting fresh
+    if (isCrawlActive && currentCrawl) {
+      return 1; // Start at the first stop
+    }
+    
+    // No progress and no active crawl
+    return 0;
   };
 
   const loadProgressFromDatabase = async (userId: string, crawlId?: string, isPublic?: boolean): Promise<boolean> => {
     try {
-      const dbProgress = await getCurrentCrawlProgress(userId);
-      if (dbProgress) {
-        // If specific parameters are provided, check if they match
-        if (crawlId && dbProgress.crawl_id !== crawlId) {
-          console.log('Found progress for different crawl:', dbProgress.crawl_id, 'but requested:', crawlId);
+      // If we have specific crawl parameters, use getCrawlProgress for that specific crawl
+      if (crawlId !== undefined && isPublic !== undefined) {
+        const dbProgress = await getCrawlProgress(userId, crawlId, isPublic);
+        if (dbProgress) {
+          // Convert database format to local format
+          const localProgress: CrawlProgress = {
+            crawl_id: dbProgress.crawl_id,
+            is_public: dbProgress.is_public,
+            current_stop: dbProgress.current_stop,
+            completed_stops: dbProgress.completed_stops.map((stopNum: number) => ({
+              stop_number: stopNum,
+              completed: true,
+              user_answer: '',
+              completed_at: new Date(),
+            })),
+            started_at: new Date(dbProgress.started_at),
+            last_updated: new Date(dbProgress.updated_at),
+            completed: !!dbProgress.completed_at,
+          };
+          
+          setCurrentProgress(localProgress);
+          setIsCrawlActive(true);
+          console.log('Loaded progress from database for specific crawl:', localProgress);
+          return true;
+        } else {
+          console.log('No progress found in database for specific crawl:', crawlId, 'isPublic:', isPublic);
           return false;
         }
-        
-        if (isPublic !== undefined && dbProgress.is_public !== isPublic) {
-          console.log('Found progress for different crawl type:', dbProgress.is_public, 'but requested:', isPublic);
-          return false;
-        }
-        
-        // Convert database format to local format
-        const localProgress: CrawlProgress = {
-          crawl_id: dbProgress.crawl_id,
-          is_public: dbProgress.is_public,
-          current_stop: dbProgress.current_stop,
-          completed_stops: dbProgress.completed_stops.map((stopNum: number) => ({
-            stop_number: stopNum,
-            completed: true,
-            user_answer: '',
-            completed_at: new Date(),
-          })),
-          started_at: new Date(dbProgress.started_at),
-          last_updated: new Date(dbProgress.updated_at),
-          completed: !!dbProgress.completed_at,
-        };
-        
-        setCurrentProgress(localProgress);
-        setIsCrawlActive(true);
-        console.log('Loaded progress from database:', localProgress);
-        return true;
       } else {
-        // No progress in database, but don't clear current crawl if we're starting a new one
-        if (!currentCrawl) {
-          setCurrentProgress(null);
-          setIsCrawlActive(false);
-          setCurrentCrawl(null);
+        // Fallback to getCurrentCrawlProgress for backward compatibility
+        const dbProgress = await getCurrentCrawlProgress(userId);
+        if (dbProgress) {
+          // Convert database format to local format
+          const localProgress: CrawlProgress = {
+            crawl_id: dbProgress.crawl_id,
+            is_public: dbProgress.is_public,
+            current_stop: dbProgress.current_stop,
+            completed_stops: dbProgress.completed_stops.map((stopNum: number) => ({
+              stop_number: stopNum,
+              completed: true,
+              user_answer: '',
+              completed_at: new Date(),
+            })),
+            started_at: new Date(dbProgress.started_at),
+            last_updated: new Date(dbProgress.updated_at),
+            completed: !!dbProgress.completed_at,
+          };
+          
+          setCurrentProgress(localProgress);
+          setIsCrawlActive(true);
+          console.log('Loaded progress from database (fallback):', localProgress);
+          return true;
+        } else {
+          console.log('No progress found in database');
+          return false;
         }
-        console.log('No progress found in database');
-        return false;
       }
     } catch (error) {
       console.error('Error loading progress from database:', error);

@@ -12,8 +12,20 @@ export async function saveCrawlProgress({ userId, crawlId, isPublic, currentStop
   startedAt: string;
   completedAt?: string;
 }) {
-  return supabase.from('crawl_progress').upsert([
-    {
+  console.log('saveCrawlProgress called with:', {
+    userId,
+    crawlId,
+    isPublic,
+    currentStop,
+    completedStops,
+    startedAt,
+    completedAt
+  });
+  
+  // For single-crawl-per-user design, we can use a simple upsert on user_id
+  const { data, error } = await supabase
+    .from('crawl_progress')
+    .upsert([{
       user_id: userId,
       crawl_id: crawlId,
       is_public: isPublic,
@@ -21,31 +33,62 @@ export async function saveCrawlProgress({ userId, crawlId, isPublic, currentStop
       completed_stops: completedStops,
       started_at: startedAt,
       completed_at: completedAt || null,
-    }
-  ], { onConflict: 'user_id' });
+    }], { onConflict: 'user_id' });
+
+  if (error) {
+    console.error('Error saving crawl progress:', error);
+    return { data: null, error };
+  } else {
+    console.log('Crawl progress saved successfully:', data);
+    return { data, error: null };
+  }
+  
+  // The result is already handled in the update/insert logic above
+  return { data: null, error: null };
 }
 
 /**
  * Get current crawl progress for a user
  */
 export async function getCurrentCrawlProgress(userId: string) {
+  console.log('getCurrentCrawlProgress called for userId:', userId);
+  
   const { data, error } = await supabase
     .from('crawl_progress')
     .select('*')
     .eq('user_id', userId)
     .is('completed_at', null)
-    .single();
+    .maybeSingle(); // Use maybeSingle() instead of single() to avoid PGRST116 error
 
   if (error) {
-    // PGRST116 means no rows found, which is expected when no progress exists
-    if (error.code === 'PGRST116') {
-      console.log('No current crawl progress found for user');
-      return null;
-    }
     console.error('Error fetching current crawl progress:', error);
     return null;
   }
 
+  console.log('getCurrentCrawlProgress result:', data);
+  return data;
+}
+
+/**
+ * Get crawl progress for a specific crawl
+ */
+export async function getCrawlProgress(userId: string, crawlId: string, isPublic: boolean) {
+  console.log('getCrawlProgress called for userId:', userId, 'crawlId:', crawlId, 'isPublic:', isPublic);
+  
+  const { data, error } = await supabase
+    .from('crawl_progress')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('crawl_id', crawlId)
+    .eq('is_public', isPublic)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching crawl progress:', error);
+    return null;
+  }
+
+  console.log('getCrawlProgress result:', data);
   return data;
 }
 
@@ -59,4 +102,45 @@ export async function deleteCrawlProgress({ userId }: {
     .from('crawl_progress')
     .delete()
     .eq('user_id', userId);
+}
+
+/**
+ * Check if a crawl is already completed for a user
+ */
+export async function isCrawlCompleted(userId: string, crawlId: string, isPublic: boolean) {
+  console.log('isCrawlCompleted called for userId:', userId, 'crawlId:', crawlId, 'isPublic:', isPublic);
+  
+  // First check crawl_history table
+  const { data: historyData, error: historyError } = await supabase
+    .from('user_crawl_history')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('crawl_id', crawlId)
+    .eq('is_public', isPublic);
+
+  if (historyError) {
+    console.error('Error checking crawl history:', historyError);
+  } else if (historyData && historyData.length > 0) {
+    console.log('Crawl found in history - already completed');
+    return true;
+  }
+
+  // Also check if there's a progress record with completed_at set
+  const { data: progressData, error: progressError } = await supabase
+    .from('crawl_progress')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('crawl_id', crawlId)
+    .eq('is_public', isPublic)
+    .not('completed_at', 'is', null);
+
+  if (progressError) {
+    console.error('Error checking crawl progress:', progressError);
+  } else if (progressData && progressData.length > 0) {
+    console.log('Crawl found in progress with completed_at - already completed');
+    return true;
+  }
+
+  console.log('Crawl not completed');
+  return false;
 } 

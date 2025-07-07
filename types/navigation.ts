@@ -11,4 +11,5 @@ export type RootStackParamList = {
   CrawlHistory: undefined;
   CrawlHistoryDetail: { crawlId: string };
   CrawlLibraryFilters: { minStops: number; maxDistanceMiles: number } | undefined;
+  CrawlCompletion: { crawlName?: string; completionData?: any };
 }; 

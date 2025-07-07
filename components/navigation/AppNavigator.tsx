@@ -11,6 +11,7 @@ import CrawlStatsScreen from '../screens/CrawlStatsScreen';
 import CrawlHistoryScreen from '../screens/CrawlHistoryScreen';
 import CrawlHistoryDetailScreen from '../screens/CrawlHistoryDetailScreen';
 import CrawlLibraryFilters from '../screens/CrawlLibraryFilters';
+import CrawlCompletionScreen from '../screens/CrawlCompletionScreen';
 
 const Stack = createStackNavigator();
 
@@ -30,6 +31,7 @@ export default function AppNavigator() {
       <Stack.Screen name="CrawlHistory" component={CrawlHistoryScreen} />
       <Stack.Screen name="CrawlHistoryDetail" component={CrawlHistoryDetailScreen} />
       <Stack.Screen name="CrawlLibraryFilters" component={CrawlLibraryFilters} />
+      <Stack.Screen name="CrawlCompletion" component={CrawlCompletionScreen} />
     </Stack.Navigator>
   );
 } 

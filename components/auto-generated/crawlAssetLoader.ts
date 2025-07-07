@@ -4,7 +4,7 @@
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import yaml from 'js-yaml';
-import { CrawlStops } from '../../types/crawl';
+import { CrawlStops } from '../types/crawl';
 
 // This object maps crawl folder names to their corresponding stops.yml assets
 // Auto-generated from crawl folders in assets/public-crawls/ and assets/crawl-library/

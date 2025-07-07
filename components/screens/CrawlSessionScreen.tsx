@@ -10,6 +10,7 @@ import { StopComponent } from '../ui/stops';
 import CrawlMap from '../ui/CrawlMap';
 import { useAuthContext } from '../context/AuthContext';
 import { saveCrawlProgress, addCrawlHistory, deleteCrawlProgress, supabase } from '../../utils/database';
+import { getCrawlProgress } from '../../utils/database/progressOperations';
 import { extractAllCoordinates, LocationCoordinates } from '../../utils/coordinateExtractor';
 
 const CrawlSessionScreen: React.FC = () => {
@@ -55,7 +56,7 @@ const CrawlSessionScreen: React.FC = () => {
   const [isGateCompleted, setIsGateCompleted] = useState(false);
   const [isNextStopRevealed, setIsNextStopRevealed] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
-  const [crawlCompleted, setCrawlCompleted] = useState(false);
+  const [isResumingFromDatabase, setIsResumingFromDatabase] = useState(false);
 
   // Load crawl data if we only have crawlId
   useEffect(() => {
@@ -96,22 +97,49 @@ const CrawlSessionScreen: React.FC = () => {
   // Start session if not already
   useEffect(() => {
     const setupSession = async () => {
+      
       if (crawlData && (!isCrawlActive || !currentCrawl || currentCrawl.id !== crawlData.id) && !isCompleting) {
         console.log('Setting up new crawl session for:', crawlData.id);
+        
+
+        
         setCurrentCrawl({ ...crawlData, stops });
         setIsCrawlActive(true);
         
         // Load progress from database if user is logged in
         if (user?.id) {
           const isPublic = crawlData['public-crawl'] || false;
-          const progressFound = await loadProgressFromDatabase(user.id, crawlData.id, isPublic);
+          
+          // Only check for progress, not completion
+          const progressFound = await getCrawlProgress(user.id, crawlData.id, isPublic);
           
           if (progressFound) {
             // Progress was found for this specific crawl
             console.log('Loaded existing progress for crawl:', crawlData.id, 'isPublic:', isPublic);
+            
+            // Convert database format to local format and set it
+            const localProgress = {
+              crawl_id: progressFound.crawl_id,
+              is_public: progressFound.is_public,
+              current_stop: progressFound.current_stop,
+              completed_stops: progressFound.completed_stops.map((stopNum: number) => ({
+                stop_number: stopNum,
+                completed: true,
+                user_answer: '',
+                completed_at: new Date(),
+              })),
+              started_at: new Date(progressFound.started_at),
+              last_updated: new Date(progressFound.updated_at),
+              completed: !!progressFound.completed_at,
+            };
+            
+            console.log('Setting current progress from database:', localProgress);
+            setCurrentProgress(localProgress);
+            setIsResumingFromDatabase(true);
+            console.log('Set isResumingFromDatabase to true');
           } else {
-            // No progress was loaded from database, initialize new progress for this crawl
-            console.log('Initializing new progress for crawl:', crawlData.id, 'isPublic:', isPublic);
+            // No progress was loaded from database, always initialize new progress
+            console.log('No database progress found, initializing new progress for crawl:', crawlData.id, 'isPublic:', isPublic);
             setCurrentProgress({
               crawl_id: crawlData.id,
               is_public: isPublic,
@@ -121,69 +149,45 @@ const CrawlSessionScreen: React.FC = () => {
               last_updated: new Date(),
               completed: false,
             });
+            setIsResumingFromDatabase(false);
+            console.log('Set isResumingFromDatabase to false');
           }
         } else {
-          // Fallback to resume data if no user (for backward compatibility)
-          const resumeDataToUse = routeParams?.resumeData || routeParams?.resumeProgress;
-          if (resumeDataToUse) {
-            console.log('Setting up resume progress with data:', resumeDataToUse);
-            
-            // Calculate the correct current stop based on completed stops
-            const completedStops = resumeDataToUse.completedStops || resumeDataToUse.completed_stops || [];
-            const completedCount = completedStops.length;
-            const totalStops = stops.length;
-            
-            // If user has completed N stops, they should be on stop N+1
-            // But don't exceed the total number of stops
-            const calculatedCurrentStop = Math.min(completedCount + 1, totalStops);
-            
-            console.log('Resume calculation:', {
-              completedStops,
-              completedCount,
-              totalStops,
-              calculatedCurrentStop,
-              originalCurrentStop: resumeDataToUse.currentStop || resumeDataToUse.current_stop
-            });
-            
-            const newProgress = {
-              crawl_id: crawlData.id,
-              is_public: crawlData['public-crawl'] || false,
-              current_stop: calculatedCurrentStop,
-              completed_stops: completedStops.map((stopNum: number, idx: number) => ({
-                stop_number: stopNum,
-                completed: true,
-                user_answer: '', // If you want to store answers, update this
-                completed_at: undefined,
-              })),
-              started_at: resumeDataToUse.startTime || resumeDataToUse.started_at ? new Date(resumeDataToUse.startTime || resumeDataToUse.started_at) : new Date(),
-              last_updated: resumeDataToUse.updated_at ? new Date(resumeDataToUse.updated_at) : new Date(),
-              completed: completedCount >= totalStops,
-            };
-            console.log('Setting current progress to:', newProgress);
-            setCurrentProgress(newProgress);
-          } else {
-            setCurrentProgress({
-              crawl_id: crawlData.id,
-              is_public: crawlData['public-crawl'] || false,
-              current_stop: 1,
-              completed_stops: [],
-              started_at: new Date(),
-              last_updated: new Date(),
-              completed: false,
-            });
-          }
+          // Fallback for no user (for backward compatibility)
+          setCurrentProgress({
+            crawl_id: crawlData.id,
+            is_public: crawlData['public-crawl'] || false,
+            current_stop: 1,
+            completed_stops: [],
+            started_at: new Date(),
+            last_updated: new Date(),
+            completed: false,
+          });
         }
       }
     };
     
     setupSession();
-  }, [crawlData?.id, user?.id, routeParams?.resumeData, routeParams?.resumeProgress, stops.length, isCompleting]);
+  }, [crawlData?.id, user?.id, stops.length, isCompleting]);
 
   // Save progress to database when session starts
   useEffect(() => {
     const saveInitialProgress = async () => {
-      if (user?.id && currentProgress && currentCrawl && crawlData && !routeParams?.resumeData && !routeParams?.resumeProgress) {
-        // Only save if this is a new session (not resuming)
+      console.log('saveInitialProgress useEffect triggered with:', {
+        hasUser: !!user?.id,
+        hasCurrentProgress: !!currentProgress,
+        hasCurrentCrawl: !!currentCrawl,
+        hasCrawlData: !!crawlData,
+        hasResumeData: !!routeParams?.resumeData,
+        hasResumeProgress: !!routeParams?.resumeProgress,
+        isResumingFromDatabase,
+      });
+      
+      // Only save if this is a truly new session (not resuming from database)
+      if (user?.id && currentProgress && currentCrawl && crawlData && 
+          !routeParams?.resumeData && !routeParams?.resumeProgress &&
+          !isResumingFromDatabase) {
+        
         console.log('Saving initial progress to database:', currentProgress);
         console.log('Crawl data:', crawlData);
         
@@ -212,11 +216,13 @@ const CrawlSessionScreen: React.FC = () => {
         } else {
           console.log('Initial progress saved successfully');
         }
+      } else {
+        console.log('Not saving initial progress - conditions not met');
       }
     };
     
     saveInitialProgress();
-  }, [user?.id, currentProgress, currentCrawl, crawlData, routeParams?.resumeData, routeParams?.resumeProgress]);
+  }, [user?.id, currentProgress, currentCrawl, crawlData, routeParams?.resumeData, routeParams?.resumeProgress, isResumingFromDatabase]);
 
   const currentStopNumber = getCurrentStop();
   const totalStops = stops.length;
@@ -224,7 +230,7 @@ const CrawlSessionScreen: React.FC = () => {
   const completedStops = currentProgress?.completed_stops || [];
   
   // Debug logging
-  console.log('CrawlSessionScreen render - currentStopNumber:', currentStopNumber, 'currentProgress:', currentProgress, 'isCompleted:', isCompleted, 'isCompleting:', isCompleting, 'crawlCompleted:', crawlCompleted);
+  console.log('CrawlSessionScreen render - currentStopNumber:', currentStopNumber, 'currentProgress:', currentProgress, 'isCompleted:', isCompleted, 'isCompleting:', isCompleting);
 
   const handleExit = useCallback(async () => {
     // Automatically save progress before exiting
@@ -268,8 +274,6 @@ const CrawlSessionScreen: React.FC = () => {
     }
   };
 
-
-
   const progressPercent = totalStops > 0 ? Math.round(((currentStopNumber - 1) / totalStops) * 100) : 0;
 
   useEffect(() => {
@@ -278,45 +282,27 @@ const CrawlSessionScreen: React.FC = () => {
       console.log('Starting crawl completion process');
       setIsCompleting(true);
       
-      // Store completion data before clearing session
+      // Store completion data to pass to completion screen
       const completionData = {
         started: new Date(currentProgress.started_at),
         completed: new Date(),
         crawlId: currentCrawl.id,
         isPublic: currentProgress.is_public ?? (crawlData?.['public-crawl'] || false),
+        userId: user.id,
       };
       
-      (async () => {
-        try {
-          const totalTimeMinutes = Math.round((completionData.completed.getTime() - completionData.started.getTime()) / 60000);
-          
-          // Add to history first
-          await addCrawlHistory({
-            userId: user.id,
-            crawlId: completionData.crawlId,
-            isPublic: completionData.isPublic,
-            completedAt: completionData.completed.toISOString(),
-            totalTimeMinutes,
-          });
-          
-          // Delete the progress record since crawl is completed
-          await deleteCrawlProgress({
-            userId: user.id,
-          });
-          
-          console.log('Crawl completed and progress record deleted');
-          
-          // Clear local state to prevent further database queries
-          await clearCrawlSession();
-          
-          // Reset the completing flag and mark crawl as completed
-          setIsCompleting(false);
-          setCrawlCompleted(true);
-        } catch (error) {
-          console.error('Error completing crawl:', error);
-          setIsCompleting(false);
-        }
-      })();
+      // Reset the completing flag and navigate to completion screen with data
+      setIsCompleting(false);
+      navigation.reset({ 
+        index: 0, 
+        routes: [{ 
+          name: 'CrawlCompletion', 
+          params: { 
+            crawlName: currentCrawl.name,
+            completionData: completionData
+          } 
+        }] 
+      });
     }
   }, [isCompleted, user, currentProgress, currentCrawl, clearCrawlSession, navigation, isCompleting]);
 
@@ -331,28 +317,25 @@ const CrawlSessionScreen: React.FC = () => {
     );
   }
 
-  if ((isCompleted || crawlCompleted) && !isCompleting) {
+
+
+
+
+
+
+  const currentStop = currentStopNumber > 0 ? stops[currentStopNumber - 1] : null;
+
+  // Show loading state if no current stop is available
+  if (!currentStop || currentStopNumber === 0) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
-        <View style={styles.centered}>
-          <Text style={[styles.completionTitle, { color: theme.text.primary }]}>🎉 Crawl Completed!</Text>
-          <Text style={[styles.completionText, { color: theme.text.secondary }]}>You finished all stops of this crawl. Your progress has been saved.</Text>
-          <TouchableOpacity style={[styles.completionExitButton, { backgroundColor: theme.button.primary }]} onPress={async () => {
-            // Progress record is already deleted in the completion useEffect
-            setIsCompleting(false);
-            setCrawlCompleted(false);
-            await clearCrawlSession();
-            navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
-          }}>
-            <Text style={[styles.completionExitButtonText, { color: theme.text.inverse }]}>Back to Library</Text>
-          </TouchableOpacity>
-          <Text style={[styles.swipeHint, { color: theme.text.tertiary }]}>Or swipe left to return to the library</Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.button.primary} />
+          <Text style={[styles.loadingText, { color: theme.text.primary }]}>Loading crawl progress...</Text>
         </View>
       </SafeAreaView>
     );
   }
-
-  const currentStop = stops[currentStopNumber - 1];
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
@@ -382,7 +365,7 @@ const CrawlSessionScreen: React.FC = () => {
         <View style={[styles.locationSection, { backgroundColor: theme.background.secondary, borderBottomColor: theme.border.secondary }]}>
           <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Current Location</Text>
           <View style={styles.locationContent}>
-            <Text style={[styles.locationName, { color: theme.text.primary }]}>{currentStop?.location_name || 'Unknown Location'}</Text>
+            <Text style={[styles.locationName, { color: theme.text.primary }]}>{currentStop.location_name || 'Unknown Location'}</Text>
           </View>
         </View>
 
@@ -508,6 +491,16 @@ const CrawlSessionScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollableContent: { flex: 1 },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: '500',
+  },
   topSection: {
     flexDirection: 'row',
     alignItems: 'center',

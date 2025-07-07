@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import yaml from 'js-yaml';
@@ -43,6 +44,16 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
       loadHomeData();
     }
   }, [userId, isLoading]);
+
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Home screen focused, refreshing data');
+      if (!isLoading && userId) {
+        loadHomeData();
+      }
+    }, [userId, isLoading])
+  );
 
   const loadHomeData = async () => {
     try {
@@ -156,9 +167,10 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
         .is('completed_at', null)
         .single();
 
-      console.log('Current progress:', progress, 'Error:', error);
+      console.log('Current progress from DB:', progress, 'Error:', error);
 
       if (progress) {
+        console.log('Found progress in DB, setting as current crawl...');
         // Load all crawl data to determine which are public crawls
         const [publicCrawls, libraryCrawls] = await Promise.all([
           loadPublicCrawls(),
@@ -189,12 +201,23 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
             isPublicCrawl: progress.is_public,
           };
 
+          console.log('Setting currentCrawl to:', crawlProgress);
           setCurrentCrawl(crawlProgress);
           setInProgressCrawls([crawlProgress]);
+        } else {
+          console.log('Crawl details not found, setting currentCrawl to null');
+          setCurrentCrawl(null);
+          setInProgressCrawls([]);
         }
+      } else {
+        console.log('No progress found in DB, setting currentCrawl to null');
+        setCurrentCrawl(null);
+        setInProgressCrawls([]);
       }
     } catch (error) {
       console.error('Error loading current crawl:', error);
+      setCurrentCrawl(null);
+      setInProgressCrawls([]);
     }
   };
 
