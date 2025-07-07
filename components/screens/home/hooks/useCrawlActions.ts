@@ -95,7 +95,42 @@ export function useCrawlActions() {
   };
 
   const handleInProgressCrawlPress = async (crawlProgress: CrawlProgress) => {
-    await handleContinueCrawl(crawlProgress);
+    try {
+      console.log('Navigating to crawl detail for in-progress crawl:', crawlProgress);
+      
+      // Load crawl data based on whether it's a public crawl or library crawl
+      let crawlData;
+      
+      if (crawlProgress.isPublicCrawl) {
+        // Load public crawl data
+        const publicCrawlsAsset = Asset.fromModule(require('../../../../assets/public-crawls/crawls.yml'));
+        await publicCrawlsAsset.downloadAsync();
+        const yamlString = await FileSystem.readAsStringAsync(publicCrawlsAsset.localUri || publicCrawlsAsset.uri);
+        const data = yaml.load(yamlString) as any;
+        crawlData = data.crawls.find((c: any) => c.id === crawlProgress.crawlId);
+        
+        if (crawlData) {
+          navigation.navigate('PublicCrawlDetail', { crawlId: crawlProgress.crawlId });
+        }
+      } else {
+        // Load library crawl data
+        const libraryCrawlsAsset = Asset.fromModule(require('../../../../assets/crawl-library/crawls.yml'));
+        await libraryCrawlsAsset.downloadAsync();
+        const yamlString = await FileSystem.readAsStringAsync(libraryCrawlsAsset.localUri || libraryCrawlsAsset.uri);
+        const data = yaml.load(yamlString) as any;
+        crawlData = data.crawls.find((c: any) => c.id === crawlProgress.crawlId);
+        
+        if (crawlData) {
+          navigation.navigate('CrawlDetail', { crawl: crawlData });
+        }
+      }
+
+      if (!crawlData) {
+        console.error('Crawl data not found for:', crawlProgress.crawlId);
+      }
+    } catch (error) {
+      console.error('Error navigating to crawl detail:', error);
+    }
   };
 
   const handlePublicCrawlPress = (crawlId: string) => {

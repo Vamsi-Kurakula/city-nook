@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     width: 320,
-    borderWidth: 1,
+    borderWidth: 0,
   },
   crawlImageContainer: {
     height: 180,

@@ -26,7 +26,6 @@ export default function HomeScreen() {
     userSignups,
     currentCrawl,
     loading,
-    currentProgress,
   } = useHomeData(userId, isLoading);
 
   const {
@@ -48,7 +47,7 @@ export default function HomeScreen() {
   // Find the full crawl object for the current progress
   let matchedCrawl = null;
   if (currentCrawl) {
-    if (currentCrawl.isPublic) {
+    if (currentCrawl.isPublicCrawl) {
       matchedCrawl = upcomingCrawls.find(
         (c: any) => c.id === currentCrawl.crawlId && c['public-crawl'] === true
       );
@@ -80,14 +79,14 @@ export default function HomeScreen() {
         <View style={[styles.section, { marginTop: 20 }]}>
           <View style={styles.buttonRow}>
             <TouchableOpacity 
-              style={[styles.halfWidthButton, { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary }]} 
+              style={[styles.halfWidthButton, { backgroundColor: theme.background.secondary }]} 
               onPress={() => navigation.navigate('CrawlLibrary')}
             >
               <Text style={[styles.halfWidthButtonText, { color: theme.text.primary }]}>Crawl Library</Text>
             </TouchableOpacity>
             <TouchableOpacity 
-              style={[styles.halfWidthButton, { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary }]} 
-              onPress={() => navigation.navigate('PublicCrawls')}
+              style={[styles.halfWidthButton, { backgroundColor: theme.background.secondary }]} 
+              onPress={() => {}}
             >
               <Text style={[styles.halfWidthButtonText, { color: theme.text.primary }]}>Join Crawl</Text>
             </TouchableOpacity>
@@ -246,10 +245,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
     alignItems: 'center',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 20,
   },
   halfWidthButtonText: {
     fontSize: 16,
