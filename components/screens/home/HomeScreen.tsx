@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Text, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../../context/AuthContext';
@@ -26,6 +26,7 @@ export default function HomeScreen() {
     userSignups,
     currentCrawl,
     loading,
+    currentProgress,
   } = useHomeData(userId, isLoading);
 
   const {
@@ -43,6 +44,20 @@ export default function HomeScreen() {
       handleSignUpForCrawl(crawlId, userId);
     }
   };
+
+  // Find the full crawl object for the current progress
+  let matchedCrawl = null;
+  if (currentCrawl) {
+    if (currentCrawl.isPublic) {
+      matchedCrawl = upcomingCrawls.find(
+        (c: any) => c.id === currentCrawl.crawlId && c['public-crawl'] === true
+      );
+    } else {
+      matchedCrawl = fullFeaturedCrawls.find(
+        (c: any) => c.id === currentCrawl.crawlId && !c['public-crawl']
+      );
+    }
+  }
 
   if (loading) {
     return (
@@ -68,35 +83,58 @@ export default function HomeScreen() {
               style={[styles.halfWidthButton, { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary }]} 
               onPress={() => navigation.navigate('CrawlLibrary')}
             >
-              <Text style={[styles.halfWidthButtonText, { color: theme.text.primary }]}>📚 Crawl Library</Text>
+              <Text style={[styles.halfWidthButtonText, { color: theme.text.primary }]}>Crawl Library</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.halfWidthButton, { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary }]} 
               onPress={() => navigation.navigate('PublicCrawls')}
             >
-              <Text style={[styles.halfWidthButtonText, { color: theme.text.primary }]}>🎯 Join Crawl</Text>
+              <Text style={[styles.halfWidthButtonText, { color: theme.text.primary }]}>Join Crawl</Text>
             </TouchableOpacity>
           </View>
         </View>
         
         {/* In Progress Crawl Section */}
-        {currentCrawl && (
+        {currentCrawl && matchedCrawl && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Continue Your Crawl</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Continue Crawling</Text>
             </View>
             <TouchableOpacity
-              style={[styles.continueCrawlCard, { backgroundColor: theme.button.primary, shadowColor: theme.shadow.primary }]}
+              style={[
+                styles.continueCrawlCard,
+                {
+                  backgroundColor: theme.background.primary,
+                  borderColor: theme.background.secondary,
+                  borderWidth: 1,
+                  flexDirection: 'row',
+                  padding: 0,
+                  shadowColor: theme.shadow.primary,
+                },
+              ]}
               onPress={() => handleInProgressCrawlPress(currentCrawl)}
+              activeOpacity={0.9}
             >
-              <View style={styles.continueCrawlContent}>
-                <Text style={[styles.continueCrawlTitle, { color: theme.text.inverse }]}>
-                  {getCurrentCrawlName() || 'Current Crawl'}
-                </Text>
-                <Text style={[styles.continueCrawlProgress, { color: theme.text.inverse }]}>
-                  Stop {currentCrawl.currentStep} of {currentCrawl.completedSteps.length + 1}
-                </Text>
-                <Text style={[styles.continueCrawlButton, { color: theme.text.inverse }]}>Continue →</Text>
+              {/* Left: Hero Image */}
+              <View style={styles.continueCrawlImageWrapper}>
+                <Image
+                  source={require('../../auto-generated/ImageLoader').getHeroImageSource(matchedCrawl.assetFolder)}
+                  style={styles.continueCrawlImage}
+                  resizeMode="cover"
+                />
+              </View>
+              {/* Right: Info */}
+              <View style={styles.continueCrawlInfoWrapper}>
+                <View style={styles.continueCrawlInfoContent}>
+                  <Text style={[styles.continueCrawlLabel, { color: theme.text.primary }]}>Currently At:</Text>
+                  <Text style={[styles.continueCrawlValue, { color: theme.text.primary }]}>
+                    {matchedCrawl.stops && currentCrawl.currentStep && matchedCrawl.stops[currentCrawl.currentStep - 1]?.location_name || 'N/A'}
+                  </Text>
+                  <Text style={[styles.continueCrawlLabel, { color: theme.text.primary, marginTop: 8 }]}>Stops Left:</Text>
+                  <Text style={[styles.continueCrawlValue, { color: theme.text.primary }]}>
+                    {matchedCrawl.stops ? matchedCrawl.stops.length - currentCrawl.currentStep + 1 : 'N/A'}
+                  </Text>
+                </View>
               </View>
             </TouchableOpacity>
           </View>
@@ -156,27 +194,46 @@ const styles = StyleSheet.create({
   continueCrawlCard: {
     marginHorizontal: 20,
     borderRadius: 12,
-    padding: 20,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    minHeight: 140,
+    overflow: 'hidden',
   },
-  continueCrawlContent: {
-    alignItems: 'center',
+  continueCrawlImageWrapper: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 140,
+    maxHeight: 180,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+    overflow: 'hidden',
   },
-  continueCrawlTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
+  continueCrawlImage: {
+    width: '100%',
+    height: '100%',
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
   },
-  continueCrawlProgress: {
+  continueCrawlInfoWrapper: {
+    flex: 1,
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  continueCrawlInfoContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  continueCrawlLabel: {
     fontSize: 14,
-    marginBottom: 8,
+    fontWeight: '500',
+    opacity: 0.8,
   },
-  continueCrawlButton: {
+  continueCrawlValue: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+    marginBottom: 2,
   },
   buttonRow: {
     flexDirection: 'row',

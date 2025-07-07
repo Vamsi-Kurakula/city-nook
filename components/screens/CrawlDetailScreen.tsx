@@ -6,12 +6,14 @@ import { useCrawlContext } from '../context/CrawlContext';
 import { Crawl } from '../../types/crawl';
 import { getHeroImageSource } from '../auto-generated/ImageLoader';
 import { useAuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../../utils/database';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const CrawlDetailScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
+  const { theme } = useTheme();
   
   // Defensive extraction and logging
   const routeParams = route.params as { crawl?: Crawl } | undefined;
@@ -19,13 +21,13 @@ const CrawlDetailScreen: React.FC = () => {
   console.log('CrawlDetailScreen route params:', routeParams);
   if (!crawl) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← Back</Text>
+            <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.title}>No crawl data found (CrawlDetailScreen).</Text>
+        <Text style={[styles.title, { color: theme.text.primary }]}>No crawl data found (CrawlDetailScreen).</Text>
       </SafeAreaView>
     );
   }
@@ -70,14 +72,14 @@ const CrawlDetailScreen: React.FC = () => {
   // Show loading if auth is still loading
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← Back</Text>
+            <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -169,7 +171,7 @@ const CrawlDetailScreen: React.FC = () => {
     if (isCompleted) {
       resumeInfo = (
         <View style={{ marginTop: 16, marginBottom: 4, alignItems: 'flex-start' }}>
-          <Text style={{ color: '#28a745', fontSize: 15, fontWeight: 'bold' }}>
+          <Text style={{ color: theme.status.success, fontSize: 15, fontWeight: 'bold' }}>
             🎉 Crawl completed! You finished all {totalStops} stops.
           </Text>
         </View>
@@ -189,10 +191,10 @@ const CrawlDetailScreen: React.FC = () => {
       
       resumeInfo = (
         <View style={{ marginTop: 16, marginBottom: 4, alignItems: 'flex-start' }}>
-          <Text style={{ color: '#888', fontSize: 15 }}>
+          <Text style={{ color: theme.text.tertiary, fontSize: 15 }}>
             {`You have completed ${completedCount} stop${completedCount === 1 ? '' : 's'}.`}
           </Text>
-          <Text style={{ color: '#888', fontSize: 15 }}>
+          <Text style={{ color: theme.text.tertiary, fontSize: 15 }}>
             {`Current stop: ${actualCurrentStop}${locationName ? ` - ${locationName}` : ''}`}
           </Text>
         </View>
@@ -201,10 +203,10 @@ const CrawlDetailScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Back</Text>
+          <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -213,25 +215,25 @@ const CrawlDetailScreen: React.FC = () => {
           style={styles.heroImage}
           resizeMode="cover"
         />
-        <Text style={styles.title}>{crawl.name}</Text>
-        <Text style={styles.description}>{crawl.description}</Text>
-        <Text style={styles.meta}>Duration: {crawl.duration}</Text>
-        <Text style={styles.meta}>Distance: {crawl.distance}</Text>
-        <Text style={styles.meta}>Difficulty: {crawl.difficulty}</Text>
+        <Text style={[styles.title, { color: theme.text.primary }]}>{crawl.name}</Text>
+        <Text style={[styles.description, { color: theme.text.secondary }]}>{crawl.description}</Text>
+        <Text style={[styles.meta, { color: theme.text.tertiary }]}>Duration: {crawl.duration}</Text>
+        <Text style={[styles.meta, { color: theme.text.tertiary }]}>Distance: {crawl.distance}</Text>
+        <Text style={[styles.meta, { color: theme.text.tertiary }]}>Difficulty: {crawl.difficulty}</Text>
         
         {/* Crawl Route Visualization */}
         {crawl.stops && crawl.stops.length > 0 && (
           <View style={styles.routeSection}>
-            <Text style={styles.routeSectionTitle}>Crawl Route</Text>
+            <Text style={[styles.routeSectionTitle, { color: theme.text.primary }]}>Crawl Route</Text>
             <View style={styles.routeVisualization}>
               {/* First Stop */}
               <View style={styles.routeRow}>
-                <View style={styles.routeCircle}>
-                  <MaterialIcons name="location-on" size={20} color="#fff" />
+                <View style={[styles.routeCircle, { backgroundColor: theme.button.primary }]}>
+                  <MaterialIcons name="location-on" size={20} color={theme.text.inverse} />
                 </View>
                 {crawl.stops?.[0]?.location_link ? (
                   <TouchableOpacity onPress={() => Linking.openURL(crawl.stops?.[0]?.location_link || '')}>
-                    <Text style={[styles.routeStopText, styles.routeStopLink]} numberOfLines={2}>
+                    <Text style={[styles.routeStopText, { color: theme.button.primary }]} numberOfLines={2}>
                       {crawl.stops?.[0]?.location_name || 'First Stop'}
                     </Text>
                   </TouchableOpacity>
@@ -239,12 +241,12 @@ const CrawlDetailScreen: React.FC = () => {
                   <TouchableOpacity
                     onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(crawl.stops?.[0]?.stop_components?.address || '')}`)}
                   >
-                    <Text style={[styles.routeStopText, styles.routeStopLink]} numberOfLines={2}>
+                    <Text style={[styles.routeStopText, { color: theme.button.primary }]} numberOfLines={2}>
                       {crawl.stops?.[0]?.stop_components?.address}
                     </Text>
                   </TouchableOpacity>
                 ) : (
-                  <Text style={styles.routeStopText} numberOfLines={2}>
+                  <Text style={[styles.routeStopText, { color: theme.text.primary }]} numberOfLines={2}>
                     {crawl.stops?.[0]?.stop_components?.location_name || 
                      crawl.stops?.[0]?.stop_components?.description || 
                      'First Stop'}
@@ -254,32 +256,34 @@ const CrawlDetailScreen: React.FC = () => {
               {/* Dashed Line */}
               <View style={styles.routeRow}>
                 <View style={styles.dashedLineContainer}>
-                  <View style={styles.dashedLine} />
+                  <View style={[styles.dashedLine, { borderColor: theme.text.tertiary }]} />
                 </View>
-                <Text style={styles.routeStopText}></Text>
+                <Text style={[styles.routeStopText, { color: theme.text.primary }]}></Text>
               </View>
               {/* Middle Circle - Number of stops in between */}
               <View style={styles.routeRow}>
-                <View style={styles.routeCircle}><Text style={styles.routeCircleText}>{crawl.stops.length > 2 ? crawl.stops.length - 2 : '0'}</Text></View>
-                <Text style={styles.routeStopText} numberOfLines={2}>
+                <View style={[styles.routeCircle, { backgroundColor: theme.button.primary }]}>
+                  <Text style={[styles.routeCircleText, { color: theme.text.inverse }]}>{crawl.stops.length > 2 ? crawl.stops.length - 2 : '0'}</Text>
+                </View>
+                <Text style={[styles.routeStopText, { color: theme.text.primary }]} numberOfLines={2}>
                   {crawl.stops.length > 2 ? 'Stops in between' : 'direct route'}
                 </Text>
               </View>
               {/* Dashed Line */}
               <View style={styles.routeRow}>
                 <View style={styles.dashedLineContainer}>
-                  <View style={styles.dashedLine} />
+                  <View style={[styles.dashedLine, { borderColor: theme.text.tertiary }]} />
                 </View>
-                <Text style={styles.routeStopText}></Text>
+                <Text style={[styles.routeStopText, { color: theme.text.primary }]}></Text>
               </View>
               {/* Last Stop */}
               <View style={styles.routeRow}>
-                <View style={styles.routeCircle}>
-                  <MaterialIcons name="location-on" size={20} color="#fff" />
+                <View style={[styles.routeCircle, { backgroundColor: theme.button.primary }]}>
+                  <MaterialIcons name="location-on" size={20} color={theme.text.inverse} />
                 </View>
                 {crawl.stops?.[crawl.stops.length - 1]?.location_link ? (
                   <TouchableOpacity onPress={() => Linking.openURL(crawl.stops?.[crawl.stops.length - 1]?.location_link || '')}>
-                    <Text style={[styles.routeStopText, styles.routeStopLink]} numberOfLines={2}>
+                    <Text style={[styles.routeStopText, { color: theme.button.primary }]} numberOfLines={2}>
                       {crawl.stops?.[crawl.stops.length - 1]?.location_name || 'Last Stop'}
                     </Text>
                   </TouchableOpacity>
@@ -287,12 +291,12 @@ const CrawlDetailScreen: React.FC = () => {
                   <TouchableOpacity
                     onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(crawl.stops?.[crawl.stops.length - 1]?.stop_components?.address || '')}`)}
                   >
-                    <Text style={[styles.routeStopText, styles.routeStopLink]} numberOfLines={2}>
+                    <Text style={[styles.routeStopText, { color: theme.button.primary }]} numberOfLines={2}>
                       {crawl.stops?.[crawl.stops.length - 1]?.stop_components?.address}
                     </Text>
                   </TouchableOpacity>
                 ) : (
-                  <Text style={styles.routeStopText} numberOfLines={2}>
+                  <Text style={[styles.routeStopText, { color: theme.text.primary }]} numberOfLines={2}>
                     {crawl.stops?.[crawl.stops.length - 1]?.stop_components?.location_name || 
                      crawl.stops?.[crawl.stops.length - 1]?.stop_components?.description || 
                      'Last Stop'}
@@ -307,8 +311,8 @@ const CrawlDetailScreen: React.FC = () => {
         
         {/* Show Resume button if there's progress to resume */}
         {resumeProgress && (
-          <TouchableOpacity style={[styles.startButton, { backgroundColor: '#28a745', marginTop: 12 }]} onPress={handleResumeCrawl}>
-            <Text style={[styles.startButtonText, { color: '#fff' }]}>Resume Crawl</Text>
+          <TouchableOpacity style={[styles.startButton, { backgroundColor: theme.button.success, marginTop: 12 }]} onPress={handleResumeCrawl}>
+            <Text style={[styles.startButtonText, { color: theme.text.inverse }]}>Resume Crawl</Text>
           </TouchableOpacity>
         )}
         
@@ -317,7 +321,7 @@ const CrawlDetailScreen: React.FC = () => {
           style={[
             styles.startButton, 
             { 
-              backgroundColor: resumeProgress ? '#ffc107' : '#007AFF',
+              backgroundColor: resumeProgress ? theme.button.secondary : theme.button.primary,
               marginTop: resumeProgress ? 12 : 24 
             }
           ]} 
@@ -325,7 +329,7 @@ const CrawlDetailScreen: React.FC = () => {
         >
           <Text style={[
             styles.startButtonText, 
-            { color: resumeProgress ? '#333' : '#fff' }
+            { color: resumeProgress ? theme.text.primary : theme.text.button }
           ]}>
             {resumeProgress ? 'Start New Crawl' : 'Start Crawl'}
           </Text>
@@ -336,7 +340,7 @@ const CrawlDetailScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -346,12 +350,12 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 24 },
   heroImage: { width: '100%', height: 200, borderRadius: 12, marginBottom: 16 },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
-  description: { fontSize: 16, color: '#666', marginBottom: 12 },
-  meta: { fontSize: 14, color: '#888', marginBottom: 4 },
-  startButton: { backgroundColor: '#007AFF', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 24 },
-  startButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  description: { fontSize: 16, marginBottom: 12 },
+  meta: { fontSize: 14, marginBottom: 4 },
+  startButton: { padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 24 },
+  startButtonText: { fontSize: 18, fontWeight: 'bold' },
   backButton: { paddingVertical: 8, paddingHorizontal: 12 },
-  backButtonText: { color: '#888', fontSize: 16, fontWeight: '600' },
+  backButtonText: { fontSize: 16, fontWeight: '600' },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -359,7 +363,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
   },
   routeSection: {
     marginTop: 24,
@@ -384,12 +387,10 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   routeCircleText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -402,7 +403,6 @@ const styles = StyleSheet.create({
     width: 2,
     height: 32,
     borderWidth: 1,
-    borderColor: '#888',
     borderStyle: 'dashed',
     alignSelf: 'center',
     marginTop: 0,
@@ -410,16 +410,13 @@ const styles = StyleSheet.create({
   },
   routeStopText: {
     fontSize: 14,
-    color: '#333',
     maxWidth: 180,
     marginLeft: 12,
   },
   routeStopLink: {
-    color: '#007AFF',
     textDecorationLine: 'underline',
   },
   locationText: {
-    color: '#007AFF',
     textDecorationLine: 'underline',
   },
 });

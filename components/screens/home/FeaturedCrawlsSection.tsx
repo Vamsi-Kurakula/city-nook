@@ -23,7 +23,7 @@ export default function FeaturedCrawlsSection({
 
     return (
       <TouchableOpacity
-        style={[styles.crawlCard, { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary }]}
+        style={[styles.crawlCard, { backgroundColor: theme.background.primary, borderColor: theme.background.secondary, shadowColor: theme.shadow.primary }]}
         onPress={() => onCrawlPress(item)}
       >
         <View style={[styles.crawlImageContainer, { backgroundColor: theme.background.tertiary }]}>
@@ -41,12 +41,6 @@ export default function FeaturedCrawlsSection({
           </Text>
           <View style={styles.crawlMeta}>
             <Text style={[styles.crawlStops, { color: theme.button.primary }]}>{item.stops?.length || 0} stops</Text>
-            <TouchableOpacity
-              style={[styles.startButton, { backgroundColor: theme.button.primary }]}
-              onPress={() => onCrawlStart(item)}
-            >
-              <Text style={[styles.startButtonText, { color: theme.text.inverse }]}>Start</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </TouchableOpacity>
@@ -109,6 +103,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     width: 320,
+    borderWidth: 1,
   },
   crawlImageContainer: {
     height: 180,
@@ -140,14 +135,5 @@ const styles = StyleSheet.create({
   crawlStops: {
     fontSize: 14,
     fontWeight: '500',
-  },
-  startButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  startButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
   },
 }); 

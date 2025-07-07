@@ -51,7 +51,7 @@ export default function UpcomingCrawlsSection({
 
     return (
       <TouchableOpacity
-        style={[styles.crawlCard, { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary }]}
+        style={[styles.crawlCard, { backgroundColor: theme.background.primary, borderColor: theme.background.secondary, shadowColor: theme.shadow.primary }]}
         onPress={() => onCrawlPress(item.id)}
       >
         <View style={[styles.crawlImageContainer, { backgroundColor: theme.background.tertiary }]}>
@@ -135,6 +135,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     width: 320,
+    borderWidth: 1,
   },
   crawlImageContainer: {
     height: 120,

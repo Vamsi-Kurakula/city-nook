@@ -15,6 +15,7 @@ export interface ColorTheme {
     tertiary: string;     // Muted text (timestamps, metadata)
     inverse: string;      // Text on colored backgrounds
     disabled: string;     // Disabled text
+    button: string;       // Text for buttons with colored backgrounds
   };
   
   // Button Colors
@@ -68,7 +69,7 @@ export interface ColorTheme {
 export const lightTheme: ColorTheme = {
   background: {
     primary: '#f8f9fa',      // Main app background
-    secondary: '#fff',       // Card backgrounds
+    secondary: '#EB4335',    // Card backgrounds
     tertiary: '#f8f9fa',     // Section backgrounds
     modal: 'rgba(255, 255, 255, 0.95)', // Modal backgrounds
   },
@@ -79,10 +80,11 @@ export const lightTheme: ColorTheme = {
     tertiary: '#999',        // Muted text
     inverse: '#fff',         // Text on colored backgrounds
     disabled: '#ccc',        // Disabled text
+    button: '#000',          // Text for buttons with colored backgrounds (black in light mode)
   },
   
   button: {
-    primary: '#007AFF',      // Primary action buttons
+    primary: '#EB4335',      // Primary action buttons
     secondary: '#f8f9fa',    // Secondary action buttons
     success: '#28a745',      // Success/complete buttons
     danger: '#ff4757',       // Danger/delete buttons
@@ -126,7 +128,7 @@ export const lightTheme: ColorTheme = {
 export const darkTheme: ColorTheme = {
   background: {
     primary: '#1a1a1a',      // Dark main background
-    secondary: '#2d2d2d',    // Dark card backgrounds
+    secondary: '#EB4335',    // Dark card backgrounds
     tertiary: '#333333',     // Dark section backgrounds
     modal: 'rgba(45, 45, 45, 0.95)', // Dark modal backgrounds
   },
@@ -137,10 +139,11 @@ export const darkTheme: ColorTheme = {
     tertiary: '#999999',     // Light muted text
     inverse: '#1a1a1a',      // Dark text on light backgrounds
     disabled: '#666666',     // Dark disabled text
+    button: '#ffffff',       // Text for buttons with colored backgrounds (white in dark mode)
   },
   
   button: {
-    primary: '#0A84FF',      // iOS blue for dark mode
+    primary: '#EB4335',      // Primary action buttons
     secondary: '#3a3a3a',    // Dark secondary buttons
     success: '#30D158',      // iOS green for dark mode
     danger: '#FF453A',       // iOS red for dark mode

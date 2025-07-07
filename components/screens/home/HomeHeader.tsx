@@ -10,19 +10,28 @@ interface HomeHeaderProps {
 }
 
 export default function HomeHeader({ 
-  title = "City Crawler", 
-  subtitle = "Discover your city, one stop at a time" 
+  title = "Crawls", 
+  subtitle = "" 
 }: HomeHeaderProps) {
   const navigation = useNavigation<any>();
   const { user } = useAuthContext();
   const { theme } = useTheme();
 
   return (
-    <View style={[styles.header, { backgroundColor: theme.background.primary, borderBottomColor: theme.border.secondary }]}>
+    <View style={[styles.header, { backgroundColor: theme.background.primary }]}>
       <View style={styles.headerTop}>
         <View style={styles.headerLeft}>
-          <Text style={[styles.title, { color: theme.text.primary }]}>{title}</Text>
-          <Text style={[styles.subtitle, { color: theme.text.secondary }]}>{subtitle}</Text>
+          <Text style={[styles.title, { 
+            color: theme.text.primary,
+            textShadowColor: '#000',
+            textShadowOffset: { width: 1, height: 1 },
+            textShadowRadius: 0,
+            fontSize: 48,
+            fontWeight: '400',
+            lineHeight: 67.2,
+            letterSpacing: -0.96,
+            fontFamily: 'System', // Note: Pridi font would need to be changed to Pridi when font files are added
+          }]}>{title}</Text>
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity 
@@ -50,7 +59,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 20,
-    borderBottomWidth: 1,
   },
   headerTop: {
     flexDirection: 'row',
@@ -64,9 +72,7 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 0,
   },
   subtitle: {
     fontSize: 16,
