@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import { ClerkProvider } from '@clerk/clerk-expo';
-import { config } from './config';
+import { CLERK_PUBLISHABLE_KEY } from './config';
 
 const tokenCache = {
   async getToken(key: string) {
@@ -19,5 +19,4 @@ const tokenCache = {
   },
 };
 
-export { ClerkProvider, tokenCache };
-export const CLERK_PUBLISHABLE_KEY = config.CLERK_PUBLISHABLE_KEY; 
+export { ClerkProvider, tokenCache }; 

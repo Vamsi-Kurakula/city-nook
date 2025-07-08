@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../../context/AuthContext';
 import { useCrawlContext } from '../../context/CrawlContext';
 import { useTheme } from '../../context/ThemeContext';
+
 import HomeHeader from './HomeHeader';
 import UpcomingCrawlsSection from './UpcomingCrawlsSection';
 import FeaturedCrawlsSection from './FeaturedCrawlsSection';
@@ -25,6 +26,7 @@ export default function HomeScreen() {
     upcomingCrawls,
     userSignups,
     currentCrawl,
+    currentCrawlDetails,
     loading,
   } = useHomeData(userId, isLoading);
 
@@ -43,20 +45,6 @@ export default function HomeScreen() {
       handleSignUpForCrawl(crawlId, userId);
     }
   };
-
-  // Find the full crawl object for the current progress
-  let matchedCrawl = null;
-  if (currentCrawl) {
-    if (currentCrawl.isPublicCrawl) {
-      matchedCrawl = upcomingCrawls.find(
-        (c: any) => c.id === currentCrawl.crawlId && c['public-crawl'] === true
-      );
-    } else {
-      matchedCrawl = fullFeaturedCrawls.find(
-        (c: any) => c.id === currentCrawl.crawlId && !c['public-crawl']
-      );
-    }
-  }
 
   if (loading) {
     return (
@@ -87,8 +75,41 @@ export default function HomeScreen() {
           </View>
         </View>
         
+        {/* Debug Section - Disabled for now */}
+        {false && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Debug Info</Text>
+            </View>
+            <View style={[styles.debugCard, { backgroundColor: theme.background.secondary }]}>
+              <Text style={[styles.debugText, { color: theme.text.primary }]}>
+                User ID: {userId || 'Not logged in'}
+              </Text>
+              <Text style={[styles.debugText, { color: theme.text.primary }]}>
+                Current Crawl: {currentCrawl ? 'Yes' : 'No'}
+              </Text>
+              <Text style={[styles.debugText, { color: theme.text.primary }]}>
+                Crawl Details: {currentCrawlDetails ? 'Yes' : 'No'}
+              </Text>
+              {currentCrawl && (
+                <>
+                  <Text style={[styles.debugText, { color: theme.text.primary }]}>
+                    Crawl ID: {currentCrawl?.crawlId}
+                  </Text>
+                  <Text style={[styles.debugText, { color: theme.text.primary }]}>
+                    Current Step: {currentCrawl?.currentStep}
+                  </Text>
+                  <Text style={[styles.debugText, { color: theme.text.primary }]}>
+                    Is Public: {currentCrawl?.isPublicCrawl ? 'Yes' : 'No'}
+                  </Text>
+                </>
+              )}
+            </View>
+          </View>
+        )}
+        
         {/* In Progress Crawl Section */}
-        {currentCrawl && matchedCrawl && (
+        {currentCrawl && currentCrawlDetails && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Continue Crawling</Text>
@@ -111,7 +132,7 @@ export default function HomeScreen() {
               {/* Left: Hero Image */}
               <View style={styles.continueCrawlImageWrapper}>
                 <Image
-                  source={require('../../auto-generated/ImageLoader').getHeroImageSource(matchedCrawl.assetFolder)}
+                  source={require('../../auto-generated/ImageLoader').getHeroImageSource(currentCrawlDetails.assetFolder)}
                   style={styles.continueCrawlImage}
                   resizeMode="cover"
                 />
@@ -121,11 +142,11 @@ export default function HomeScreen() {
                 <View style={styles.continueCrawlInfoContent}>
                   <Text style={[styles.continueCrawlLabel, { color: theme.text.primary }]}>Currently At:</Text>
                   <Text style={[styles.continueCrawlValue, { color: theme.text.primary }]}>
-                    {matchedCrawl.stops && currentCrawl.currentStep && matchedCrawl.stops[currentCrawl.currentStep - 1]?.location_name || 'N/A'}
+                    {currentCrawlDetails.stops && currentCrawl.currentStep && currentCrawlDetails.stops[currentCrawl.currentStep - 1]?.location_name || 'N/A'}
                   </Text>
                   <Text style={[styles.continueCrawlLabel, { color: theme.text.primary, marginTop: 8 }]}>Stops Left:</Text>
                   <Text style={[styles.continueCrawlValue, { color: theme.text.primary }]}>
-                    {matchedCrawl.stops ? matchedCrawl.stops.length - currentCrawl.currentStep + 1 : 'N/A'}
+                    {currentCrawlDetails.stops ? currentCrawlDetails.stops.length - currentCrawl.currentStep + 1 : 'N/A'}
                   </Text>
                 </View>
               </View>
@@ -248,5 +269,18 @@ const styles = StyleSheet.create({
   fullWidthButtonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  debugCard: {
+    marginHorizontal: 20,
+    borderRadius: 12,
+    padding: 16,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  debugText: {
+    fontSize: 14,
+    marginBottom: 4,
   },
 }); 

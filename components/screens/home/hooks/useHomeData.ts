@@ -34,6 +34,7 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
   const [upcomingCrawls, setUpcomingCrawls] = useState<PublicCrawl[]>([]);
   const [userSignups, setUserSignups] = useState<string[]>([]);
   const [currentCrawl, setCurrentCrawl] = useState<CrawlProgress | null>(null);
+  const [currentCrawlDetails, setCurrentCrawlDetails] = useState<any>(null);
   const [inProgressCrawls, setInProgressCrawls] = useState<CrawlProgress[]>([]);
   const [allLibraryCrawls, setAllLibraryCrawls] = useState<Crawl[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,6 +154,36 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
     }
   };
 
+  const loadCrawlDetailsById = async (crawlId: string, isPublic: boolean): Promise<any> => {
+    try {
+      if (isPublic) {
+        // Load from public crawls
+        const publicCrawls = await loadPublicCrawls();
+        return publicCrawls.find((crawl: any) => crawl.id === crawlId);
+      } else {
+        // Load from library crawls
+        const asset = Asset.fromModule(require('../../../../assets/crawl-library/crawls.yml'));
+        await asset.downloadAsync();
+        const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
+        const data = yaml.load(yamlString) as any;
+        const crawl = data.crawls.find((c: any) => c.id === crawlId);
+        
+        if (crawl) {
+          // Load stops for the crawl
+          const stopsData = await loadCrawlStops(crawl.assetFolder);
+          return {
+            ...crawl,
+            stops: stopsData?.stops || [],
+          };
+        }
+        return null;
+      }
+    } catch (error) {
+      console.error('Error loading crawl details by ID:', error);
+      return null;
+    }
+  };
+
   const loadCurrentCrawl = async () => {
     if (!userId) return;
 
@@ -165,34 +196,24 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
         .select('*')
         .eq('user_id', userId)
         .is('completed_at', null)
-        .single();
+        .maybeSingle(); // Use maybeSingle to avoid errors when no record exists
 
       console.log('Current progress from DB:', progress, 'Error:', error);
 
-      if (progress) {
-        console.log('Found progress in DB, setting as current crawl...');
-        // Load all crawl data to determine which are public crawls
-        const [publicCrawls, libraryCrawls] = await Promise.all([
-          loadPublicCrawls(),
-          (async () => {
-            try {
-              const asset = Asset.fromModule(require('../../../../assets/crawl-library/crawls.yml'));
-              await asset.downloadAsync();
-              const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
-              const data = yaml.load(yamlString) as any;
-              return data.crawls || [];
-            } catch (error) {
-              console.error('Error loading library crawls:', error);
-              return [];
-            }
-          })()
-        ]);
-
-        // Find the crawl details
-        const allCrawls = [...publicCrawls, ...libraryCrawls];
-        const crawlDetails = allCrawls.find((crawl: any) => crawl.id === progress.crawl_id);
-
+      if (progress && !error) {
+        console.log('Found active progress in DB:', {
+          crawlId: progress.crawl_id,
+          currentStop: progress.current_stop,
+          isPublic: progress.is_public,
+          startedAt: progress.started_at,
+          completedStops: progress.completed_stops
+        });
+        
+        // Load the full crawl details
+        const crawlDetails = await loadCrawlDetailsById(progress.crawl_id, progress.is_public);
+        
         if (crawlDetails) {
+          // Create crawl progress object with full details
           const crawlProgress: CrawlProgress = {
             crawlId: progress.crawl_id,
             currentStep: progress.current_stop,
@@ -203,20 +224,24 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
 
           console.log('Setting currentCrawl to:', crawlProgress);
           setCurrentCrawl(crawlProgress);
+          setCurrentCrawlDetails(crawlDetails); // Store full details
           setInProgressCrawls([crawlProgress]);
         } else {
-          console.log('Crawl details not found, setting currentCrawl to null');
+          console.log('Crawl details not found for crawl ID:', progress.crawl_id);
           setCurrentCrawl(null);
+          setCurrentCrawlDetails(null);
           setInProgressCrawls([]);
         }
       } else {
-        console.log('No progress found in DB, setting currentCrawl to null');
+        console.log('No active progress found in DB for user:', userId);
         setCurrentCrawl(null);
+        setCurrentCrawlDetails(null);
         setInProgressCrawls([]);
       }
     } catch (error) {
       console.error('Error loading current crawl:', error);
       setCurrentCrawl(null);
+      setCurrentCrawlDetails(null);
       setInProgressCrawls([]);
     }
   };
@@ -227,6 +252,7 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
     upcomingCrawls,
     userSignups,
     currentCrawl,
+    currentCrawlDetails,
     inProgressCrawls,
     allLibraryCrawls,
     loading,

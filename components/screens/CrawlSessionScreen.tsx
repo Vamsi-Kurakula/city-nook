@@ -181,12 +181,35 @@ const CrawlSessionScreen: React.FC = () => {
         hasResumeData: !!routeParams?.resumeData,
         hasResumeProgress: !!routeParams?.resumeProgress,
         isResumingFromDatabase,
+        currentProgressDetails: currentProgress ? {
+          currentStop: currentProgress.current_stop,
+          completedStopsLength: currentProgress.completed_stops.length,
+          crawlId: currentProgress.crawl_id,
+          isPublic: currentProgress.is_public,
+        } : null,
       });
       
       // Only save if this is a truly new session (not resuming from database)
+      // Check if we have a new progress that was just created (not loaded from database)
+      const isNewProgress = currentProgress && 
+                           currentProgress.current_stop === 1 && 
+                           currentProgress.completed_stops.length === 0 &&
+                           !isResumingFromDatabase;
+      
+      console.log('saveInitialProgress condition check:', {
+        hasUser: !!user?.id,
+        hasCurrentProgress: !!currentProgress,
+        hasCurrentCrawl: !!currentCrawl,
+        hasCrawlData: !!crawlData,
+        noResumeData: !routeParams?.resumeData,
+        noResumeProgress: !routeParams?.resumeProgress,
+        isNewProgress,
+        isResumingFromDatabase,
+      });
+      
       if (user?.id && currentProgress && currentCrawl && crawlData && 
           !routeParams?.resumeData && !routeParams?.resumeProgress &&
-          !isResumingFromDatabase) {
+          isNewProgress) {
         
         console.log('Saving initial progress to database:', currentProgress);
         console.log('Crawl data:', crawlData);
@@ -218,6 +241,35 @@ const CrawlSessionScreen: React.FC = () => {
         }
       } else {
         console.log('Not saving initial progress - conditions not met');
+        
+        // Fallback: If we have a user and current progress but didn't save, 
+        // and this looks like a new session, try to save anyway
+        if (user?.id && currentProgress && currentCrawl && crawlData && 
+            currentProgress.current_stop === 1 && 
+            currentProgress.completed_stops.length === 0) {
+          
+          console.log('Attempting fallback save of initial progress');
+          
+          const isPublic = currentProgress.is_public ?? (crawlData?.['public-crawl'] || false);
+          const progressData = {
+            user_id: user.id,
+            crawl_id: currentProgress.crawl_id,
+            is_public: isPublic,
+            current_stop: currentProgress.current_stop,
+            started_at: new Date(currentProgress.started_at).toISOString(),
+            completed_at: undefined,
+          };
+          
+          const { error } = await supabase
+            .from('crawl_progress')
+            .upsert([progressData], { onConflict: 'user_id' });
+            
+          if (error) {
+            console.error('Error in fallback save of initial progress:', error);
+          } else {
+            console.log('Fallback initial progress saved successfully');
+          }
+        }
       }
     };
     

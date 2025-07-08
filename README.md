@@ -1,6 +1,57 @@
-# City Crawler - Refactored Codebase
+# City Crawler
 
-## 🏗️ **New Project Structure**
+A React Native app for creating and participating in interactive city crawls with various stop types including riddles, locations, photos, and buttons.
+
+## 🚀 Quick Start
+
+### Environment Setup
+
+1. Copy `env.template` to `.env`:
+   ```bash
+   cp env.template .env
+   ```
+
+2. Fill in your API keys in the `.env` file:
+   ```
+   CLERK_PUBLISHABLE_KEY=pk_test_your_actual_key_here
+   SUPABASE_URL=https://your-project-id.supabase.co
+   SUPABASE_ANON_KEY=your_actual_anon_key_here
+   ```
+
+3. **Alternative**: You can also directly edit `utils/config.ts` and uncomment the development section to hardcode your values.
+
+### Authentication Setup (Clerk)
+
+1. Go to [clerk.com](https://clerk.com) and create an account
+2. Create a new application and choose React Native
+3. Enable Google OAuth in Social Connections:
+   - Go to your Clerk dashboard
+   - Navigate to User & Authentication > Social Connections
+   - Enable Google OAuth
+   - Add your Google OAuth credentials (Client ID and Client Secret)
+4. Copy your publishable key from API Keys section
+5. Add the key to your `.env` file or `utils/config.ts`
+
+### Database Setup (Supabase)
+
+1. Go to [supabase.com](https://supabase.com) and create an account
+2. Create a new project
+3. Copy your project URL and anon key from Settings > API
+4. Add the credentials to your `.env` file or `utils/config.ts`
+5. Run the SQL schema in Supabase SQL Editor:
+   - Open your Supabase dashboard
+   - Go to SQL Editor
+   - Copy and paste the contents of `database/schema.sql`
+   - Execute the SQL commands
+
+### Install and Run
+
+```bash
+npm install
+npm start
+```
+
+## 🏗️ Project Structure
 
 The codebase has been completely refactored for better maintainability, scalability, and developer experience.
 
@@ -40,7 +91,8 @@ city_crawler/
 │   │   └── CrawlMap.tsx
 │   ├── context/              # React Context providers
 │   │   ├── AuthContext.tsx
-│   │   └── CrawlContext.tsx
+│   │   ├── CrawlContext.tsx
+│   │   └── ThemeContext.tsx
 │   ├── error/                # Error handling components
 │   │   └── ErrorBoundary.tsx
 │   └── auto-generated/       # Auto-generated utilities
@@ -56,11 +108,12 @@ city_crawler/
 │   │   └── index.ts
 │   ├── answerValidation.ts
 │   ├── clerk.ts
-│   ├── config.ts
+│   ├── config.ts             # Environment and feature flags
 │   ├── coordinateExtractor.ts
 │   ├── crawlStatus.ts
 │   ├── featuredCrawlLoader.ts
-│   └── publicCrawlLoader.ts
+│   ├── publicCrawlLoader.ts
+│   └── theme.ts              # Theme system
 ├── types/                    # TypeScript type definitions
 │   ├── crawl.ts
 │   ├── env.d.ts
@@ -78,40 +131,63 @@ city_crawler/
     └── runMigration.js
 ```
 
-## 🔄 **Key Refactoring Changes**
+## 🎨 Features
 
-### **1. HomeScreen Refactoring (923 → ~200 lines)**
-- **Extracted Components:**
-  - `HomeHeader.tsx` - Header with user profile
-  - `UpcomingCrawlsSection.tsx` - Public crawls section
-  - `FeaturedCrawlsSection.tsx` - Featured crawls section
-- **Custom Hooks:**
-  - `useHomeData.ts` - Data loading and state management
-  - `useCrawlActions.ts` - Event handlers and navigation
+### **Theme System**
+- **Light/Dark Mode**: Automatic theme switching with consistent branding
+- **Color Consistency**: All components follow the theme system
+- **Accessibility**: Proper contrast ratios in both themes
 
-### **2. StopComponents Refactoring (545 → ~100 lines each)**
-- **Modular Stop Types:**
-  - `RiddleStop.tsx` - Riddle-based stops
-  - `LocationStop.tsx` - Location-based stops
-  - `PhotoStop.tsx` - Photo-based stops
-  - `ButtonStop.tsx` - Button-based stops
-- **Orchestrator:**
-  - `StopComponent.tsx` - Main component that routes to appropriate stop type
+### **Crawl Progress Tracking**
+- **Real-time Progress**: Track current stop and completed stops
+- **Database Persistence**: Progress is saved to Supabase
+- **Home Screen Integration**: "Continue Crawling" section shows active crawls
+- **Single Crawl Enforcement**: Users can only have one active crawl at a time
 
-### **3. Database Operations Refactoring**
-- **Organized by Domain:**
-  - `client.ts` - Supabase client configuration
-  - `types.ts` - Database type definitions
-  - `progressOperations.ts` - Crawl progress operations
-  - `historyOperations.ts` - Crawl history operations
-  - `statsOperations.ts` - Statistics operations
+### **Stop Types**
+- **Riddle Stops**: Answer questions to proceed
+- **Location Stops**: Visit specific locations
+- **Photo Stops**: Take photos to complete challenges
+- **Button Stops**: Simple button interactions
 
-### **4. Navigation Structure**
-- **Separated Concerns:**
-  - `AuthNavigator.tsx` - Handles authentication flow
-  - `AppNavigator.tsx` - Main app navigation
+### **Authentication**
+- **Google OAuth**: Sign in with Google accounts
+- **Session Management**: Automatic session handling
+- **User Profiles**: User information and preferences
 
-## 🎯 **Benefits of Refactoring**
+## 🔧 Feature Flags
+
+The app includes a feature flag system for controlling experimental features and debugging:
+
+```typescript
+// utils/config.ts
+export const FEATURE_FLAGS = {
+  // Debug and Development Features
+  SHOW_DEBUG_INFO: false, // Set to true to show debug information on home screen
+  ENABLE_VERBOSE_LOGGING: false, // Set to true for detailed console logging
+  
+  // Experimental Features
+  ENABLE_NEW_UI: false, // Set to true to enable new UI components
+  ENABLE_ANALYTICS: false, // Set to true to enable analytics tracking
+  
+  // Performance Features
+  ENABLE_CACHE: true, // Set to false to disable caching
+  ENABLE_LAZY_LOADING: true, // Set to false to disable lazy loading
+} as const;
+```
+
+### Using Feature Flags
+
+```typescript
+import { isFeatureEnabled } from '../../utils/config';
+
+// Check if a feature is enabled
+if (isFeatureEnabled('SHOW_DEBUG_INFO')) {
+  // Show debug information
+}
+```
+
+## 🔄 Key Refactoring Benefits
 
 ### **Maintainability**
 - **Smaller Files:** Each component has a single responsibility
@@ -133,7 +209,7 @@ city_crawler/
 - **Modular Architecture:** Components can be developed independently
 - **Clear Dependencies:** Import/export structure is well-defined
 
-## 🚀 **Usage Examples**
+## 🚀 Usage Examples
 
 ### **Adding a New Stop Type**
 ```typescript
@@ -168,7 +244,14 @@ const { featuredCrawls, loading } = useHomeData(userId, isLoading);
 const { handleCrawlPress } = useCrawlActions();
 ```
 
-## 📋 **Migration Checklist**
+## 🔒 Security Notes
+
+- Never commit your `.env` file to version control
+- The `.env` file is already added to `.gitignore`
+- Keep your API keys secure and rotate them regularly
+- For development, you can hardcode values in `utils/config.ts` (but don't commit them)
+
+## 📋 Migration Checklist
 
 - [x] Break up large screen files
 - [x] Extract reusable components
@@ -178,8 +261,11 @@ const { handleCrawlPress } = useCrawlActions();
 - [x] Create index files for clean exports
 - [x] Update navigation structure
 - [x] Document new structure
+- [x] Implement theme system
+- [x] Add feature flag system
+- [x] Improve crawl progress tracking
 
-## 🔧 **Next Steps**
+## 🔧 Next Steps
 
 1. **Testing:** Add unit tests for new components
 2. **Performance:** Implement React.memo for optimized re-renders
