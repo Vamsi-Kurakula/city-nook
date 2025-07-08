@@ -362,7 +362,7 @@ const CrawlSessionScreen: React.FC = () => {
       {/* Scrollable Content */}
       <ScrollView style={styles.scrollableContent} showsVerticalScrollIndicator={false}>
         {/* Current Location Section */}
-        <View style={[styles.locationSection, { backgroundColor: theme.background.secondary, borderBottomColor: theme.border.secondary }]}>
+        <View style={[styles.locationSection, { borderBottomColor: theme.border.secondary }]}>
           <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Current Location</Text>
           <View style={styles.locationContent}>
             <Text style={[styles.locationName, { color: theme.text.primary }]}>{currentStop.location_name || 'Unknown Location'}</Text>
@@ -370,7 +370,7 @@ const CrawlSessionScreen: React.FC = () => {
         </View>
 
         {/* Gate Section - Stop Type Content */}
-        <View style={[styles.gateSection, { backgroundColor: theme.background.secondary, borderBottomColor: theme.border.secondary }]}>
+        <View style={[styles.gateSection, { borderBottomColor: theme.border.secondary }]}>
           <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Current Challenge</Text>
           <View style={styles.gateContent}>
             <StopComponent
@@ -385,7 +385,7 @@ const CrawlSessionScreen: React.FC = () => {
         </View>
 
         {/* Travel Section - Next Stop Info */}
-        <View style={[styles.travelSection, { backgroundColor: theme.background.secondary, borderBottomColor: theme.border.secondary }]}>
+        <View style={[styles.travelSection, { borderBottomColor: theme.border.secondary }]}>
           <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Next Stop</Text>
           <View style={styles.travelContent}>
             {isNextStopRevealed && currentStopNumber < totalStops ? (
@@ -406,9 +406,9 @@ const CrawlSessionScreen: React.FC = () => {
         </View>
 
         {/* Bottom Buttons Section */}
-        <View style={[styles.bottomButtonsSection, { backgroundColor: theme.background.secondary, borderTopColor: theme.border.secondary }]}>
+        <View style={[styles.bottomButtonsSection, { borderTopColor: theme.border.secondary }]}>
           <TouchableOpacity style={[styles.bottomButton, { backgroundColor: theme.background.tertiary }]} onPress={() => setShowMap(true)}>
-            <Text style={[styles.bottomButtonText, { color: theme.text.primary }]}>🗺️ Map</Text>
+            <Text style={[styles.bottomButtonText, { color: theme.text.primary }]}>Map</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[
@@ -427,15 +427,15 @@ const CrawlSessionScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.bottomButton, { backgroundColor: theme.background.tertiary }]} onPress={() => setShowPastStops(true)}>
-            <Text style={[styles.bottomButtonText, { color: theme.text.primary }]}>📋 Past Steps</Text>
+            <Text style={[styles.bottomButtonText, { color: theme.text.primary }]}>Past Steps</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
       {/* Past Stops Modal */}
       <Modal visible={showPastStops} animationType="slide" onRequestClose={() => setShowPastStops(false)}>
-        <SafeAreaView style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Past Stops</Text>
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.background.primary }]}>
+          <Text style={[styles.modalTitle, { color: theme.text.primary }]}>Past Stops</Text>
           <FlatList
             data={completedStops}
             keyExtractor={item => item.stop_number.toString()}
@@ -443,34 +443,34 @@ const CrawlSessionScreen: React.FC = () => {
               const stop = stops.find((s: CrawlStop) => s.stop_number === item.stop_number);
               const question = stop?.stop_components?.description || stop?.stop_components?.riddle || stop?.stop_components?.photo_instructions || stop?.stop_components?.location_name || stop?.stop_components?.photo_target || '';
               return (
-                <View style={styles.pastStopItem}>
-                  <Text style={styles.pastStopTitle}>Stop {item.stop_number}</Text>
-                  <Text style={styles.pastStopQuestion}>{question}</Text>
-                  <Text style={styles.pastStopAnswer}>Answer: {item.user_answer}</Text>
-                  <Text style={styles.pastStopTime}>Completed: {item.completed_at ? new Date(item.completed_at).toLocaleString() : ''}</Text>
+                <View style={[styles.pastStopItem, { borderColor: theme.background.secondary }]}>
+                  <Text style={[styles.pastStopTitle, { color: theme.text.primary }]}>Stop {item.stop_number}</Text>
+                  <Text style={[styles.pastStopQuestion, { color: theme.text.secondary }]}>{question}</Text>
+                  <Text style={[styles.pastStopAnswer, { color: theme.text.secondary }]}>Answer: {item.user_answer}</Text>
+                  <Text style={[styles.pastStopTime, { color: theme.text.tertiary }]}>Completed: {item.completed_at ? new Date(item.completed_at).toLocaleString() : ''}</Text>
                   {stop?.location_link && (
                     <TouchableOpacity onPress={() => Linking.openURL(stop.location_link!)}>
-                      <Text style={styles.pastStopLink}>📍 Open Reward Location</Text>
+                      <Text style={[styles.pastStopLink, { color: theme.button.primary }]}>📍 Open Reward Location</Text>
                     </TouchableOpacity>
                   )}
                 </View>
               );
             }}
-            ListEmptyComponent={<Text style={styles.noPastStops}>No stops completed yet.</Text>}
+            ListEmptyComponent={<Text style={[styles.noPastStops, { color: theme.text.tertiary }]}>No stops completed yet.</Text>}
           />
-          <TouchableOpacity style={styles.closeModalButton} onPress={() => setShowPastStops(false)}>
-            <Text style={styles.closeModalButtonText}>Close</Text>
+          <TouchableOpacity style={[styles.closeModalButton, { backgroundColor: theme.background.secondary }]} onPress={() => setShowPastStops(false)}>
+            <Text style={[styles.closeModalButtonText, { color: theme.text.primary }]}>Close</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </Modal>
 
       {/* Map Modal */}
       <Modal visible={showMap} animationType="slide" onRequestClose={() => setShowMap(false)}>
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Crawl Map</Text>
-            <TouchableOpacity style={styles.closeModalButton} onPress={() => setShowMap(false)}>
-              <Text style={styles.closeModalButtonText}>Close</Text>
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.background.primary }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: theme.border.secondary }]}>
+            <Text style={[styles.modalTitle, { color: theme.text.primary }]}>Crawl Map</Text>
+            <TouchableOpacity style={[styles.closeModalButton, { backgroundColor: theme.background.secondary }]} onPress={() => setShowMap(false)}>
+              <Text style={[styles.closeModalButtonText, { color: theme.text.primary }]}>Close</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.mapContainer}>
@@ -615,6 +615,7 @@ const styles = StyleSheet.create({
   bottomButtonText: { 
     fontSize: 14,
     fontWeight: '600',
+    textAlign: 'center',
   },
   nextButton: { 
     // Will be overridden by theme
@@ -633,7 +634,6 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#fff',
     padding: 24,
   },
   modalTitle: {
@@ -644,8 +644,8 @@ const styles = StyleSheet.create({
   pastStopItem: {
     marginBottom: 16,
     padding: 12,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
+    borderRadius: 12,
+    borderWidth: 1,
   },
   pastStopTitle: {
     fontSize: 16,
@@ -653,40 +653,33 @@ const styles = StyleSheet.create({
   },
   pastStopQuestion: {
     fontSize: 15,
-    color: '#222',
     marginTop: 4,
     marginBottom: 4,
   },
   pastStopAnswer: {
     fontSize: 14,
-    color: '#333',
     marginTop: 4,
   },
   pastStopTime: {
     fontSize: 12,
-    color: '#888',
     marginTop: 2,
   },
   pastStopLink: {
-    color: '#007AFF',
     fontSize: 15,
     marginTop: 6,
     textDecorationLine: 'underline',
   },
   noPastStops: {
     textAlign: 'center',
-    color: '#888',
     marginTop: 32,
   },
   closeModalButton: {
     marginTop: 24,
     alignSelf: 'center',
-    backgroundColor: '#eee',
     padding: 12,
     borderRadius: 8,
   },
   closeModalButtonText: {
-    color: '#333',
     fontSize: 16,
   },
   swipeHint: {
@@ -730,7 +723,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   mapContainer: {
     flex: 1,

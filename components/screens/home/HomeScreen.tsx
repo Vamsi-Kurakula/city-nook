@@ -79,16 +79,10 @@ export default function HomeScreen() {
         <View style={[styles.section, { marginTop: 20 }]}>
           <View style={styles.buttonRow}>
             <TouchableOpacity 
-              style={[styles.halfWidthButton, { backgroundColor: theme.background.secondary }]} 
+              style={[styles.fullWidthButton, { backgroundColor: theme.background.secondary }]} 
               onPress={() => navigation.navigate('CrawlLibrary')}
             >
-              <Text style={[styles.halfWidthButtonText, { color: theme.text.primary }]}>Crawl Library</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.halfWidthButton, { backgroundColor: theme.background.secondary }]} 
-              onPress={() => {}}
-            >
-              <Text style={[styles.halfWidthButtonText, { color: theme.text.primary }]}>Join Crawl</Text>
+              <Text style={[styles.fullWidthButtonText, { color: theme.text.primary }]}>Crawl Library</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -239,7 +233,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 12,
   },
-  halfWidthButton: {
+  fullWidthButton: {
     flex: 1,
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -251,7 +245,7 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 20,
   },
-  halfWidthButtonText: {
+  fullWidthButtonText: {
     fontSize: 16,
     fontWeight: '600',
   },
