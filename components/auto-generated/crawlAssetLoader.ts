@@ -12,9 +12,12 @@ const STOPS_ASSET_MAP: { [key: string]: any } = {
   'public-crawls/foodie-adventure': require('../../assets/public-crawls/foodie-adventure/stops.yml'),
   'public-crawls/synchronized-crawl': require('../../assets/public-crawls/synchronized-crawl/stops.yml'),
   'public-crawls/taste-quest': require('../../assets/public-crawls/taste-quest/stops.yml'),
+  'crawl-library/andersonville-brewery-crawl': require('../../assets/crawl-library/andersonville-brewery-crawl/stops.yml'),
   'crawl-library/art-culture-walk': require('../../assets/crawl-library/art-culture-walk/stops.yml'),
   'crawl-library/historic-downtown-crawl': require('../../assets/crawl-library/historic-downtown-crawl/stops.yml'),
-  'crawl-library/simple-location-crawl': require('../../assets/crawl-library/simple-location-crawl/stops.yml')
+  'crawl-library/simple-location-crawl': require('../../assets/crawl-library/simple-location-crawl/stops.yml'),
+  'crawl-library/snacks-through-lakeview': require('../../assets/crawl-library/snacks-through-lakeview/stops.yml'),
+  'crawl-library/taste-quest-through-ravenswood': require('../../assets/crawl-library/taste-quest-through-ravenswood/stops.yml')
 };
 
 /**

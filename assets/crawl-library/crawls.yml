@@ -25,3 +25,30 @@ crawls:
     difficulty: 'Easy'
     distance: '1.0 miles'
     public-crawl: false 
+
+  - id: '4'
+    name: Taste Quest Through Ravenswood
+    description: A Food and Drink Crawl Through Ravenswood
+    assetFolder: 'crawl-library/taste-quest-through-ravenswood'
+    duration: '3-5 hours'
+    difficulty: 'Medium'
+    distance: '2.0 miles'
+    public-crawl: false 
+
+  - id: '5'
+    name: Andersonville Brewery Crawl
+    description: A bunch of local breweries in Andersonville
+    assetFolder: 'crawl-library/andersonville-brewery-crawl'
+    duration: '2-4 hours'
+    difficulty: 'easy'
+    distance: '4.0 miles'
+    public-crawl: false 
+
+  - id: '6'
+    name: Snacks through Lakeview
+    description: A bunch of local breweries in Andersonville
+    assetFolder: 'crawl-library/snacks-through-lakeview'
+    duration: '1-2 hours'
+    difficulty: 'easy'
+    distance: '1.0 miles'
+    public-crawl: false 
