@@ -39,11 +39,18 @@ const SYNONYMS: { [key: string]: string[] } = {
   'library': ['libraries', 'public library', 'reading room'],
 };
 
+import { validateUserAnswer, sanitizeInput } from './inputValidation';
+
 export const validateAnswer = (userAnswer: string, correctAnswer: string): boolean => {
   if (!userAnswer || !correctAnswer) return false;
   
+  // Validate and sanitize user input first
+  if (!validateUserAnswer(userAnswer)) {
+    return false;
+  }
+  
   // Normalize answers (lowercase, trim whitespace)
-  const normalizedUser = userAnswer.toLowerCase().trim();
+  const normalizedUser = sanitizeInput(userAnswer.toLowerCase().trim());
   const normalizedCorrect = correctAnswer.toLowerCase().trim();
   
   // Direct match

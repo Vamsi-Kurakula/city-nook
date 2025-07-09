@@ -39,7 +39,7 @@ Welcome to Crawls! By using our mobile application (the "App"), you agree to the
 - We may update these Terms from time to time. Changes will be posted in the App and/or on our website.
 
 ## 8. Contact Us
-If you have questions about these Terms, contact us at: [your contact email]
+If you have questions about these Terms, contact us at: vamsikurakula@gmail.com
 
 ---
 

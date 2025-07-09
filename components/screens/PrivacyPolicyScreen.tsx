@@ -34,7 +34,7 @@ We use industry-standard security measures to protect your information, includin
 ## 5. Your Rights and Choices
 - You can access, update, or delete your profile information via the App.
 - You can revoke location permissions at any time in your device settings.
-- You may contact us at [your contact email] for privacy-related requests.
+- You may contact us at vamsikurakula@gmail.com for privacy-related requests.
 
 ## 6. Children's Privacy
 The App is not intended for children under 13. We do not knowingly collect data from children under 13.
@@ -43,7 +43,7 @@ The App is not intended for children under 13. We do not knowingly collect data 
 We may update this Privacy Policy from time to time. Changes will be posted in the App and/or on our website.
 
 ## 8. Contact Us
-If you have questions about this Privacy Policy, contact us at: [your contact email]
+If you have questions about this Privacy Policy, contact us at: vamsikurakula@gmail.com
 
 ---
 

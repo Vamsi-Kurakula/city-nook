@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { deleteUserAccount, exportUserData } from '../../utils/database/userOperations';
 
 const UserProfile: React.FC = () => {
   const { user, userProfile, signOut, isLoading, isSignedIn } = useAuthContext();
@@ -62,6 +63,66 @@ const UserProfile: React.FC = () => {
 
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
     setTheme(newTheme);
+  };
+
+  const handleExportData = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const result = await exportUserData(user.id);
+      if (result.success && result.data) {
+        Alert.alert(
+          'Data Export',
+          'Your data has been prepared for export. Check your email for the download link.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert('Error', result.error || 'Failed to export data');
+      }
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      Alert.alert('Error', 'Failed to export data');
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete Account', 
+          style: 'destructive', 
+          onPress: async () => {
+            if (!user?.id) return;
+            
+            try {
+              const result = await deleteUserAccount(user.id);
+              if (result.success) {
+                Alert.alert(
+                  'Account Deleted',
+                  'Your account and all associated data have been permanently deleted.',
+                  [
+                    {
+                      text: 'OK',
+                      onPress: async () => {
+                        await signOut();
+                      }
+                    }
+                  ]
+                );
+              } else {
+                Alert.alert('Error', result.error || 'Failed to delete account');
+              }
+            } catch (error) {
+              console.error('Error deleting account:', error);
+              Alert.alert('Error', 'Failed to delete account');
+            }
+          }
+        },
+      ]
+    );
   };
 
   if (isLoading) {
@@ -196,6 +257,16 @@ const UserProfile: React.FC = () => {
               </View>
             </View>
           </View>
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Account Details</Text>
+            <TouchableOpacity style={[styles.accountButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary }]} onPress={handleExportData}>
+              <Text style={[styles.accountButtonText, { color: theme.text.primary }]}>📤 Export My Data</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.accountButton, { backgroundColor: theme.button.danger }]} onPress={handleDeleteAccount}>
+              <Text style={[styles.accountButtonText, { color: theme.text.inverse }]}>🗑️ Delete Account</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
       
@@ -314,6 +385,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  actionButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginBottom: 12,
+    width: '100%',
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
   activityButton: {
     padding: 12,
     borderWidth: 1,
@@ -325,6 +408,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
+  },
+  accountButton: {
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    borderRadius: 8,
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  accountButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   title: {
     fontSize: 32,
