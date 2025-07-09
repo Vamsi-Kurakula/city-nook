@@ -1,6 +1,6 @@
 // Database types for TypeScript
 export interface UserProfile {
-  id: string;
+  user_profile_id: string;
   email: string;
   full_name?: string;
   avatar_url?: string;

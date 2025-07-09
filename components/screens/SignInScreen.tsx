@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Image, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOAuth, useAuth } from '@clerk/clerk-expo';
 import { useAuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import * as WebBrowser from 'expo-web-browser';
+import { useNavigation } from '@react-navigation/native';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -14,6 +15,7 @@ export default function SignInScreen() {
   const { signOut } = useAuthContext();
   const { theme } = useTheme();
   const [isLoading, setIsLoading] = React.useState(false);
+  const navigation = useNavigation<any>();
 
   const handleContinueWithCurrentAccount = async () => {
     try {
@@ -35,9 +37,17 @@ export default function SignInScreen() {
     setIsLoading(true);
     try {
       console.log('Starting OAuth flow...');
+      console.log('Clerk publishable key exists:', !!process.env.CLERK_PUBLISHABLE_KEY);
+      
       const { createdSessionId, signIn, signUp, setActive } = await startOAuthFlow();
 
-      console.log('OAuth flow result:', { createdSessionId, signIn, signUp });
+      console.log('OAuth flow result:', { 
+        createdSessionId: !!createdSessionId, 
+        hasSignIn: !!signIn, 
+        hasSignUp: !!signUp,
+        signUpStatus: signUp?.status,
+        signInStatus: signIn?.status
+      });
 
       if (createdSessionId) {
         console.log('Session created, setting active...');
@@ -92,6 +102,10 @@ export default function SignInScreen() {
       }
     } catch (err) {
       console.error('OAuth error:', err);
+      console.error('Error details:', {
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined
+      });
       Alert.alert(
         'Sign In Error',
         `Failed to sign in: ${err instanceof Error ? err.message : 'Unknown error'}`,
@@ -116,8 +130,7 @@ export default function SignInScreen() {
       <View style={styles.content}>
         {/* App Logo/Title */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.text.primary }]}>City Crawler</Text>
-          <Text style={[styles.subtitle, { color: theme.text.secondary }]}>Discover your city, one crawl at a time</Text>
+          <Text style={[styles.title, { color: theme.text.primary }]}>Crawls</Text>
         </View>
 
         {/* Sign In Options */}
@@ -157,7 +170,10 @@ export default function SignInScreen() {
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: theme.text.tertiary }]}>
-            By continuing, you agree to our Terms of Service and Privacy Policy
+            By continuing, you agree to our
+            <Text style={{ color: theme.button.primary }} onPress={() => navigation.navigate('PrivacyPolicy')}> Privacy Policy</Text>
+            {' '}and
+            <Text style={{ color: theme.button.primary }} onPress={() => navigation.navigate('TermsOfService')}> Terms of Service</Text>.
           </Text>
         </View>
       </View>

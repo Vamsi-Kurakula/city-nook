@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthContext } from '../context/AuthContext';
@@ -205,6 +205,14 @@ const UserProfile: React.FC = () => {
           <Text style={[styles.signOutButtonText, { color: theme.button.danger }]}>Sign Out</Text>
         </TouchableOpacity>
       </View>
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          View our
+          <Text style={{ color: theme.button.primary }} onPress={() => navigation.navigate('PrivacyPolicy')}> Privacy Policy</Text>
+          {' '}and
+          <Text style={{ color: theme.button.primary }} onPress={() => navigation.navigate('TermsOfService')}> Terms of Service</Text>.
+        </Text>
+      </View>
     </SafeAreaView>
   );
 };
@@ -398,6 +406,15 @@ const styles = StyleSheet.create({
   themeButtonText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  footer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
 });
 

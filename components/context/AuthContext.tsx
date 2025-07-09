@@ -27,6 +27,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Remove session clearing logic - let users stay signed in
+  // React.useEffect(() => {
+  //   if (isLoaded && isSignedIn) {
+  //     console.log('App started with existing session, clearing...');
+  //     clerkSignOut();
+  //   }
+  // }, [isLoaded]);
+
   // Debug logging
   useEffect(() => {
     console.log('AuthContext state:', { isLoaded, isSignedIn, userId: user?.id });
@@ -38,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('user_profile_id', userId)
         .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
@@ -51,23 +59,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUserProfile(data);
       } else {
         console.log('Creating new user profile for:', userId);
-        // Create user profile if it doesn't exist
+        console.log('User data for profile creation:', {
+          user_id: userId,
+          user_email: user?.emailAddresses?.[0]?.emailAddress || '',
+          user_full_name: user?.fullName || '',
+          user_avatar_url: user?.imageUrl || ''
+        });
+        
+        // Use the create_user_profile function instead of direct insert
         const { data: newProfile, error: createError } = await supabase
-          .from('user_profiles')
-          .insert({
-            id: userId,
-            email: user?.emailAddresses?.[0]?.emailAddress || '',
-            full_name: user?.fullName || '',
-            avatar_url: user?.imageUrl || '',
-          })
-          .select()
-          .single();
+          .rpc('create_user_profile', {
+            clerk_user_id: userId,
+            user_email: user?.emailAddresses?.[0]?.emailAddress || '',
+            user_full_name: user?.fullName || '',
+            user_avatar_url: user?.imageUrl || ''
+          });
 
         if (createError) {
           console.error('Error creating user profile:', createError);
+          console.error('Error details:', {
+            code: createError.code,
+            message: createError.message,
+            details: createError.details,
+            hint: createError.hint
+          });
         } else {
           console.log('Created new user profile:', newProfile);
-          setUserProfile(newProfile);
+          setUserProfile(newProfile[0]); // Function returns an array, take first element
         }
       }
     } catch (error) {

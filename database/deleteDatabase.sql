@@ -1,43 +1,68 @@
--- City Crawler Database Deletion Script
--- WARNING: This script will completely delete all data and tables from the database
--- Run this in your Supabase SQL editor to completely reset the database
+-- Delete Database Script for City Crawler
+-- This script completely resets the database to a clean state
+-- Run this before running schema.sql to ensure a fresh start
 
--- Drop all triggers first
+-- Note: All user_id and user_profile_id columns are TEXT to match Clerk user IDs (not UUID)
+
+-- Step 1: Drop RLS policies first (before tables are dropped)
+-- Drop RLS policies for user_profiles
+DROP POLICY IF EXISTS "Users can access their own profile" ON user_profiles;
+DROP POLICY IF EXISTS "Allow all operations for now" ON user_profiles;
+
+-- Drop RLS policies for crawl_progress
+DROP POLICY IF EXISTS "Users can access their own crawl progress" ON crawl_progress;
+DROP POLICY IF EXISTS "Allow all operations for now" ON crawl_progress;
+
+-- Drop RLS policies for user_crawl_history
+DROP POLICY IF EXISTS "Users can access their own crawl history" ON user_crawl_history;
+DROP POLICY IF EXISTS "Allow all operations for now" ON user_crawl_history;
+
+-- Drop RLS policies for public_crawl_signups
+DROP POLICY IF EXISTS "Users can access their own public crawl signups" ON public_crawl_signups;
+DROP POLICY IF EXISTS "Allow all operations for now" ON public_crawl_signups;
+
+-- Step 2: Drop triggers (before functions are dropped)
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
 DROP TRIGGER IF EXISTS update_crawl_progress_updated_at ON crawl_progress;
 
--- Drop all functions
-DROP FUNCTION IF EXISTS handle_new_user();
-DROP FUNCTION IF EXISTS update_updated_at_column();
+-- Step 3: Drop functions (with all possible signatures)
+-- Drop trigger functions first
+DROP FUNCTION IF EXISTS handle_new_user() CASCADE;
+DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
 
--- Drop all tables (in reverse dependency order)
+-- Drop user profile functions
+DROP FUNCTION IF EXISTS create_user_profile(TEXT, TEXT, TEXT, TEXT) CASCADE;
+DROP FUNCTION IF EXISTS create_user_profile(TEXT, TEXT) CASCADE;
+DROP FUNCTION IF EXISTS create_user_profile(TEXT, TEXT, TEXT) CASCADE;
+
+-- Drop debug functions
+DROP FUNCTION IF EXISTS debug_user_profile(TEXT) CASCADE;
+
+-- Step 4: Drop all tables in the correct order (respecting foreign key constraints)
+-- Drop public_crawl_signups first (references user_profiles)
 DROP TABLE IF EXISTS public_crawl_signups CASCADE;
+
+-- Drop user_crawl_history (references user_profiles)
 DROP TABLE IF EXISTS user_crawl_history CASCADE;
+
+-- Drop crawl_progress (references user_profiles)
 DROP TABLE IF EXISTS crawl_progress CASCADE;
+
+-- Drop user_profiles last (referenced by other tables)
 DROP TABLE IF EXISTS user_profiles CASCADE;
 
--- Drop all indexes (they should be dropped with tables, but just in case)
+-- Step 5: Clean up any remaining indexes (in case they weren't dropped with tables)
 DROP INDEX IF EXISTS idx_crawl_progress_user_id;
 DROP INDEX IF EXISTS idx_crawl_progress_crawl_id;
 DROP INDEX IF EXISTS idx_crawl_progress_is_public;
-
 DROP INDEX IF EXISTS idx_crawl_progress_completed_at;
 DROP INDEX IF EXISTS idx_crawl_progress_started_at;
+
 DROP INDEX IF EXISTS idx_user_crawl_history_user_id;
 DROP INDEX IF EXISTS idx_user_crawl_history_crawl_id;
 DROP INDEX IF EXISTS idx_user_crawl_history_is_public;
 DROP INDEX IF EXISTS idx_user_crawl_history_completed_at;
-DROP INDEX IF EXISTS idx_public_crawl_signups_crawl_id;
-DROP INDEX IF EXISTS idx_public_crawl_signups_user_id;
-DROP INDEX IF EXISTS idx_public_crawl_signups_is_public;
-
--- Drop any remaining constraints that might exist
-
-ALTER TABLE IF EXISTS crawl_progress DROP CONSTRAINT IF EXISTS crawl_progress_user_id_crawl_id_is_public_key;
-ALTER TABLE IF EXISTS crawl_progress DROP CONSTRAINT IF EXISTS crawl_progress_user_id_key;
-ALTER TABLE IF EXISTS crawl_progress DROP CONSTRAINT IF EXISTS crawl_progress_pkey;
 
 -- Reset the database to a clean state
--- Note: This will remove all data permanently
-SELECT 'Database deletion completed successfully. All tables, functions, triggers, constraints, and data have been removed.' AS status; 
+SELECT 'Database reset completed successfully. Run schema.sql to recreate tables.' AS status; 
