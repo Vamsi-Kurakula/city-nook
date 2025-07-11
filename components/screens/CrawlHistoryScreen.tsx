@@ -5,6 +5,7 @@ import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { getCrawlHistory, getCrawlNameMapping } from '../../utils/database';
+import BackButton from '../ui/BackButton';
 
 interface CrawlHistoryItem {
   id: string;
@@ -80,9 +81,7 @@ const CrawlHistoryScreen: React.FC = () => {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.goBack()} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.button.primary} />
@@ -96,9 +95,7 @@ const CrawlHistoryScreen: React.FC = () => {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.goBack()} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.button.primary} />
@@ -111,9 +108,7 @@ const CrawlHistoryScreen: React.FC = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} />
       </View>
       <Text style={[styles.title, { color: theme.text.primary }]}>Crawl History</Text>
       

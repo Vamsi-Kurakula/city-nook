@@ -12,6 +12,7 @@ import { useAuthContext } from '../context/AuthContext';
 import { saveCrawlProgress, addCrawlHistory, deleteCrawlProgress, supabase } from '../../utils/database';
 import { getCrawlProgress } from '../../utils/database/progressOperations';
 import { extractAllCoordinates, LocationCoordinates } from '../../utils/coordinateExtractor';
+import BackButton from '../ui/BackButton';
 
 const CrawlSessionScreen: React.FC = () => {
   const route = useRoute();
@@ -26,9 +27,7 @@ const CrawlSessionScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.title}>No crawl data found (CrawlSessionScreen).</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.exitButton}>
-          <Text style={styles.exitButtonText}>Back</Text>
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} label="Back" style={styles.exitButton} textStyle={styles.exitButtonText} />
       </SafeAreaView>
     );
   }
@@ -393,9 +392,7 @@ const CrawlSessionScreen: React.FC = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       {/* Fixed Top Section - Exit Button and Future Buttons */}
       <View style={[styles.topSection, { borderBottomColor: theme.border.secondary }]}>
-        <TouchableOpacity style={styles.exitButton} onPress={handleExit}>
-          <Text style={[styles.exitButtonText, { color: theme.text.secondary }]}>Exit</Text>
-        </TouchableOpacity>
+        <BackButton onPress={handleExit} label="Exit" style={styles.exitButton} textStyle={styles.exitButtonText} />
         <View style={styles.topRightButtons}>
           {/* Future buttons will go here */}
         </View>

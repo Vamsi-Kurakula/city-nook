@@ -9,6 +9,7 @@ import { useAuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../../utils/database';
 import { MaterialIcons } from '@expo/vector-icons';
+import BackButton from '../ui/BackButton';
 
 const CrawlDetailScreen: React.FC = () => {
   const route = useRoute();
@@ -21,11 +22,9 @@ const CrawlDetailScreen: React.FC = () => {
   console.log('CrawlDetailScreen route params:', routeParams);
   if (!crawl) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.goBack()} />
         </View>
         <Text style={[styles.title, { color: theme.text.primary }]}>No crawl data found (CrawlDetailScreen).</Text>
       </SafeAreaView>
@@ -44,11 +43,9 @@ const CrawlDetailScreen: React.FC = () => {
   // Show loading if auth is still loading
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.goBack()} />
         </View>
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
@@ -103,11 +100,9 @@ const CrawlDetailScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} />
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Image

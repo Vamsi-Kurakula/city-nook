@@ -5,6 +5,7 @@ import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { deleteUserAccount, exportUserData } from '../../utils/database/userOperations';
+import BackButton from '../ui/BackButton';
 
 const UserProfile: React.FC = () => {
   const { user, userProfile, signOut, isLoading, isSignedIn } = useAuthContext();
@@ -168,9 +169,7 @@ const UserProfile: React.FC = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} />
       </View>
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>

@@ -15,6 +15,7 @@ import { RootStackParamList } from '../../types/navigation';
 import { Crawl } from '../../types/crawl';
 import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
 import { useNavigation, CommonActions } from '@react-navigation/native';
+import BackButton from '../ui/BackButton';
 
 interface CrawlData {
   crawls: Crawl[];
@@ -215,9 +216,7 @@ const CrawlLibrary: React.FC = () => {
         </View>
         {/* Action buttons row */}
         <View style={styles.actionRow}>
-          <TouchableOpacity onPress={() => navigation.navigate('Home')} style={[styles.backToHomeButton, { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary }]}>
-            <Text style={[styles.backToHomeText, { color: theme.text.primary }]}>Back to Home</Text>
-          </TouchableOpacity>
+          <BackButton onPress={() => navigation.navigate('Home')} />
           <TouchableOpacity onPress={() => navigation.navigate('CrawlLibraryFilters', { minStops, maxDistanceMiles })} style={[styles.filtersButton, { backgroundColor: theme.background.tertiary }]}>
             <Text style={[styles.filtersButtonText, { color: theme.button.primary }]}>Filters</Text>
           </TouchableOpacity>
