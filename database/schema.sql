@@ -182,4 +182,130 @@ COMMENT ON FUNCTION handle_new_user() IS 'Trigger function to create user profil
 COMMENT ON FUNCTION create_user_profile(TEXT, TEXT, TEXT, TEXT) IS 'Manual function to create/update user profiles with conflict resolution - fixed ambiguous column reference';
 COMMENT ON FUNCTION debug_user_profile(TEXT) IS 'Debug function to check user profile and auth user existence - fixed ambiguous column reference';
 
-SELECT 'Database schema created successfully with datatype fixes for Clerk user IDs and ambiguous column reference fixes.' AS status; 
+-- Create crawl definitions table (combines both public and library crawls)
+CREATE TABLE IF NOT EXISTS crawl_definitions (
+  crawl_definition_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT UNIQUE NOT NULL, -- Use name as the unique identifier
+  description TEXT NOT NULL,
+  asset_folder TEXT NOT NULL, -- Path to assets (e.g., 'crawl-library/historic-downtown-crawl')
+  duration TEXT NOT NULL, -- e.g., '2-3 hours'
+  difficulty TEXT NOT NULL, -- e.g., 'Easy', 'Medium'
+  distance TEXT NOT NULL, -- e.g., '1.5 miles'
+  is_public BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE for public crawls, FALSE for library crawls
+  is_featured BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE for featured crawls
+  start_time TIMESTAMP WITH TIME ZONE, -- NULL for library crawls, timestamp for public crawls
+  hero_image_url TEXT, -- Public Supabase Storage URL
+  hero_image_path TEXT, -- Storage bucket path
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create crawl stops table with JSON stop_components
+CREATE TABLE IF NOT EXISTS crawl_stops (
+  crawl_stop_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  crawl_definition_id UUID NOT NULL REFERENCES crawl_definitions(crawl_definition_id) ON DELETE CASCADE,
+  stop_number INTEGER NOT NULL, -- 1-based indexing
+  stop_type TEXT NOT NULL, -- 'location', 'riddle', 'photo', 'button'
+  location_name TEXT NOT NULL,
+  location_link TEXT, -- Google Maps link
+  stop_components JSONB NOT NULL DEFAULT '{}', -- Flexible JSON field for stop-specific data
+  reveal_after_minutes INTEGER, -- Optional timing for stops
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(crawl_definition_id, stop_number)
+);
+
+-- Indexes for crawl definitions and stops performance
+CREATE INDEX IF NOT EXISTS idx_crawl_definitions_name ON crawl_definitions(name);
+CREATE INDEX IF NOT EXISTS idx_crawl_definitions_is_public ON crawl_definitions(is_public);
+CREATE INDEX IF NOT EXISTS idx_crawl_definitions_is_featured ON crawl_definitions(is_featured);
+CREATE INDEX IF NOT EXISTS idx_crawl_stops_crawl_definition_id ON crawl_stops(crawl_definition_id);
+CREATE INDEX IF NOT EXISTS idx_crawl_stops_stop_number ON crawl_stops(stop_number);
+CREATE INDEX IF NOT EXISTS idx_crawl_stops_stop_components ON crawl_stops USING GIN(stop_components);
+
+-- Trigger for crawl_definitions updated_at
+CREATE TRIGGER update_crawl_definitions_updated_at
+  BEFORE UPDATE ON crawl_definitions
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Add comments to new tables for better documentation
+COMMENT ON TABLE crawl_definitions IS 'Crawl definitions combining both public and library crawls with metadata and image storage';
+COMMENT ON TABLE crawl_stops IS 'Individual stops for each crawl with flexible JSONB components for different stop types';
+
+-- Add comments to important columns
+COMMENT ON COLUMN crawl_definitions.name IS 'Unique identifier for crawl definitions, used for upserts during migration';
+COMMENT ON COLUMN crawl_definitions.is_public IS 'TRUE for public crawls, FALSE for crawl library crawls';
+COMMENT ON COLUMN crawl_definitions.is_featured IS 'TRUE for featured crawls displayed prominently';
+COMMENT ON COLUMN crawl_definitions.hero_image_url IS 'Public Supabase Storage URL for hero image';
+COMMENT ON COLUMN crawl_stops.stop_components IS 'JSONB field containing stop-specific data (coordinates, riddle, photo instructions, etc.)';
+COMMENT ON COLUMN crawl_stops.stop_number IS '1-based indexing for stop order within a crawl';
+
+-- Create Supabase Storage bucket for crawl images
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'crawl-images',
+  'crawl-images',
+  true,
+  10485760, -- 10MB file size limit
+  ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+) ON CONFLICT (id) DO NOTHING;
+
+-- Storage policies need to be created manually in Supabase Dashboard
+-- Go to Storage > Policies and add these policies for the 'crawl-images' bucket:
+
+-- 1. Public Read Access Policy:
+--   - Policy Name: "Public Read Access"
+--   - Target Roles: public
+--   - Using expression: bucket_id = 'crawl-images'
+--   - Operation: SELECT
+
+-- 2. Authenticated Upload Access Policy:
+--   - Policy Name: "Authenticated Upload Access" 
+--   - Target Roles: authenticated
+--   - Using expression: bucket_id = 'crawl-images' AND auth.role() = 'authenticated'
+--   - Operation: INSERT
+
+-- 3. Authenticated Update Access Policy:
+--   - Policy Name: "Authenticated Update Access"
+--   - Target Roles: authenticated  
+--   - Using expression: bucket_id = 'crawl-images' AND auth.role() = 'authenticated'
+--   - Operation: UPDATE
+
+-- 4. Authenticated Delete Access Policy:
+--   - Policy Name: "Authenticated Delete Access"
+--   - Target Roles: authenticated
+--   - Using expression: bucket_id = 'crawl-images' AND auth.role() = 'authenticated'
+--   - Operation: DELETE
+
+-- Exact SQL commands to run in Supabase SQL Editor after schema creation:
+/*
+-- 1. Public Read Access Policy (anyone can read images)
+CREATE POLICY "Public Read Access" ON storage.objects 
+FOR SELECT 
+USING (bucket_id = 'crawl-images');
+
+-- 2. Authenticated Upload Access Policy (only authenticated users can upload)
+CREATE POLICY "Authenticated Upload Access" ON storage.objects 
+FOR INSERT 
+WITH CHECK (
+  bucket_id = 'crawl-images' 
+  AND auth.role() = 'authenticated'
+);
+
+-- 3. Authenticated Update Access Policy (only authenticated users can update)
+CREATE POLICY "Authenticated Update Access" ON storage.objects 
+FOR UPDATE 
+USING (
+  bucket_id = 'crawl-images' 
+  AND auth.role() = 'authenticated'
+);
+
+-- 4. Authenticated Delete Access Policy (only authenticated users can delete)
+CREATE POLICY "Authenticated Delete Access" ON storage.objects 
+FOR DELETE 
+USING (
+  bucket_id = 'crawl-images' 
+  AND auth.role() = 'authenticated'
+);
+*/
+
+SELECT 'Database schema created successfully with datatype fixes for Clerk user IDs, ambiguous column reference fixes, new crawl tables, and Supabase Storage configuration.' AS status; 
