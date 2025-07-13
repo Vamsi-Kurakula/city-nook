@@ -520,11 +520,11 @@ Update existing data loading functions to use the new database operations instea
 - [x] Configure storage bucket permissions
 
 ### Phase 2: File Structure Setup
-- [ ] Create `assets-source` folder structure
-- [ ] Add `.gitkeep` files
-- [ ] Update `.gitignore`
-- [ ] Move existing assets to new structure
-- [ ] Commit initial folder structure
+- [x] Create `assets-source` folder structure
+- [x] Add `.gitkeep` files
+- [x] Update `.gitignore`
+- [x] Move existing assets to new structure
+- [x] Commit initial folder structure
 
 ### Phase 3: Migration Script
 - [ ] Create `scripts/migrateCrawlAssets.js`
