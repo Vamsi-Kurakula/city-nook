@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { supabase, UserProfile } from '../../utils/database';
+
 // Manual JWT payload decoder (no dependencies)
 function decodeJwtPayload(token: string) {
   try {
@@ -38,18 +39,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { user } = useUser();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Remove session clearing logic - let users stay signed in
-  // React.useEffect(() => {
-  //   if (isLoaded && isSignedIn) {
-  //     console.log('App started with existing session, clearing...');
-  //     clerkSignOut();
-  //   }
-  // }, [isLoaded]);
+  const [error, setError] = useState<string | null>(null);
 
   // Debug logging
   useEffect(() => {
-    console.log('AuthContext state:', { isLoaded, isSignedIn, userId: user?.id });
+    try {
+      console.log('AuthContext state:', { isLoaded, isSignedIn, userId: user?.id });
+    } catch (err) {
+      console.error('Error in AuthContext debug logging:', err);
+    }
   }, [isLoaded, isSignedIn, user?.id]);
 
   const fetchUserProfile = async (userId: string) => {
@@ -63,6 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
         console.error('Error fetching user profile:', error);
+        setError(`Database error: ${error.message}`);
         return;
       }
 
@@ -95,6 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             details: createError.details,
             hint: createError.hint
           });
+          setError(`Profile creation error: ${createError.message}`);
         } else {
           console.log('Created new user profile:', newProfile);
           setUserProfile(newProfile[0]); // Function returns an array, take first element
@@ -102,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
+      setError(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -116,27 +117,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Signing out...');
       await clerkSignOut();
       setUserProfile(null);
+      setError(null);
       console.log('Sign out successful');
     } catch (error) {
       console.error('Error signing out:', error);
+      setError(`Sign out error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   useEffect(() => {
-    if (isLoaded && isSignedIn && user?.id) {
-      console.log('User is signed in, fetching profile...');
-      fetchUserProfile(user.id);
-    } else if (isLoaded) {
-      console.log('Auth loaded, user not signed in');
+    try {
+      if (isLoaded && isSignedIn && user?.id) {
+        console.log('User is signed in, fetching profile...');
+        fetchUserProfile(user.id);
+      } else if (isLoaded) {
+        console.log('Auth loaded, user not signed in');
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error('Error in auth effect:', err);
+      setError(`Auth initialization error: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setIsLoading(false);
     }
   }, [isLoaded, isSignedIn, user?.id]);
 
   useEffect(() => {
-    if (isLoaded) {
+    try {
+      if (isLoaded) {
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error('Error in loading effect:', err);
       setIsLoading(false);
     }
   }, [isLoaded]);
+
+  // If there's an error, we should still render the app but log it
+  if (error) {
+    console.error('AuthContext error:', error);
+  }
 
   const value: AuthContextType = {
     isSignedIn: isSignedIn || false,

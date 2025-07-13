@@ -1,9 +1,52 @@
 import { CLERK_PUBLISHABLE_KEY, SUPABASE_URL, SUPABASE_ANON_KEY } from '@env';
 
-// Environment Configuration
+// Environment Configuration with better error handling
 export const CLERK_PUBLISHABLE_KEY_CONFIG = CLERK_PUBLISHABLE_KEY || '';
 export const SUPABASE_URL_CONFIG = SUPABASE_URL || '';
 export const SUPABASE_ANON_KEY_CONFIG = SUPABASE_ANON_KEY || '';
+
+// Debug logging for environment variables
+console.log('Environment variables loaded:', {
+  CLERK_PUBLISHABLE_KEY: CLERK_PUBLISHABLE_KEY ? 'SET' : 'NOT SET',
+  SUPABASE_URL: SUPABASE_URL ? 'SET' : 'NOT SET',
+  SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? 'SET' : 'NOT SET',
+  isDev: __DEV__,
+  isProduction: !__DEV__
+});
+
+// Validate required environment variables
+const validateEnvironment = () => {
+  const missingVars = [];
+  
+  if (!CLERK_PUBLISHABLE_KEY_CONFIG) {
+    missingVars.push('CLERK_PUBLISHABLE_KEY');
+  }
+  
+  if (!SUPABASE_URL_CONFIG) {
+    missingVars.push('SUPABASE_URL');
+  }
+  
+  if (!SUPABASE_ANON_KEY_CONFIG) {
+    missingVars.push('SUPABASE_ANON_KEY');
+  }
+  
+  if (missingVars.length > 0) {
+    console.error('Missing required environment variables:', missingVars);
+    console.error('Please create a .env file with the required API keys. See env.template for reference.');
+    
+    // In production, we might want to show a user-friendly error
+    if (!__DEV__) {
+      // Instead of throwing an error, we'll log it and continue
+      // This prevents the app from crashing immediately
+      console.error('Production build missing environment variables, but continuing...');
+    }
+  } else {
+    console.log('All required environment variables are set');
+  }
+};
+
+// Run validation
+validateEnvironment();
 
 // Environment detection
 export const isProduction = __DEV__ === false;
