@@ -1,3 +1,5 @@
+import { GOOGLE_MAPS_API_KEY } from '@env';
+
 export interface LocationCoordinates {
   latitude: number;
   longitude: number;
@@ -46,7 +48,7 @@ export const extractCoordinates = async (locationLink: string): Promise<{ latitu
     if (query) {
       console.log('No direct coordinates found, geocoding with Google:', query);
       try {
-        const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
+        const googleApiKey = GOOGLE_MAPS_API_KEY;
         
         if (!googleApiKey) {
           console.log('Google Maps API key not found, falling back to Nominatim');

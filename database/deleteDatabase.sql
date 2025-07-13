@@ -5,22 +5,6 @@
 -- Note: All user_id and user_profile_id columns are TEXT to match Clerk user IDs (not UUID)
 
 -- Step 1: Drop RLS policies first (before tables are dropped)
--- Drop RLS policies for user_profiles
-DROP POLICY IF EXISTS "Users can access their own profile" ON user_profiles;
-DROP POLICY IF EXISTS "Allow all operations for now" ON user_profiles;
-
--- Drop RLS policies for crawl_progress
-DROP POLICY IF EXISTS "Users can access their own crawl progress" ON crawl_progress;
-DROP POLICY IF EXISTS "Allow all operations for now" ON crawl_progress;
-
--- Drop RLS policies for user_crawl_history
-DROP POLICY IF EXISTS "Users can access their own crawl history" ON user_crawl_history;
-DROP POLICY IF EXISTS "Allow all operations for now" ON user_crawl_history;
-
--- Drop RLS policies for public_crawl_signups
-DROP POLICY IF EXISTS "Users can access their own public crawl signups" ON public_crawl_signups;
-DROP POLICY IF EXISTS "Allow all operations for now" ON public_crawl_signups;
-
 -- Step 2: Drop triggers (before functions are dropped)
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;

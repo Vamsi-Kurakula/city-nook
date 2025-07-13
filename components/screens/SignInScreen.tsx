@@ -6,6 +6,7 @@ import { useAuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import * as WebBrowser from 'expo-web-browser';
 import { useNavigation } from '@react-navigation/native';
+import { CLERK_PUBLISHABLE_KEY_CONFIG as CLERK_PUBLISHABLE_KEY } from '../../utils/config';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -37,7 +38,7 @@ export default function SignInScreen() {
     setIsLoading(true);
     try {
       console.log('Starting OAuth flow...');
-      console.log('Clerk publishable key exists:', !!process.env.CLERK_PUBLISHABLE_KEY);
+      console.log('Clerk publishable key exists:', !!CLERK_PUBLISHABLE_KEY);
       
       const { createdSessionId, signIn, signUp, setActive } = await startOAuthFlow();
 

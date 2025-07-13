@@ -22,6 +22,19 @@ export async function saveCrawlProgress({ userId, crawlId, isPublic, currentStop
     completedAt
   });
   
+  // Debug: Check if we have a session
+  const { data: sessionData } = await supabase.auth.getSession();
+  console.log('Current Supabase session:', sessionData);
+  
+  // Debug: Test JWT claims by making a simple query
+  try {
+    const { data: testData, error: testError } = await supabase
+      .rpc('current_setting', { name: 'request.jwt.claims' });
+    console.log('JWT claims test:', { testData, testError });
+  } catch (e) {
+    console.log('Could not test JWT claims:', e);
+  }
+  
   // For single-crawl-per-user design, we can use a simple upsert on user_id
   const { data, error } = await supabase
     .from('crawl_progress')
@@ -37,14 +50,17 @@ export async function saveCrawlProgress({ userId, crawlId, isPublic, currentStop
 
   if (error) {
     console.error('Error saving crawl progress:', error);
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint
+    });
     return { data: null, error };
   } else {
     console.log('Crawl progress saved successfully:', data);
     return { data, error: null };
   }
-  
-  // The result is already handled in the update/insert logic above
-  return { data: null, error: null };
 }
 
 /**

@@ -57,35 +57,6 @@ CREATE INDEX IF NOT EXISTS idx_user_crawl_history_user_id ON user_crawl_history(
 CREATE INDEX IF NOT EXISTS idx_user_crawl_history_crawl_id ON user_crawl_history(crawl_id);
 CREATE INDEX IF NOT EXISTS idx_user_crawl_history_is_public ON user_crawl_history(is_public);
 
--- Enable Row Level Security
-ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE crawl_progress ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_crawl_history ENABLE ROW LEVEL SECURITY;
-
--- RLS policies for user_profiles
--- Note: This policy allows access if the user ID matches either the JWT claims or auth.uid()
--- For user profile creation, the application should use the create_user_profile() function
--- which has SECURITY DEFINER and bypasses RLS
-DROP POLICY IF EXISTS "Users can access their own profile" ON user_profiles;
-CREATE POLICY "Users can access their own profile" ON user_profiles
-  FOR ALL
-  USING (
-    user_profile_id = current_setting('request.jwt.claims', true)::json->>'sub'
-    OR user_profile_id = auth.uid()::TEXT
-  );
-
--- RLS policies for crawl_progress
-DROP POLICY IF EXISTS "Users can access their own crawl progress" ON crawl_progress;
-CREATE POLICY "Users can access their own crawl progress" ON crawl_progress
-  FOR ALL
-  USING (user_id = current_setting('request.jwt.claims', true)::json->>'sub');
-
--- RLS policies for user_crawl_history
-DROP POLICY IF EXISTS "Users can access their own crawl history" ON user_crawl_history;
-CREATE POLICY "Users can access their own crawl history" ON user_crawl_history
-  FOR ALL
-  USING (user_id = current_setting('request.jwt.claims', true)::json->>'sub');
-
 -- Create function to handle user creation
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
@@ -187,21 +158,10 @@ CREATE TABLE IF NOT EXISTS public_crawl_signups (
   UNIQUE(user_id, crawl_id, is_public) -- One signup per user per public crawl
 );
 
--- RLS policies for public_crawl_signups
-DROP POLICY IF EXISTS "Users can access their own public crawl signups" ON public_crawl_signups;
-CREATE POLICY "Users can access their own public crawl signups" ON public_crawl_signups
-  FOR ALL
-  USING (user_id = current_setting('request.jwt.claims', true)::json->>'sub');
-
 -- Additional useful indexes for performance
 CREATE INDEX IF NOT EXISTS idx_crawl_progress_completed_at ON crawl_progress(completed_at);
 CREATE INDEX IF NOT EXISTS idx_crawl_progress_started_at ON crawl_progress(started_at);
 CREATE INDEX IF NOT EXISTS idx_user_crawl_history_completed_at ON user_crawl_history(completed_at);
-
--- Enable RLS and allow all for now
-ALTER TABLE public_crawl_signups ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE public_crawl_signups ENABLE ROW LEVEL SECURITY;
--- CREATE POLICY "Allow all operations for now" ON public_crawl_signups FOR ALL USING (true);
 
 -- Add comments to tables for better documentation
 COMMENT ON TABLE user_profiles IS 'User profile information synced from Clerk authentication';

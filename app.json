@@ -9,7 +9,6 @@
     "newArchEnabled": true,
     "scheme": "city-crawler",
     "description": "Discover and explore cities through guided crawls and adventures",
-    "privacy": "public",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",

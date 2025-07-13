@@ -1,6 +1,18 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { supabase, UserProfile } from '../../utils/database';
+// Manual JWT payload decoder (no dependencies)
+function decodeJwtPayload(token: string) {
+  try {
+    const payload = token.split('.')[1];
+    // Add padding if needed
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/').padEnd(payload.length + (4 - payload.length % 4) % 4, '=');
+    const decoded = atob(base64);
+    return JSON.parse(decoded);
+  } catch (e) {
+    return { error: 'Failed to decode JWT', details: e };
+  }
+}
 
 interface AuthContextType {
   isSignedIn: boolean;
@@ -22,7 +34,7 @@ export const useAuthContext = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isSignedIn, isLoaded, signOut: clerkSignOut } = useAuth();
+  const { isSignedIn, isLoaded, signOut: clerkSignOut, getToken } = useAuth();
   const { user } = useUser();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);

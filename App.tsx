@@ -1,7 +1,7 @@
 import React from 'react';
 import { AuthNavigator } from './components/navigation';
 import { ClerkProvider, tokenCache } from './utils/clerk';
-import { CLERK_PUBLISHABLE_KEY } from './utils/config';
+import { CLERK_PUBLISHABLE_KEY_CONFIG as CLERK_PUBLISHABLE_KEY } from './utils/config';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from './components/context/AuthContext';

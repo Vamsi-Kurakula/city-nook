@@ -1,11 +1,13 @@
+import { CLERK_PUBLISHABLE_KEY, SUPABASE_URL, SUPABASE_ANON_KEY } from '@env';
+
 // Environment Configuration
-export const CLERK_PUBLISHABLE_KEY = process.env.CLERK_PUBLISHABLE_KEY || '';
-export const SUPABASE_URL = process.env.SUPABASE_URL || '';
-export const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
+export const CLERK_PUBLISHABLE_KEY_CONFIG = CLERK_PUBLISHABLE_KEY || '';
+export const SUPABASE_URL_CONFIG = SUPABASE_URL || '';
+export const SUPABASE_ANON_KEY_CONFIG = SUPABASE_ANON_KEY || '';
 
 // Environment detection
-export const isProduction = process.env.NODE_ENV === 'production';
-export const isDevelopment = process.env.NODE_ENV === 'development';
+export const isProduction = __DEV__ === false;
+export const isDevelopment = __DEV__ === true;
 
 // Security Configuration
 export const SECURITY_CONFIG = {

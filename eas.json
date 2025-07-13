@@ -1,6 +1,8 @@
 {
   "cli": {
-    "version": ">= 5.9.1"
+    "version": ">= 15.0.6",
+    "appVersionSource": "remote",
+    "requireCommit": "true"
   },
   "build": {
     "development": {
@@ -10,33 +12,38 @@
     "preview": {
       "distribution": "internal"
     },
+    "apk": {
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "testflight": {
       "ios": {
-        "buildType": "archive"
+        
       }
     },
     "production": {
       "ios": {
-        "buildType": "archive"
+        
       },
       "android": {
-        "buildType": "aab"
+        "buildType": "app-bundle"
       }
     }
   },
   "submit": {
     "testflight": {
       "ios": {
-        "appleId": "your-apple-id@example.com",
-        "ascAppId": "your-app-store-connect-app-id",
-        "appleTeamId": "your-apple-team-id"
+        "appleId": "YOUR_APPLE_ID@example.com",
+        "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
+        "appleTeamId": "YOUR_APPLE_TEAM_ID"
       }
     },
     "production": {
       "ios": {
-        "appleId": "your-apple-id@example.com",
-        "ascAppId": "your-app-store-connect-app-id",
-        "appleTeamId": "your-apple-team-id"
+        "appleId": "YOUR_APPLE_ID@example.com",
+        "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
+        "appleTeamId": "YOUR_APPLE_TEAM_ID"
       },
       "android": {
         "track": "production"
