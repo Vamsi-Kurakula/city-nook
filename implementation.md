@@ -96,13 +96,11 @@ The `stop_components` JSONB field will contain different data based on stop type
 
 ```bash
 # Create the new folder structure
-mkdir -p assets-source/crawl-library
-mkdir -p assets-source/public-crawls
+mkdir -p assets-source/crawls
 
 # Add .gitkeep files to preserve folder structure
 touch assets-source/.gitkeep
-touch assets-source/crawl-library/.gitkeep
-touch assets-source/public-crawls/.gitkeep
+touch assets-source/crawls/.gitkeep
 ```
 
 ### 2. Update .gitignore
@@ -112,19 +110,19 @@ Add to `.gitignore`:
 # Crawl assets source (git-ignored after initial commit)
 assets-source/*
 !assets-source/.gitkeep
-!assets-source/crawl-library/.gitkeep
-!assets-source/public-crawls/.gitkeep
+!assets-source/crawls/.gitkeep
 ```
 
 ### 3. Move Existing Assets
 
 Move current assets to the new structure:
 ```bash
-# Move crawl library assets
-cp -r assets/crawl-library/* assets-source/crawl-library/
+# Move all crawl assets to unified structure
+cp -r assets/crawl-library/* assets-source/crawls/
+cp -r assets/public-crawls/* assets-source/crawls/
 
-# Move public crawl assets  
-cp -r assets/public-crawls/* assets-source/public-crawls/
+# Combine crawls.yml and featured-crawls.yml into single file
+# Add is_featured field to each crawl definition
 ```
 
 ## Supabase Storage Setup
@@ -527,10 +525,11 @@ Update existing data loading functions to use the new database operations instea
 - [x] Commit initial folder structure
 
 ### Phase 3: Migration Script
-- [ ] Create `scripts/migrateCrawlAssets.js`
-- [ ] Add script to `package.json`
-- [ ] Test migration script with sample data
-- [ ] Run full migration
+- [x] Create `scripts/migrateCrawlsFromFolders.js` (custom implementation)
+- [x] Test migration script with sample data
+- [x] Run full migration
+- [x] Add `created_by` field to track crawl creators
+- [x] Create `assets-source/README.md` with documentation
 
 ### Phase 4: Application Updates
 
@@ -594,13 +593,21 @@ Update existing data loading functions to use the new database operations instea
 - [ ] Test complete workflow
 - [ ] Deploy changes
 
+### Phase 6: Legacy Script Cleanup
+- [ ] Remove `scripts/generateCrawlAssetMap.js` - No longer needed with database operations
+- [ ] Remove `scripts/generateImageMap.js` - No longer needed with Supabase Storage
+- [ ] Remove `scripts/checkDatabaseSchema.js` - Keep if useful for debugging, remove if not needed
+- [ ] Update `package.json` scripts section - Remove references to deleted scripts
+- [ ] Verify no broken imports or references to removed scripts
+- [ ] Document any remaining scripts and their purposes
+
 ## Migration Strategy & Considerations
 
 ### Gradual Migration Approach
 1. **Phase 1-3**: Set up database and run migration (no app changes)
 2. **Phase 4**: Implement new database operations alongside existing YAML loading
 3. **Phase 5**: Switch app to use database, remove YAML loading
-4. **Phase 6**: Clean up old files and assets
+4. **Phase 6**: Clean up old files, assets, and legacy scripts
 
 ### Potential Issues & Solutions
 
@@ -629,13 +636,14 @@ Update existing data loading functions to use the new database operations instea
 ## Testing Checklist
 
 ### Database & Storage
-- [ ] Database tables created successfully
-- [ ] Storage bucket accessible and configured
-- [ ] Migration script runs without errors
-- [ ] All crawl definitions migrated correctly
-- [ ] All stops migrated with proper JSONB structure
-- [ ] Hero images uploaded and accessible via public URLs
-- [ ] Database indexes created for performance
+- [x] Database tables created successfully
+- [x] Storage bucket accessible and configured
+- [x] Migration script runs without errors
+- [x] All crawl definitions migrated correctly
+- [x] All stops migrated with proper JSONB structure
+- [x] Hero images uploaded and accessible via public URLs
+- [x] Database indexes created for performance
+- [x] `created_by` field added and populated with git user names
 
 ### Application Functionality
 - [ ] Application loads crawls from database
@@ -675,4 +683,5 @@ If issues arise:
 - Hero images are stored in Supabase Storage with public URLs
 - Stop components are stored as JSONB for flexibility
 - Featured crawls are determined by the existing `public-crawl` flag
-- All existing functionality should be preserved during transition 
+- All existing functionality should be preserved during transition
+- Legacy scripts (`generateCrawlAssetMap.js`, `generateImageMap.js`) will be removed once database operations are fully implemented 

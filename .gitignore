@@ -44,5 +44,4 @@ yarn-error.*
 # Crawl assets source (git-ignored after initial commit)
 assets-source/*
 !assets-source/.gitkeep
-!assets-source/crawl-library/.gitkeep
-!assets-source/public-crawls/.gitkeep
+!assets-source/crawls/.gitkeep

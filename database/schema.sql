@@ -196,6 +196,7 @@ CREATE TABLE IF NOT EXISTS crawl_definitions (
   start_time TIMESTAMP WITH TIME ZONE, -- NULL for library crawls, timestamp for public crawls
   hero_image_url TEXT, -- Public Supabase Storage URL
   hero_image_path TEXT, -- Storage bucket path
+  created_by TEXT, -- Name of the person who created the crawl (from git config or other source)
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
