@@ -266,23 +266,25 @@ const UserProfile: React.FC = () => {
               <Text style={[styles.accountButtonText, { color: theme.text.inverse }]}>🗑️ Delete Account</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Sign Out Section */}
+          <View style={styles.section}>
+            <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+              <Text style={[styles.signOutButtonText, { color: theme.button.danger }]}>Sign Out</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Privacy Policy Footer */}
+          <View style={styles.footer}>
+            <Text style={[styles.footerText, { color: theme.text.secondary }]}>
+              View our
+              <Text style={{ color: theme.button.primary }} onPress={() => navigation.navigate('PrivacyPolicy')}> Privacy Policy</Text>
+              {' '}and
+              <Text style={{ color: theme.button.primary }} onPress={() => navigation.navigate('TermsOfService')}> Terms of Service</Text>.
+            </Text>
+          </View>
         </View>
       </ScrollView>
-      
-      {/* Sign Out Button at Bottom */}
-      <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={[styles.signOutButtonText, { color: theme.button.danger }]}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          View our
-          <Text style={{ color: theme.button.primary }} onPress={() => navigation.navigate('PrivacyPolicy')}> Privacy Policy</Text>
-          {' '}and
-          <Text style={{ color: theme.button.primary }} onPress={() => navigation.navigate('TermsOfService')}> Terms of Service</Text>.
-        </Text>
-      </View>
     </SafeAreaView>
   );
 };
@@ -372,12 +374,12 @@ const styles = StyleSheet.create({
     flex: 2,
     textAlign: 'right',
   },
-  bottomContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
   signOutButton: {
-    padding: 8,
+    padding: 12,
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ff4757',
   },
   signOutButtonText: {
     color: '#ff4757',

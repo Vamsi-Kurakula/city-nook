@@ -5,7 +5,6 @@ export interface FeaturedCrawl {
   title: string;
   description: string;
   hero_image: string;
-  assetFolder: string;
 }
 
 export async function loadFeaturedCrawls(): Promise<FeaturedCrawl[]> {
@@ -22,8 +21,7 @@ export async function loadFeaturedCrawls(): Promise<FeaturedCrawl[]> {
       id: crawl.crawl_definition_id,
       title: crawl.name,
       description: crawl.description,
-      hero_image: crawl.hero_image_url || `assets/crawl-library/${crawl.asset_folder}/hero.jpg`,
-      assetFolder: crawl.asset_folder
+      hero_image: crawl.hero_image_url || 'assets/icon.png'
     }));
 
     console.log('Featured crawls loaded:', transformedCrawls.length);

@@ -7,7 +7,6 @@ import { useTheme } from '../context/ThemeContext';
 import { Crawl, CrawlStop } from '../../types/crawl';
 import { loadCrawlStops } from '../../utils/database';
 import { StopComponent } from '../ui/stops';
-import CrawlMap from '../ui/CrawlMap';
 import { useAuthContext } from '../context/AuthContext';
 import { saveCrawlProgress, addCrawlHistory, deleteCrawlProgress, supabase } from '../../utils/database';
 import { getCrawlProgress } from '../../utils/database/progressOperations';
@@ -51,7 +50,6 @@ const CrawlSessionScreen: React.FC = () => {
   const [stops, setStops] = useState<CrawlStop[]>(routeParams?.crawl?.stops || []);
   const [coordinates, setCoordinates] = useState<LocationCoordinates[]>([]);
   const [showPastStops, setShowPastStops] = useState(false);
-  const [showMap, setShowMap] = useState(false);
   const [isGateCompleted, setIsGateCompleted] = useState(false);
   const [isNextStopRevealed, setIsNextStopRevealed] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -461,7 +459,16 @@ const CrawlSessionScreen: React.FC = () => {
 
         {/* Bottom Buttons Section */}
         <View style={[styles.bottomButtonsSection, { borderTopColor: theme.border.secondary }]}>
-          <TouchableOpacity style={[styles.bottomButton, { backgroundColor: theme.background.tertiary }]} onPress={() => setShowMap(true)}>
+          <TouchableOpacity style={[styles.bottomButton, { backgroundColor: theme.background.tertiary }]} onPress={() => {
+            // Use navigation instead of modal to avoid transparency issues
+            navigation.navigate('CrawlMap', {
+              stops,
+              currentStopNumber,
+              completedStops: completedStops.map(stop => stop.stop_number),
+              isNextStopRevealed,
+              coordinates,
+            });
+          }}>
             <Text style={[styles.bottomButtonText, { color: theme.text.primary }]}>Map</Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -515,27 +522,6 @@ const CrawlSessionScreen: React.FC = () => {
           <TouchableOpacity style={[styles.closeModalButton, { backgroundColor: theme.background.secondary }]} onPress={() => setShowPastStops(false)}>
             <Text style={[styles.closeModalButtonText, { color: theme.text.primary }]}>Close</Text>
           </TouchableOpacity>
-        </SafeAreaView>
-      </Modal>
-
-      {/* Map Modal */}
-      <Modal visible={showMap} animationType="slide" onRequestClose={() => setShowMap(false)}>
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.background.primary }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: theme.border.secondary }]}>
-            <Text style={[styles.modalTitle, { color: theme.text.primary }]}>Crawl Map</Text>
-            <TouchableOpacity style={[styles.closeModalButton, { backgroundColor: theme.background.secondary }]} onPress={() => setShowMap(false)}>
-              <Text style={[styles.closeModalButtonText, { color: theme.text.primary }]}>Close</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.mapContainer}>
-            <CrawlMap
-              stops={stops}
-              currentStopNumber={currentStopNumber}
-              completedStops={completedStops.map(stop => stop.stop_number)}
-              isNextStopRevealed={isNextStopRevealed}
-              coordinates={coordinates}
-            />
-          </View>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
@@ -688,7 +674,14 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    padding: 24,
+    backgroundColor: '#ffffff',
+    opacity: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
   },
   modalTitle: {
     fontSize: 20,
@@ -780,6 +773,7 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     flex: 1,
+    backgroundColor: '#ffffff',
   },
 });
 

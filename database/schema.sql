@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 CREATE TABLE IF NOT EXISTS crawl_progress (
   crawl_progress_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE, -- Clerk user ID (TEXT, not UUID)
-  crawl_id TEXT NOT NULL, -- References crawl ID from YAML files
+  crawl_id UUID NOT NULL REFERENCES crawl_definitions(crawl_definition_id) ON DELETE CASCADE, -- References crawl_definition_id UUID
   is_public BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE for public crawls, FALSE for crawl library
   current_stop INTEGER DEFAULT 1, -- Current stop number (1-based)
   completed_stops INTEGER[] DEFAULT '{}', -- Array of completed stop numbers
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS crawl_progress (
 CREATE TABLE IF NOT EXISTS user_crawl_history (
   user_crawl_history_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE, -- Clerk user ID (TEXT, not UUID)
-  crawl_id TEXT NOT NULL, -- References crawl ID from YAML files
+  crawl_id UUID NOT NULL REFERENCES crawl_definitions(crawl_definition_id) ON DELETE CASCADE, -- References crawl_definition_id UUID
   is_public BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE for public crawls, FALSE for crawl library
   completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   total_time_minutes INTEGER, -- Time taken to complete the crawl
@@ -187,7 +187,6 @@ CREATE TABLE IF NOT EXISTS crawl_definitions (
   crawl_definition_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT UNIQUE NOT NULL, -- Use name as the unique identifier
   description TEXT NOT NULL,
-  asset_folder TEXT NOT NULL, -- Path to assets (e.g., 'crawl-library/historic-downtown-crawl')
   duration TEXT NOT NULL, -- e.g., '2-3 hours'
   difficulty TEXT NOT NULL, -- e.g., 'Easy', 'Medium'
   distance TEXT NOT NULL, -- e.g., '1.5 miles'

@@ -256,13 +256,17 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
   ] : [];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <MapView
         style={styles.map}
         region={region}
         showsUserLocation={true}
         showsMyLocationButton={true}
-        customMapStyle={mapStyle}
+        customMapStyle={themeType === 'dark' ? mapStyle : undefined}
+        mapType="standard"
+        loadingEnabled={true}
+        loadingIndicatorColor={theme.button.primary}
+        loadingBackgroundColor={theme.background.primary}
       >
         {getVisibleLocations().map((location) => (
           <Marker
@@ -306,9 +310,15 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#ffffff',
+    opacity: 1,
+    zIndex: 1,
   },
   map: {
     flex: 1,
+    backgroundColor: '#ffffff',
+    opacity: 1,
+    zIndex: 1,
   },
   legend: {
     position: 'absolute',

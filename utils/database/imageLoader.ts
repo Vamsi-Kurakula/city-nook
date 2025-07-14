@@ -12,12 +12,12 @@ export const getHeroImageSourceByName = async (crawlName: string): Promise<strin
       return crawlDefinition.hero_image_url;
     }
     
-    // Fallback to local asset path
-    return `assets/${crawlDefinition?.asset_folder || 'crawl-library/historic-downtown-crawl'}/hero.jpg`;
+    // Fallback to default image
+    return 'assets/icon.png';
   } catch (error) {
     console.error('Error getting hero image for ' + crawlName + ' from database:', error);
     // Fallback to default image
-    return 'assets/crawl-library/historic-downtown-crawl/hero.jpg';
+    return 'assets/icon.png';
   }
 };
 
@@ -77,11 +77,11 @@ export const getHeroImageSourceById = async (crawlDefinitionId: string): Promise
       return crawlDefinition.hero_image_url;
     }
     
-    // Fallback to local asset path
-    return `assets/${crawlDefinition?.asset_folder || 'crawl-library/historic-downtown-crawl'}/hero.jpg`;
+    // Fallback to default image
+    return 'assets/icon.png';
   } catch (error) {
     console.error('Error getting hero image for ID ' + crawlDefinitionId + ' from database:', error);
     // Fallback to default image
-    return 'assets/crawl-library/historic-downtown-crawl/hero.jpg';
+    return 'assets/icon.png';
   }
 }; 

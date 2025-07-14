@@ -44,7 +44,6 @@ export default function HomeScreen() {
     duration: crawl.duration,
     difficulty: crawl.difficulty,
     distance: crawl.distance,
-    assetFolder: crawl.asset_folder,
     'public-crawl': crawl.is_public,
     hero_image_url: crawl.hero_image_url,
     stops: (crawl as any).stops || [], // Use the stops that were loaded from database
@@ -136,7 +135,6 @@ export default function HomeScreen() {
               {/* Left: Hero Image */}
               <View style={styles.continueCrawlImageWrapper}>
                 <DatabaseImage
-                  assetFolder={currentCrawlDetails.asset_folder}
                   heroImageUrl={currentCrawlDetails.hero_image_url}
                   style={styles.continueCrawlImage}
                   resizeMode="cover"

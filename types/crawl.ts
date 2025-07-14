@@ -51,7 +51,6 @@ export interface CrawlDefinition {
   crawl_definition_id: string;
   name: string;
   description: string;
-  asset_folder: string;
   duration: string;
   difficulty: string;
   distance: string;
@@ -70,7 +69,6 @@ export interface Crawl {
   id: string;
   name: string;
   description: string;
-  assetFolder: string;
   duration: string;
   difficulty: string;
   distance: string;

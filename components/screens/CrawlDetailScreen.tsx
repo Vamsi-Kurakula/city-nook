@@ -106,7 +106,7 @@ const CrawlDetailScreen: React.FC = () => {
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <DatabaseImage
-          assetFolder={crawl.assetFolder}
+          heroImageUrl={crawl.hero_image_url}
           style={styles.heroImage}
           resizeMode="cover"
         />
