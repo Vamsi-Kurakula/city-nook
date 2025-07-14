@@ -8,9 +8,9 @@ module.exports = function(api) {
         {
           moduleName: '@env',
           path: '.env',
-          safe: false, // Changed from true to false to allow undefined values
-          allowUndefined: true,
-          verbose: true, // Changed to true for better debugging
+          safe: true, // Changed back to true to prevent errors
+          allowUndefined: false, // Changed back to false
+          verbose: false, // Changed back to false to reduce noise
         },
       ],
     ],

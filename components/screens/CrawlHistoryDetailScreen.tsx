@@ -3,8 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
-import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
-import { getCrawlNameMapping, getCrawlAssetFolder } from '../../utils/database';
+import { getCrawlWithStopsById } from '../../utils/database/crawlDefinitionOperations';
 import { CrawlStop } from '../../types/crawl';
 
 interface CrawlHistoryDetailParams {
@@ -29,21 +28,17 @@ const CrawlHistoryDetailScreen: React.FC = () => {
       setLoading(true);
       
       try {
-        // Get crawl name mapping
-        const crawlNameMapping = await getCrawlNameMapping();
-        const name = crawlNameMapping[crawlId] || `Crawl ${crawlId}`;
-        setCrawlName(name);
-        
-        // Get the asset folder for this crawl
-        const assetFolder = await getCrawlAssetFolder(crawlId);
-        if (assetFolder) {
-          const stopsData = await loadCrawlStops(assetFolder);
-          if (stopsData?.stops) {
-            setStops(stopsData.stops);
-          }
+        // Get crawl data from database
+        const crawlData = await getCrawlWithStopsById(crawlId);
+        if (crawlData) {
+          setCrawlName(crawlData.definition.name);
+          setStops(crawlData.stops);
+        } else {
+          setCrawlName(`Crawl ${crawlId}`);
         }
       } catch (error) {
         console.error('Error loading crawl data:', error);
+        setCrawlName(`Crawl ${crawlId}`);
       } finally {
         setLoading(false);
       }

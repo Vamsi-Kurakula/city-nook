@@ -7,8 +7,8 @@ import { useCrawlContext } from '../../context/CrawlContext';
 import { useTheme } from '../../context/ThemeContext';
 
 import HomeHeader from './HomeHeader';
-import UpcomingCrawlsSection from './UpcomingCrawlsSection';
 import FeaturedCrawlsSection from './FeaturedCrawlsSection';
+import DatabaseImage from '../../ui/DatabaseImage';
 import { useHomeData } from './hooks/useHomeData';
 import { useCrawlActions } from './hooks/useCrawlActions';
 
@@ -19,32 +19,36 @@ export default function HomeScreen() {
   const { theme } = useTheme();
   const userId = user?.id;
 
-
-
   const {
-    fullFeaturedCrawls,
-    upcomingCrawls,
-    userSignups,
+    featuredCrawls,
     currentCrawl,
     currentCrawlDetails,
     loading,
-  } = useHomeData(userId, isLoading);
+  } = useHomeData();
 
   const {
     handleFeaturedCrawlCardPress,
     handleFeaturedCrawlCardStart,
     handleInProgressCrawlPress,
-    handlePublicCrawlPress,
-    handleViewAllPublicCrawls,
     handleViewAllFeaturedCrawls,
     handleSignUpForCrawl,
   } = useCrawlActions();
 
-  const handleSignUpForCrawlWrapper = (crawlId: string) => {
-    if (userId) {
-      handleSignUpForCrawl(crawlId, userId);
-    }
-  };
+
+
+  // Convert CrawlDefinition to Crawl format for compatibility
+  const convertedFeaturedCrawls = featuredCrawls.map(crawl => ({
+    id: crawl.crawl_definition_id,
+    name: crawl.name,
+    description: crawl.description,
+    duration: crawl.duration,
+    difficulty: crawl.difficulty,
+    distance: crawl.distance,
+    assetFolder: crawl.asset_folder,
+    'public-crawl': crawl.is_public,
+    hero_image_url: crawl.hero_image_url,
+    stops: (crawl as any).stops || [], // Use the stops that were loaded from database
+  }));
 
   if (loading) {
     return (
@@ -131,8 +135,9 @@ export default function HomeScreen() {
             >
               {/* Left: Hero Image */}
               <View style={styles.continueCrawlImageWrapper}>
-                <Image
-                  source={require('../../auto-generated/ImageLoader').getHeroImageSource(currentCrawlDetails.assetFolder)}
+                <DatabaseImage
+                  assetFolder={currentCrawlDetails.asset_folder}
+                  heroImageUrl={currentCrawlDetails.hero_image_url}
                   style={styles.continueCrawlImage}
                   resizeMode="cover"
                 />
@@ -140,6 +145,7 @@ export default function HomeScreen() {
               {/* Right: Info */}
               <View style={styles.continueCrawlInfoWrapper}>
                 <View style={styles.continueCrawlInfoContent}>
+                  <Text style={[styles.crawlTitle, { color: theme.text.primary, marginBottom: 12 }]}>{currentCrawlDetails.name}</Text>
                   <Text style={[styles.continueCrawlLabel, { color: theme.text.primary }]}>Currently At:</Text>
                   <Text style={[styles.continueCrawlValue, { color: theme.text.primary }]}>
                     {currentCrawlDetails.stops && currentCrawl.currentStep && currentCrawlDetails.stops[currentCrawl.currentStep - 1]?.location_name || 'N/A'}
@@ -154,18 +160,9 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Upcoming Public Crawls Section */}
-        <UpcomingCrawlsSection
-          upcomingCrawls={upcomingCrawls}
-          userSignups={userSignups}
-          onCrawlPress={handlePublicCrawlPress}
-          onViewAllPress={handleViewAllPublicCrawls}
-          onSignUpPress={handleSignUpForCrawlWrapper}
-        />
-
         {/* Featured Crawls Section */}
         <FeaturedCrawlsSection
-          featuredCrawls={fullFeaturedCrawls}
+          featuredCrawls={convertedFeaturedCrawls}
           onCrawlPress={handleFeaturedCrawlCardPress}
           onCrawlStart={handleFeaturedCrawlCardStart}
           onViewAllPress={handleViewAllFeaturedCrawls}
@@ -205,6 +202,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
   },
+  crawlTitle: {
+    fontSize: 18,
+    fontWeight: '400',
+  },
   continueCrawlCard: {
     marginHorizontal: 20,
     borderRadius: 12,
@@ -223,12 +224,14 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 12,
     borderBottomLeftRadius: 12,
     overflow: 'hidden',
+    height: '100%',
   },
   continueCrawlImage: {
     width: '100%',
     height: '100%',
     borderTopLeftRadius: 12,
     borderBottomLeftRadius: 12,
+    flex: 1,
   },
   continueCrawlInfoWrapper: {
     flex: 1,

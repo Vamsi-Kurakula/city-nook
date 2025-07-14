@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import { useCrawlContext } from '../context/CrawlContext';
 import { Crawl } from '../../types/crawl';
-import { getHeroImageSource } from '../auto-generated/ImageLoader';
+import DatabaseImage from '../ui/DatabaseImage';
 import { useAuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../../utils/database';
@@ -105,8 +105,8 @@ const CrawlDetailScreen: React.FC = () => {
         <BackButton onPress={() => navigation.goBack()} />
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Image
-          source={getHeroImageSource(crawl.assetFolder)}
+        <DatabaseImage
+          assetFolder={crawl.assetFolder}
           style={styles.heroImage}
           resizeMode="cover"
         />

@@ -2,6 +2,20 @@ export interface StopComponent {
   [key: string]: string;
 }
 
+// Database CrawlStop interface (from crawlDefinitionOperations)
+export interface DatabaseCrawlStop {
+  crawl_stop_id: string;
+  crawl_definition_id: string;
+  stop_number: number;
+  stop_type: string;
+  location_name: string;
+  location_link?: string;
+  stop_components: Record<string, any>;
+  reveal_after_minutes?: number;
+  created_at: string;
+}
+
+// Legacy CrawlStop interface (for backward compatibility)
 export interface CrawlStop {
   stop_number: number;
   stop_type: string;
@@ -32,6 +46,26 @@ export interface CrawlProgress {
   completed?: boolean;
 }
 
+// Database CrawlDefinition interface (from crawlDefinitionOperations)
+export interface CrawlDefinition {
+  crawl_definition_id: string;
+  name: string;
+  description: string;
+  asset_folder: string;
+  duration: string;
+  difficulty: string;
+  distance: string;
+  is_public: boolean;
+  is_featured: boolean;
+  start_time?: string;
+  hero_image_url?: string;
+  hero_image_path?: string;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Legacy Crawl interface (for backward compatibility)
 export interface Crawl {
   id: string;
   name: string;
@@ -42,9 +76,10 @@ export interface Crawl {
   distance: string;
   'public-crawl': boolean;
   start_time?: string; // Format: "YYYY-MM-DD HH:MM" or "HH:MM" for today
+  hero_image_url?: string;
   stops?: CrawlStop[];
 }
 
 export interface CrawlSessionScreenParams {
-  crawl: Crawl;
+  crawl: CrawlDefinition;
 } 

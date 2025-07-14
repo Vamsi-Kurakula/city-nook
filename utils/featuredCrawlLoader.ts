@@ -1,7 +1,4 @@
-import { Asset } from 'expo-asset';
-import * as FileSystem from 'expo-file-system';
-import yaml from 'js-yaml';
-import { Crawl } from '../types/crawl';
+import { getFeaturedCrawlDefinitions, CrawlDefinition } from './database';
 
 export interface FeaturedCrawl {
   id: string;
@@ -11,68 +8,28 @@ export interface FeaturedCrawl {
   assetFolder: string;
 }
 
-export interface FeaturedCrawlsData {
-  featured_crawls: string[];
-}
-
-interface CrawlData {
-  crawls: Crawl[];
-}
-
 export async function loadFeaturedCrawls(): Promise<FeaturedCrawl[]> {
   try {
-    console.log('Loading featured crawls...');
+    console.log('Loading featured crawls from database...');
     
-    // Load the featured crawls IDs
-    const featuredCrawlsAsset = require('../assets/crawl-library/featured-crawls.yml');
-    const featuredAsset = Asset.fromModule(featuredCrawlsAsset);
-    await featuredAsset.downloadAsync();
-    const featuredYamlString = await FileSystem.readAsStringAsync(featuredAsset.localUri || featuredAsset.uri);
-    const featuredData = yaml.load(featuredYamlString) as FeaturedCrawlsData;
+    // Get featured crawls from database
+    const featuredCrawls = await getFeaturedCrawlDefinitions();
     
-    console.log('Featured crawls data:', featuredData);
+    console.log(`Found ${featuredCrawls.length} featured crawls in database`);
     
-    if (!featuredData.featured_crawls || !Array.isArray(featuredData.featured_crawls)) {
-      console.error('No featured crawls found');
-      return [];
-    }
+    // Transform database data to FeaturedCrawl format
+    const transformedCrawls = featuredCrawls.map(crawl => ({
+      id: crawl.crawl_definition_id,
+      title: crawl.name,
+      description: crawl.description,
+      hero_image: crawl.hero_image_url || `assets/crawl-library/${crawl.asset_folder}/hero.jpg`,
+      assetFolder: crawl.asset_folder
+    }));
 
-    // Load the main crawls data
-    const mainCrawlsAsset = Asset.fromModule(require('../assets/crawl-library/crawls.yml'));
-    await mainCrawlsAsset.downloadAsync();
-    const mainYamlString = await FileSystem.readAsStringAsync(mainCrawlsAsset.localUri || mainCrawlsAsset.uri);
-    const mainData = yaml.load(mainYamlString) as CrawlData;
-    
-    console.log('Main crawls data loaded, found', mainData.crawls?.length || 0, 'crawls');
-    
-    if (!mainData.crawls || !Array.isArray(mainData.crawls)) {
-      console.error('No crawls found in main data');
-      return [];
-    }
-
-    // Filter and build featured crawls
-    const featuredCrawls = featuredData.featured_crawls
-      .map((crawlId) => {
-        const crawl = mainData.crawls.find(c => c.id === crawlId);
-        if (!crawl) {
-          console.warn(`Featured crawl with ID ${crawlId} not found in main data`);
-          return null;
-        }
-
-        return {
-          id: crawl.id,
-          title: crawl.name,
-          description: crawl.description,
-          hero_image: `assets/crawl-library/${crawl.id}/hero.jpg`,
-          assetFolder: crawl.assetFolder
-        };
-      })
-      .filter(crawl => crawl !== null) as FeaturedCrawl[];
-
-    console.log('Featured crawls loaded:', featuredCrawls.length);
-    return featuredCrawls;
+    console.log('Featured crawls loaded:', transformedCrawls.length);
+    return transformedCrawls;
   } catch (error) {
-    console.error('Error loading featured crawls:', error);
+    console.error('Error loading featured crawls from database:', error);
     return [];
   }
 } 

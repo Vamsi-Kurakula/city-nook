@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { Crawl } from '../../../types/crawl';
-import { getHeroImageSource } from '../../auto-generated/ImageLoader';
+import DatabaseImage from '../../ui/DatabaseImage';
 import { useTheme } from '../../context/ThemeContext';
 
 interface FeaturedCrawlsSectionProps {
@@ -19,16 +19,15 @@ export default function FeaturedCrawlsSection({
 }: FeaturedCrawlsSectionProps) {
   const { theme } = useTheme();
   const renderCrawlItem = ({ item }: { item: Crawl }) => {
-    const heroImageSource = getHeroImageSource(item.assetFolder);
-
     return (
       <TouchableOpacity
         style={[styles.crawlCard, { backgroundColor: theme.background.primary, borderColor: theme.background.secondary, shadowColor: theme.shadow.primary }]}
         onPress={() => onCrawlPress(item)}
       >
         <View style={[styles.crawlImageContainer, { backgroundColor: theme.background.tertiary }]}>
-          <Image 
-            source={heroImageSource} 
+          <DatabaseImage 
+            assetFolder={item.assetFolder}
+            heroImageUrl={item.hero_image_url}
             style={styles.crawlImage}
             resizeMode="cover"
             onError={(error) => console.log('Image loading error:', error)}

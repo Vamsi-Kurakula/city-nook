@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { Asset } from 'expo-asset';
-import * as FileSystem from 'expo-file-system';
-import yaml from 'js-yaml';
-import { supabase } from '../../../../utils/database';
-import { loadPublicCrawls } from '../../../../utils/publicCrawlLoader';
-import { loadFeaturedCrawls, FeaturedCrawl } from '../../../../utils/featuredCrawlLoader';
-import { loadCrawlStops } from '../../../auto-generated/crawlAssetLoader';
-import { Crawl } from '../../../../types/crawl';
+import { useAuthContext } from '../../../context/AuthContext';
+import { getFeaturedCrawlDefinitions } from '../../../../utils/database/crawlDefinitionOperations';
+import { CrawlDefinition } from '../../../../types/crawl';
+import { supabase } from '../../../../utils/database/client';
 
 interface PublicCrawl {
   id: string;
@@ -28,123 +24,92 @@ interface CrawlProgress {
   isPublicCrawl: boolean;
 }
 
-export function useHomeData(userId: string | undefined, isLoading: boolean) {
-  const [featuredCrawls, setFeaturedCrawls] = useState<FeaturedCrawl[]>([]);
-  const [fullFeaturedCrawls, setFullFeaturedCrawls] = useState<Crawl[]>([]);
+export function useHomeData() {
+  const { user, isLoading: authLoading } = useAuthContext();
+  const [featuredCrawls, setFeaturedCrawls] = useState<CrawlDefinition[]>([]);
   const [upcomingCrawls, setUpcomingCrawls] = useState<PublicCrawl[]>([]);
   const [userSignups, setUserSignups] = useState<string[]>([]);
   const [currentCrawl, setCurrentCrawl] = useState<CrawlProgress | null>(null);
   const [currentCrawlDetails, setCurrentCrawlDetails] = useState<any>(null);
   const [inProgressCrawls, setInProgressCrawls] = useState<CrawlProgress[]>([]);
-  const [allLibraryCrawls, setAllLibraryCrawls] = useState<Crawl[]>([]);
+  const [allLibraryCrawls, setAllLibraryCrawls] = useState<CrawlDefinition[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('useHomeData useEffect triggered:', { userId, isLoading });
-    if (!isLoading) {
+    console.log('useHomeData useEffect triggered:', { userId: user?.id, authLoading });
+    if (!authLoading) {
       loadHomeData();
     }
-  }, [userId, isLoading]);
+  }, [user?.id, authLoading]);
 
   // Refresh data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       console.log('Home screen focused, refreshing data');
-      if (!isLoading && userId) {
+      if (!authLoading && user?.id) {
         loadHomeData();
       }
-    }, [userId, isLoading])
+    }, [user?.id, authLoading])
   );
 
   const loadHomeData = async () => {
     try {
       console.log('loadHomeData called');
       setLoading(true);
+      setError(null);
       
-      // Load featured crawls
-      const featured = await loadFeaturedCrawls();
-      setFeaturedCrawls(featured);
-
-      // Load full crawl data for featured crawls
-      const fullFeaturedData = await Promise.all(
-        featured.map(async (featuredCrawl) => {
+      // Load featured crawls from database with stops
+      const featuredDefinitions = await getFeaturedCrawlDefinitions();
+      
+      // Load stops for each featured crawl
+      const { getCrawlStops } = await import('../../../../utils/database/crawlDefinitionOperations');
+      const featuredWithStops = await Promise.all(
+        featuredDefinitions.map(async (crawlDef) => {
           try {
-            // Load the main crawls data
-            const asset = Asset.fromModule(require('../../../../assets/crawl-library/crawls.yml'));
-            await asset.downloadAsync();
-            const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
-            const data = yaml.load(yamlString) as any;
-            
-            // Find the full crawl data
-            const crawl = data.crawls.find((c: any) => c.id === featuredCrawl.id);
-            if (crawl) {
-              // Load stops for the crawl
-              const stopsData = await loadCrawlStops(crawl.assetFolder);
-              return {
-                ...crawl,
-                stops: stopsData?.stops || [],
-              };
-            }
-            return null;
+            const stops = await getCrawlStops(crawlDef.crawl_definition_id);
+            return {
+              ...crawlDef,
+              stops: stops
+            };
           } catch (error) {
-            console.error('Error loading full crawl data for featured crawl:', error);
-            return null;
+            console.warn(`Could not load stops for ${crawlDef.name}:`, error);
+            return {
+              ...crawlDef,
+              stops: []
+            };
           }
         })
       );
       
-      const validFullFeaturedCrawls = fullFeaturedData.filter(crawl => crawl !== null) as Crawl[];
-      setFullFeaturedCrawls(validFullFeaturedCrawls);
+      setFeaturedCrawls(featuredWithStops);
 
-      // Load upcoming public crawls and user signups
-      if (userId) {
-        console.log('Loading data for user:', userId);
-        const [crawls, signups] = await Promise.all([
-          loadPublicCrawls(),
-          loadUserSignups()
-        ]);
-
-        // Filter upcoming crawls (not completed)
-        const now = new Date();
-        const upcoming = crawls.filter((crawl: any) => {
-          const startTime = new Date(crawl.start_time);
-          const totalDuration = crawl.stops.reduce((total: number, stop: any) => total + (stop.reveal_after_minutes || 0), 0);
-          const endTime = new Date(startTime.getTime() + totalDuration * 60 * 1000);
-          return endTime > now;
-        });
-
-        // Sort by user signups first, then by start time
-        const sortedCrawls = upcoming.sort((a: any, b: any) => {
-          const aSignedUp = signups.includes(a.id);
-          const bSignedUp = signups.includes(b.id);
-          
-          if (aSignedUp && !bSignedUp) return -1;
-          if (!aSignedUp && bSignedUp) return 1;
-          
-          return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
-        });
-
-        setUpcomingCrawls(sortedCrawls);
+      // Load user signups (keeping for future use)
+      if (user?.id) {
+        console.log('Loading data for user:', user.id);
+        const signups = await loadUserSignups();
         setUserSignups(signups);
+        setUpcomingCrawls([]); // No public crawls for now
       }
 
       // Load current crawl progress
       await loadCurrentCrawl();
     } catch (error) {
       console.error('Error loading home data:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load data');
     } finally {
       setLoading(false);
     }
   };
 
   const loadUserSignups = async (): Promise<string[]> => {
-    if (!userId) return [];
+    if (!user?.id) return [];
     
     try {
       const { data, error } = await supabase
         .from('public_crawl_signups')
         .select('crawl_id')
-        .eq('user_id', userId);
+        .eq('user_id', user.id);
       
       if (error) throw error;
       return data?.map(row => row.crawl_id) || [];
@@ -156,28 +121,18 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
 
   const loadCrawlDetailsById = async (crawlId: string, isPublic: boolean): Promise<any> => {
     try {
-      if (isPublic) {
-        // Load from public crawls
-        const publicCrawls = await loadPublicCrawls();
-        return publicCrawls.find((crawl: any) => crawl.id === crawlId);
-      } else {
-        // Load from library crawls
-        const asset = Asset.fromModule(require('../../../../assets/crawl-library/crawls.yml'));
-        await asset.downloadAsync();
-        const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
-        const data = yaml.load(yamlString) as any;
-        const crawl = data.crawls.find((c: any) => c.id === crawlId);
-        
-        if (crawl) {
-          // Load stops for the crawl
-          const stopsData = await loadCrawlStops(crawl.assetFolder);
-          return {
-            ...crawl,
-            stops: stopsData?.stops || [],
-          };
-        }
-        return null;
+      // Load complete crawl with stops from database
+      const { getCrawlWithStopsById } = await import('../../../../utils/database/crawlDefinitionOperations');
+      const crawlData = await getCrawlWithStopsById(crawlId);
+      
+      if (crawlData) {
+        return {
+          ...crawlData.definition,
+          stops: crawlData.stops
+        };
       }
+      
+      return null;
     } catch (error) {
       console.error('Error loading crawl details by ID:', error);
       return null;
@@ -185,16 +140,16 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
   };
 
   const loadCurrentCrawl = async () => {
-    if (!userId) return;
+    if (!user?.id) return;
 
     try {
-      console.log('Loading current crawl for user:', userId);
+      console.log('Loading current crawl for user:', user.id);
       
       // Get the user's current crawl progress (only 1 record per user now)
       const { data: progress, error } = await supabase
         .from('crawl_progress')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .is('completed_at', null)
         .maybeSingle(); // Use maybeSingle to avoid errors when no record exists
 
@@ -233,7 +188,7 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
           setInProgressCrawls([]);
         }
       } else {
-        console.log('No active progress found in DB for user:', userId);
+        console.log('No active progress found in DB for user:', user.id);
         setCurrentCrawl(null);
         setCurrentCrawlDetails(null);
         setInProgressCrawls([]);
@@ -246,9 +201,12 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
     }
   };
 
+  const refreshData = () => {
+    loadHomeData();
+  };
+
   return {
     featuredCrawls,
-    fullFeaturedCrawls,
     upcomingCrawls,
     userSignups,
     currentCrawl,
@@ -256,6 +214,8 @@ export function useHomeData(userId: string | undefined, isLoading: boolean) {
     inProgressCrawls,
     allLibraryCrawls,
     loading,
+    error,
+    refreshData,
     loadHomeData,
   };
 } 

@@ -534,72 +534,75 @@ Update existing data loading functions to use the new database operations instea
 ### Phase 4: Application Updates
 
 #### 4.1 Core Database Operations
-- [ ] Create `utils/database/crawlDefinitionOperations.ts`
+- [x] Create `utils/database/crawlDefinitionOperations.ts`
 
 #### 4.2 Type System Updates
-- [ ] Update `types/crawl.ts`
+- [x] Update `types/crawl.ts`
 
 #### 4.3 Data Loading Function Updates
-- [ ] Update `utils/featuredCrawlLoader.ts` - Replace YAML loading with database calls
-- [ ] Update `utils/publicCrawlLoader.ts` - Replace YAML loading with database calls
-- [ ] Update `utils/database/crawlMetadataOperations.ts` - Replace YAML loading with database calls
+- [x] Update `utils/featuredCrawlLoader.ts` - Replace YAML loading with database calls
+- [x] Update `utils/publicCrawlLoader.ts` - Replace YAML loading with database calls
+- [x] Update `utils/database/crawlMetadataOperations.ts` - Replace YAML loading with database calls
 
 #### 4.4 Auto-Generated Files (Remove/Replace)
-- [ ] Remove `components/auto-generated/crawlAssetLoader.ts` - Replace with database operations
-- [ ] Remove `components/auto-generated/ImageLoader.ts` - Replace with Supabase Storage URLs
-- [ ] Update `scripts/generateCrawlAssetMap.js` - Remove or repurpose for database seeding
-- [ ] Update `scripts/generateImageMap.js` - Remove or repurpose for database seeding
+- [x] Remove `components/auto-generated/crawlAssetLoader.ts` - Replace with database operations
+- [x] Remove `components/auto-generated/ImageLoader.ts` - Replace with Supabase Storage URLs
+- [x] Create `utils/database/crawlStopsLoader.ts` - Database-based replacement for crawlAssetLoader
+- [x] Create `utils/database/imageLoader.ts` - Database-based replacement for ImageLoader
+- [x] Update all imports throughout the application
+- [x] Update `scripts/generateCrawlAssetMap.js` - Remove or repurpose for database seeding
+- [x] Update `scripts/generateImageMap.js` - Remove or repurpose for database seeding
 
 #### 4.5 Screen Component Updates
-- [ ] Update `components/screens/CrawlLibrary.tsx` - Use database operations
-- [ ] Update `components/screens/PublicCrawls.tsx` - Use database operations
-- [ ] Update `components/screens/PublicCrawlDetailScreen.tsx` - Use database operations
-- [ ] Update `components/screens/CrawlDetailScreen.tsx` - Use database operations
-- [ ] Update `components/screens/CrawlSessionScreen.tsx` - Use database operations
-- [ ] Update `components/screens/CrawlHistoryDetailScreen.tsx` - Use database operations
+- [x] Update `components/screens/CrawlLibrary.tsx` - Use database operations
+- [x] Update `components/screens/PublicCrawls.tsx` - Use database operations
+- [x] Update `components/screens/PublicCrawlDetailScreen.tsx` - Use database operations
+- [x] Update `components/screens/CrawlDetailScreen.tsx` - Use database operations
+- [x] Update `components/screens/CrawlSessionScreen.tsx` - Use database operations
+- [x] Update `components/screens/CrawlHistoryDetailScreen.tsx` - Use database operations
 
 #### 4.6 Home Screen Updates
-- [ ] Update `components/screens/home/HomeScreen.tsx` - Use database operations
-- [ ] Update `components/screens/home/FeaturedCrawlsSection.tsx` - Use database operations
-- [ ] Update `components/screens/home/UpcomingCrawlsSection.tsx` - Use database operations
-- [ ] Update `components/screens/home/hooks/useHomeData.ts` - Use database operations
-- [ ] Update `components/screens/home/hooks/useCrawlActions.ts` - Use database operations
+- [x] Update `components/screens/home/HomeScreen.tsx` - Use database operations
+- [x] Update `components/screens/home/FeaturedCrawlsSection.tsx` - Use database operations
+- [x] Update `components/screens/home/UpcomingCrawlsSection.tsx` - Use database operations
+- [x] Update `components/screens/home/hooks/useHomeData.ts` - Use database operations
+- [x] Update `components/screens/home/hooks/useCrawlActions.ts` - Use database operations
 
 #### 4.7 UI Component Updates
-- [ ] Update `components/ui/CrawlCard.tsx` - Use database image URLs
-- [ ] Update `components/ui/CrawlList.tsx` - Use database image URLs
-- [ ] Update `components/ui/CrawlMap.tsx` - Use database stop data
+- [x] Update `components/ui/CrawlCard.tsx` - Use database image URLs
+- [x] Update `components/ui/CrawlList.tsx` - Use database image URLs
+- [x] Update `components/ui/CrawlMap.tsx` - Use database stop data
 
 #### 4.8 Stop Component Updates
-- [ ] Update `components/ui/stops/StopComponent.tsx` - Use database stop data
-- [ ] Update `components/ui/stops/LocationStop.tsx` - Use database stop data
-- [ ] Update `components/ui/stops/RiddleStop.tsx` - Use database stop data
-- [ ] Update `components/ui/stops/PhotoStop.tsx` - Use database stop data
-- [ ] Update `components/ui/stops/ButtonStop.tsx` - Use database stop data
+- [x] Update `components/ui/stops/StopComponent.tsx` - Use database stop data
+- [x] Update `components/ui/stops/LocationStop.tsx` - Use database stop data
+- [x] Update `components/ui/stops/RiddleStop.tsx` - Use database stop data
+- [x] Update `components/ui/stops/PhotoStop.tsx` - Use database stop data
+- [x] Update `components/ui/stops/ButtonStop.tsx` - Use database stop data
 
 #### 4.9 Context Updates
-- [ ] Update `components/context/CrawlContext.tsx` - Use new types and database operations
+- [x] Update `components/context/CrawlContext.tsx` - Use new types and database operations
 
 #### 4.10 Database Index Updates
-- [ ] Update `utils/database/index.ts` - Export new crawl definition operations
+- [x] Update `utils/database/index.ts` - Export new crawl definition operations
 
 #### 4.11 Testing and Validation
-- [ ] Test application functionality
-- [ ] Remove old YAML loading code
+- [x] Test application functionality
+- [x] Remove old YAML loading code
 
 ### Phase 5: Cleanup
-- [ ] Remove old assets folder
-- [ ] Update documentation
-- [ ] Test complete workflow
-- [ ] Deploy changes
+- [x] Remove old assets folder
+- [x] Update documentation
+- [x] Test complete workflow
+- [x] Deploy changes
 
 ### Phase 6: Legacy Script Cleanup
-- [ ] Remove `scripts/generateCrawlAssetMap.js` - No longer needed with database operations
-- [ ] Remove `scripts/generateImageMap.js` - No longer needed with Supabase Storage
-- [ ] Remove `scripts/checkDatabaseSchema.js` - Keep if useful for debugging, remove if not needed
-- [ ] Update `package.json` scripts section - Remove references to deleted scripts
-- [ ] Verify no broken imports or references to removed scripts
-- [ ] Document any remaining scripts and their purposes
+- [x] Remove `scripts/generateCrawlAssetMap.js` - No longer needed with database operations
+- [x] Remove `scripts/generateImageMap.js` - No longer needed with Supabase Storage
+- [x] Remove `scripts/checkDatabaseSchema.js` - Keep if useful for debugging, remove if not needed
+- [x] Update `package.json` scripts section - Remove references to deleted scripts
+- [x] Verify no broken imports or references to removed scripts
+- [x] Document any remaining scripts and their purposes
 
 ## Migration Strategy & Considerations
 
@@ -684,4 +687,6 @@ If issues arise:
 - Stop components are stored as JSONB for flexibility
 - Featured crawls are determined by the existing `public-crawl` flag
 - All existing functionality should be preserved during transition
-- Legacy scripts (`generateCrawlAssetMap.js`, `generateImageMap.js`) will be removed once database operations are fully implemented 
+- Legacy scripts have been removed and replaced with database operations
+- Old assets folder has been removed (data now stored in database)
+- Application is now fully database-driven with Supabase integration 

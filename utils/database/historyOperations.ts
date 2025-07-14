@@ -30,7 +30,7 @@ export async function getCrawlHistory(userId: string) {
   const { data: history, error } = await supabase
     .from('user_crawl_history')
     .select(`
-      id,
+      user_crawl_history_id,
       crawl_id,
       is_public,
       completed_at,

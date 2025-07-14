@@ -5,7 +5,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { useCrawlContext } from '../context/CrawlContext';
 import { useTheme } from '../context/ThemeContext';
 import { Crawl, CrawlStop } from '../../types/crawl';
-import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
+import { loadCrawlStops } from '../../utils/database';
 import { StopComponent } from '../ui/stops';
 import CrawlMap from '../ui/CrawlMap';
 import { useAuthContext } from '../context/AuthContext';
@@ -73,8 +73,13 @@ const CrawlSessionScreen: React.FC = () => {
   useEffect(() => {
     if (crawlData && (!crawlData.stops || crawlData.stops.length === 0)) {
       setLoading(true);
-      loadCrawlStops(crawlData.assetFolder).then(data => {
-        setStops(data?.stops || []);
+      // Use crawl ID directly instead of asset folder
+      const { getCrawlStops } = require('../../utils/database/crawlDefinitionOperations');
+      getCrawlStops(crawlData.id).then((stops: CrawlStop[]) => {
+        setStops(stops || []);
+        setLoading(false);
+      }).catch((error: any) => {
+        console.error('Error loading stops:', error);
         setLoading(false);
       });
     } else if (crawlData) {
@@ -357,7 +362,7 @@ const CrawlSessionScreen: React.FC = () => {
     }
   }, [isCompleted, user, currentProgress, currentCrawl, clearCrawlSession, navigation, isCompleting]);
 
-  const isPublicCrawl = crawlData?.start_time && stops && stops.some((s: CrawlStop) => s.reveal_after_minutes !== undefined);
+
 
   if (loading || !crawlData || !stops.length || isCompleting) {
     return (

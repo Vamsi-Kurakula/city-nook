@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { formatTimeRemaining } from '../../../utils/crawlStatus';
-import { getHeroImageSource } from '../../auto-generated/ImageLoader';
+import { getHeroImageSource } from '../../../utils/database';
 import { useAuthContext } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -34,9 +34,31 @@ export default function UpcomingCrawlsSection({
   const { user } = useAuthContext();
   const { theme } = useTheme();
 
-  if (upcomingCrawls.length === 0) {
-    return null;
-  }
+  // Show a placeholder section since public crawls are removed
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Crawl Library</Text>
+        <TouchableOpacity onPress={onViewAllPress}>
+          <Text style={[styles.viewAllText, { color: theme.button.primary }]}>View All</Text>
+        </TouchableOpacity>
+      </View>
+      
+      <View style={[styles.placeholderContainer, { backgroundColor: theme.background.secondary }]}>
+        <Text style={[styles.placeholderText, { color: theme.text.secondary }]}>
+          Explore our collection of curated crawls
+        </Text>
+        <TouchableOpacity 
+          style={[styles.exploreButton, { backgroundColor: theme.button.primary }]}
+          onPress={onViewAllPress}
+        >
+          <Text style={[styles.exploreButtonText, { color: theme.text.inverse }]}>
+            Browse Crawls
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   const renderCrawlItem = ({ item }: { item: PublicCrawl }) => {
     const isSignedUp = userSignups.includes(item.id);
@@ -185,6 +207,27 @@ const styles = StyleSheet.create({
   },
   signUpButtonText: {
     fontSize: 14,
+    fontWeight: '600',
+  },
+  placeholderContainer: {
+    padding: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginHorizontal: 20,
+  },
+  placeholderText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  exploreButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  exploreButtonText: {
+    fontSize: 16,
     fontWeight: '600',
   },
 }); 

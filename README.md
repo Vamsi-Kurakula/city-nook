@@ -75,7 +75,7 @@ city_crawler/
 │   │   ├── CrawlDetailScreen.tsx
 │   │   ├── CrawlSessionScreen.tsx
 │   │   ├── CrawlLibrary.tsx
-│   │   ├── PublicCrawls.tsx
+
 │   │   ├── UserProfile.tsx
 │   │   └── SignInScreen.tsx
 │   ├── ui/                   # Reusable UI components
@@ -95,9 +95,7 @@ city_crawler/
 │   │   └── ThemeContext.tsx
 │   ├── error/                # Error handling components
 │   │   └── ErrorBoundary.tsx
-│   └── auto-generated/       # Auto-generated utilities
-│       ├── crawlAssetLoader.ts
-│       └── ImageLoader.ts
+│   └── auto-generated/       # Auto-generated utilities (legacy)
 ├── utils/                    # Utility functions
 │   ├── database/             # Database operations
 │   │   ├── client.ts         # Supabase client
@@ -112,23 +110,19 @@ city_crawler/
 │   ├── coordinateExtractor.ts
 │   ├── crawlStatus.ts
 │   ├── featuredCrawlLoader.ts
-│   ├── publicCrawlLoader.ts
+
 │   └── theme.ts              # Theme system
 ├── types/                    # TypeScript type definitions
 │   ├── crawl.ts
 │   ├── env.d.ts
 │   └── navigation.ts
-├── assets/                   # Static assets
-│   ├── crawl-library/        # Library crawl assets
-│   └── public-crawls/        # Public crawl assets
+├── assets/                   # Static assets (app icons, splash screens)
 ├── database/                 # Database schema and scripts
 │   ├── schema.sql
 │   └── deleteDatabase.sql
 └── scripts/                  # Build and utility scripts
     ├── checkDatabaseSchema.js
-    ├── generateCrawlAssetMap.js
-    ├── generateImageMap.js
-    └── runMigration.js
+    └── migrateCrawlsFromFolders.js
 ```
 
 ## 🎨 Features

@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Text, StyleSheet, ActivityIndicator, View, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as FileSystem from 'expo-file-system';
-import { Asset } from 'expo-asset';
-import yaml from 'js-yaml';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import CrawlList from '../ui/CrawlList';
@@ -12,14 +9,10 @@ import { useTheme } from '../context/ThemeContext';
 import { Alert } from 'react-native';
 import { useAuthContext } from '../context/AuthContext';
 import { RootStackParamList } from '../../types/navigation';
-import { Crawl } from '../../types/crawl';
-import { loadCrawlStops } from '../auto-generated/crawlAssetLoader';
+import { Crawl, CrawlDefinition } from '../../types/crawl';
+import { getCrawlDefinitionsByType, getCrawlStops } from '../../utils/database';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import BackButton from '../ui/BackButton';
-
-interface CrawlData {
-  crawls: Crawl[];
-}
 
 type CrawlLibraryNavigationProp = StackNavigationProp<RootStackParamList, 'CrawlLibrary'>;
 type CrawlLibraryRouteProp = RouteProp<RootStackParamList, 'CrawlLibrary'>;
@@ -45,50 +38,66 @@ const CrawlLibrary: React.FC = () => {
   useEffect(() => {
     const loadCrawls = async () => {
       try {
-        console.log('Loading crawls...');
-        // Load main crawls list
-        const asset = Asset.fromModule(require('../../assets/crawl-library/crawls.yml'));
-        await asset.downloadAsync();
-        const yamlString = await FileSystem.readAsStringAsync(asset.localUri || asset.uri);
-        const data = yaml.load(yamlString) as CrawlData;
+        console.log('Loading crawls from database...');
         
-        if (data && Array.isArray(data.crawls)) {
-          console.log(`Found ${data.crawls.length} crawls, loading stops...`);
-          
-          // Load stops for each crawl using the utility
-          const crawlsWithStops = await Promise.all(
-            data.crawls.map(async (crawl) => {
-              console.log('About to load stops for assetFolder:', crawl.assetFolder, 'in crawl:', crawl.name);
-              if (!crawl.assetFolder) {
-                console.warn('Skipping crawl with missing assetFolder:', crawl);
-                return crawl;
-              }
-              try {
-                console.log(`Loading stops for ${crawl.name} (${crawl.assetFolder})...`);
-                const stopsData = await loadCrawlStops(crawl.assetFolder);
-                return {
-                  ...crawl,
-                  stops: stopsData?.stops || [],
-                };
-              } catch (error) {
-                console.warn(`Could not load stops for ${crawl.name}:`, error);
-                return crawl;
-              }
-            })
-          );
-          console.log('All crawls loaded successfully:', crawlsWithStops.map(c => ({ name: c.name, stops: c.stops?.length || 0 })));
-          
-          // Filter to only show private crawls (public-crawl: false) in Crawl Library
-          const privateCrawls = crawlsWithStops.filter(crawl => crawl['public-crawl'] === false);
-          console.log(`Filtered to ${privateCrawls.length} private crawls`);
-          
-          setCrawls(privateCrawls);
-        } else {
-          console.error('No crawls found in data');
-          setCrawls([]);
-        }
-      } catch (e) {
-        console.error('Error loading crawls:', e);
+        // Get private crawls (is_public: false) from database
+        const crawlDefinitions = await getCrawlDefinitionsByType(false);
+        console.log(`Found ${crawlDefinitions.length} private crawls in database`);
+        
+        // Load stops for each crawl
+        const crawlsWithStops = await Promise.all(
+          crawlDefinitions.map(async (crawlDef) => {
+            try {
+              console.log(`Loading stops for ${crawlDef.name} (${crawlDef.crawl_definition_id})...`);
+              const stops = await getCrawlStops(crawlDef.crawl_definition_id);
+              
+              // Transform database crawl definition to legacy Crawl format for backward compatibility
+              const crawl: Crawl = {
+                id: crawlDef.crawl_definition_id,
+                name: crawlDef.name,
+                description: crawlDef.description,
+                assetFolder: crawlDef.asset_folder,
+                duration: crawlDef.duration,
+                difficulty: crawlDef.difficulty,
+                distance: crawlDef.distance,
+                'public-crawl': crawlDef.is_public,
+                start_time: crawlDef.start_time,
+                hero_image_url: crawlDef.hero_image_url,
+                stops: stops.map(stop => ({
+                  stop_number: stop.stop_number,
+                  stop_type: stop.stop_type,
+                  location_name: stop.location_name,
+                  location_link: stop.location_link,
+                  stop_components: stop.stop_components,
+                  reveal_after_minutes: stop.reveal_after_minutes
+                }))
+              };
+              
+              return crawl;
+            } catch (error) {
+              console.warn(`Could not load stops for ${crawlDef.name}:`, error);
+              // Return crawl without stops
+              return {
+                id: crawlDef.crawl_definition_id,
+                name: crawlDef.name,
+                description: crawlDef.description,
+                assetFolder: crawlDef.asset_folder,
+                duration: crawlDef.duration,
+                difficulty: crawlDef.difficulty,
+                distance: crawlDef.distance,
+                'public-crawl': crawlDef.is_public,
+                start_time: crawlDef.start_time,
+                hero_image_url: crawlDef.hero_image_url,
+                stops: []
+              } as Crawl;
+            }
+          })
+        );
+        
+        console.log('All crawls loaded successfully:', crawlsWithStops.map(c => ({ name: c.name, stops: c.stops?.length || 0 })));
+        setCrawls(crawlsWithStops);
+      } catch (error) {
+        console.error('Error loading crawls from database:', error);
         setCrawls([]);
       } finally {
         setLoading(false);
@@ -183,7 +192,7 @@ const CrawlLibrary: React.FC = () => {
             </View>
           </View>
         </View>
-        <Text style={[styles.errorText, { color: theme.text.tertiary }]}>No crawls found. Please check your crawls.yml file.</Text>
+        <Text style={[styles.errorText, { color: theme.text.tertiary }]}>No crawls found in the database.</Text>
       </SafeAreaView>
     );
   }

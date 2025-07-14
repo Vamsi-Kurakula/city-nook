@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { FlatList, View, StyleSheet, TouchableOpacity, Text, Image } from 'react-native';
+import { FlatList, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { Crawl } from '../../types/crawl';
-import { getHeroImageSource } from '../auto-generated/ImageLoader';
+import DatabaseImage from './DatabaseImage';
 import { useTheme } from '../context/ThemeContext';
 
 interface CrawlListProps {
@@ -14,19 +14,18 @@ const CrawlList: React.FC<CrawlListProps> = ({ crawls, onCrawlPress, onCrawlStar
   const { theme } = useTheme();
 
   const renderCrawlItem = ({ item }: { item: Crawl }) => {
-    const heroImageSource = getHeroImageSource(item.assetFolder);
-
     return (
       <TouchableOpacity
         style={[styles.crawlCard, { backgroundColor: theme.background.primary, borderColor: theme.background.secondary, shadowColor: theme.shadow.primary }]}
         onPress={() => onCrawlPress(item)}
       >
         <View style={[styles.crawlImageContainer, { backgroundColor: theme.background.tertiary }]}>
-          <Image 
-            source={heroImageSource} 
+          <DatabaseImage 
+            assetFolder={item.assetFolder}
+            heroImageUrl={item.hero_image_url}
             style={styles.crawlImage}
             resizeMode="cover"
-            onError={(error) => console.log('Image loading error:', error)}
+            onError={(error: any) => console.log('Image loading error:', error)}
           />
         </View>
         <View style={styles.crawlContent}>

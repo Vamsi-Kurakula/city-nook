@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Crawl } from '../../types/crawl';
 import { calculateCrawlStatus, formatTimeForDisplay, parseTimeString } from '../../utils/crawlStatus';
-import { getHeroImageSource } from '../auto-generated/ImageLoader';
+import DatabaseImage from './DatabaseImage';
 import { useTheme } from '../context/ThemeContext';
 
 interface CrawlCardProps {
@@ -89,8 +89,8 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
         disabled={isExpanded}
       >
         {/* Hero Image - Top Half */}
-        <Image 
-          source={getHeroImageSource(crawl.assetFolder)} 
+        <DatabaseImage 
+          assetFolder={crawl.assetFolder}
           style={styles.heroImage}
           resizeMode="cover"
           onError={(error) => console.log('Image loading error:', error)}
@@ -104,44 +104,7 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
               <Text style={[styles.crawlDesc, { color: theme.text.secondary }]} numberOfLines={2}>{crawl.description}</Text>
             )}
             
-            {/* Public Crawl Status and Timing */}
-            {crawl['public-crawl'] && crawl.start_time && crawlStatus && (
-              <View style={styles.publicCrawlInfo}>
-                <View style={styles.statusRow}>
-                  <Text style={[styles.statusBadge, { color: getStatusColor(crawlStatus.status) }]}>
-                    {getStatusText(crawlStatus.status)}
-                  </Text>
-                  <Text style={[styles.startTime, { color: theme.text.secondary }]}>
-                    🕐 {formatStartTime(crawl.start_time)}
-                  </Text>
-                </View>
-                
-                {crawlStatus.status === 'upcoming' && crawlStatus.timeUntilStart && (
-                  <Text style={[styles.timingInfo, { color: theme.text.secondary }]}>
-                    {crawlStatus.timeUntilStart}
-                  </Text>
-                )}
-                
-                {crawlStatus.status === 'ongoing' && (
-                  <View style={styles.ongoingInfo}>
-                    <Text style={[styles.timingInfo, { color: theme.text.secondary }]}>
-                      {crawlStatus.timeSinceStart}
-                    </Text>
-                    {crawlStatus.currentStopIndex !== undefined && crawl.stops && (
-                      <Text style={[styles.currentStop, { color: theme.text.secondary }]}>
-                        Stop {crawlStatus.currentStopIndex + 1} of {crawl.stops.length}
-                      </Text>
-                    )}
-                  </View>
-                )}
-                
-                {crawlStatus.status === 'completed' && (
-                  <Text style={[styles.timingInfo, { color: theme.text.secondary }]}>
-                    Ended {crawlStatus.estimatedEndTime && formatTimeForDisplay(crawlStatus.estimatedEndTime)}
-                  </Text>
-                )}
-              </View>
-            )}
+
             
             <View style={styles.crawlMeta}>
               <Text style={[styles.metaText, { color: theme.text.tertiary }]}>{crawl.duration}</Text>
@@ -156,17 +119,16 @@ const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpand
             <TouchableOpacity 
               style={[
                 styles.startButton, 
-                { backgroundColor: crawl['public-crawl'] && crawlStatus?.status === 'completed' ? theme.button.disabled : theme.button.primary }
+                { backgroundColor: theme.button.primary }
               ]} 
               onPress={() => onStart(crawl)}
               activeOpacity={0.8}
-              disabled={crawl['public-crawl'] && crawlStatus?.status === 'completed'}
             >
               <Text style={[
                 styles.startButtonText,
-                { color: crawl['public-crawl'] && crawlStatus?.status === 'completed' ? theme.text.disabled : theme.text.inverse }
+                { color: theme.text.inverse }
               ]}>
-                {crawl['public-crawl'] && crawlStatus?.status === 'completed' ? 'Passed' : 'Start'}
+                Start
               </Text>
             </TouchableOpacity>
           )}
@@ -204,36 +166,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 8,
   },
-  publicCrawlInfo: {
-    marginBottom: 8,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  statusBadge: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  startTime: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  timingInfo: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  ongoingInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  currentStop: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
+
   crawlMeta: {
     flexDirection: 'row',
     gap: 12,

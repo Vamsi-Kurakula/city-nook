@@ -8,7 +8,7 @@ import { getCrawlHistory, getCrawlNameMapping } from '../../utils/database';
 import BackButton from '../ui/BackButton';
 
 interface CrawlHistoryItem {
-  id: string;
+  user_crawl_history_id: string;
   crawl_id: string;
   completed_at: string;
   total_time_minutes: number;
@@ -120,7 +120,7 @@ const CrawlHistoryScreen: React.FC = () => {
       ) : (
         <FlatList
           data={history}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.user_crawl_history_id}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={[styles.historyItem, { backgroundColor: 'transparent', borderColor: theme.background.secondary }]}
