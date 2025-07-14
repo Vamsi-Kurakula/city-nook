@@ -33,6 +33,7 @@ export default function App() {
                 <ThemeProvider>
                   <StatusBar />
                   <AuthNavigator />
+                  {/* <Text>Hello World</Text> */}
                 </ThemeProvider>
               </CrawlProvider>
             </AuthProvider>

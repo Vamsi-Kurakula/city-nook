@@ -13,8 +13,6 @@ interface CrawlMapProps {
   coordinates?: LocationCoordinates[]; // Pre-extracted coordinates
 }
 
-
-
 const CrawlMap: React.FC<CrawlMapProps> = ({ 
   stops, 
   currentStopNumber, 
@@ -22,289 +20,327 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
   isNextStopRevealed,
   coordinates 
 }) => {
-  const { theme, themeType } = useTheme();
-  const [locations, setLocations] = useState<LocationCoordinates[]>([]);
-  const [region, setRegion] = useState({
-    latitude: 40.7128, // Default to NYC
-    longitude: -74.0060,
-    latitudeDelta: 0.1,
-    longitudeDelta: 0.1,
-  });
+  const [error, setError] = useState<Error | null>(null);
 
-        // Use pre-extracted coordinates or extract them if not provided
-  useEffect(() => {
-    if (coordinates) {
-      // Use pre-extracted coordinates
-      console.log('Using pre-extracted coordinates:', coordinates.length);
-      setLocations(coordinates);
-      
-      // Set initial region to show all locations
-      if (coordinates.length > 0) {
-        const latitudes = coordinates.map(loc => loc.latitude);
-        const longitudes = coordinates.map(loc => loc.longitude);
-        
-        const minLat = Math.min(...latitudes);
-        const maxLat = Math.max(...latitudes);
-        const minLng = Math.min(...longitudes);
-        const maxLng = Math.max(...longitudes);
-        
-        setRegion({
-          latitude: (minLat + maxLat) / 2,
-          longitude: (minLng + maxLng) / 2,
-          latitudeDelta: (maxLat - minLat) * 1.5,
-          longitudeDelta: (maxLng - minLng) * 1.5,
-        });
-      }
-    } else {
-      // Fallback: extract coordinates on-demand (for backward compatibility)
-      console.log('No pre-extracted coordinates provided, extracting on-demand');
-      setLocations([]);
+  if (error) {
+    return <Text style={{ color: 'red', padding: 20 }}>Map Error: {error.message}</Text>;
+  }
+
+  try {
+    console.log('CrawlMap props:', { stops, currentStopNumber, completedStops, isNextStopRevealed, coordinates });
+
+    // Defensive checks
+    if (!Array.isArray(stops) || !Array.isArray(completedStops) || (coordinates && !Array.isArray(coordinates))) {
+      return <Text>Invalid data passed to map (stops, completedStops, or coordinates not arrays)</Text>;
     }
-  }, [coordinates]);
 
-  const getMarkerColor = (stopNumber: number) => {
-    if (completedStops.includes(stopNumber)) {
-      return theme.button.success || '#4CAF50'; // Green for completed
-    } else if (stopNumber === currentStopNumber) {
-      return theme.button.primary || '#FF9800'; // Primary color for current
-    } else {
-      return theme.button.disabled || '#9E9E9E'; // Disabled color for locked
-    }
-  };
-
-  const getVisibleLocations = () => {
-    // Only show completed and current locations
-    const visible = locations.filter(location => {
-      const stopNumber = location.stopNumber;
-      return completedStops.includes(stopNumber) || stopNumber === currentStopNumber;
+    const { theme, themeType } = useTheme();
+    const [locations, setLocations] = useState<LocationCoordinates[]>([]);
+    const [region, setRegion] = useState({
+      latitude: 40.7128, // Default to NYC
+      longitude: -74.0060,
+      latitudeDelta: 0.1,
+      longitudeDelta: 0.1,
     });
-    console.log('Visible locations (completed + current):', visible);
-    return visible;
-  };
 
-  const getRouteCoordinates = () => {
-    const allLocations = getVisibleLocations();
-    return allLocations
-      .sort((a, b) => a.stopNumber - b.stopNumber)
-      .map(location => ({
-        latitude: location.latitude,
-        longitude: location.longitude,
-      }));
-  };
-
-  // Map style for dark/light theme
-  const mapStyle = themeType === 'dark' ? [
-    {
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#242f3e"
-        }
-      ]
-    },
-    {
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#746855"
-        }
-      ]
-    },
-    {
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#242f3e"
-        }
-      ]
-    },
-    {
-      "featureType": "administrative.locality",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#d59563"
-        }
-      ]
-    },
-    {
-      "featureType": "poi",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#d59563"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.park",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#263c3f"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.park",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#6b9a76"
-        }
-      ]
-    },
-    {
-      "featureType": "road",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#38414e"
-        }
-      ]
-    },
-    {
-      "featureType": "road",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#212a37"
-        }
-      ]
-    },
-    {
-      "featureType": "road",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#9ca5b3"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#746855"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#1f2835"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#f3d19c"
-        }
-      ]
-    },
-    {
-      "featureType": "transit",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#2f3948"
-        }
-      ]
-    },
-    {
-      "featureType": "transit.station",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#d59563"
-        }
-      ]
-    },
-    {
-      "featureType": "water",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#17263c"
-        }
-      ]
-    },
-    {
-      "featureType": "water",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#515c6d"
-        }
-      ]
-    },
-    {
-      "featureType": "water",
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#17263c"
-        }
-      ]
-    }
-  ] : [];
-
-  return (
-    <View style={[styles.container, { backgroundColor: theme.background.primary }]}>
-      <MapView
-        style={styles.map}
-        region={region}
-        showsUserLocation={true}
-        showsMyLocationButton={true}
-        customMapStyle={themeType === 'dark' ? mapStyle : undefined}
-        mapType="standard"
-        loadingEnabled={true}
-        loadingIndicatorColor={theme.button.primary}
-        loadingBackgroundColor={theme.background.primary}
-      >
-        {getVisibleLocations().map((location) => (
-          <Marker
-            key={location.stopNumber}
-            coordinate={{
-              latitude: location.latitude,
-              longitude: location.longitude,
-            }}
-            title={location.title}
-            description={`Stop ${location.stopNumber}`}
-            pinColor={getMarkerColor(location.stopNumber)}
-          />
-        ))}
+    // Use pre-extracted coordinates or extract them if not provided
+    useEffect(() => {
+      if (coordinates) {
+        // Use pre-extracted coordinates
+        console.log('Using pre-extracted coordinates:', coordinates.length);
+        setLocations(coordinates);
         
-        {/* Draw route line between visible stops */}
-        {getRouteCoordinates().length > 1 && (
-          <Polyline
-            coordinates={getRouteCoordinates()}
-            strokeColor={theme.button.primary || "#007AFF"}
-            strokeWidth={3}
-            lineDashPattern={[5, 5]}
-          />
-        )}
-      </MapView>
-      
-      <View style={[styles.legend, { backgroundColor: theme.background.primary }]}>
-        <Text style={[styles.legendTitle, { color: theme.text.primary }]}>Legend:</Text>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: theme.button.success || '#4CAF50', borderColor: theme.border.primary }]} />
-          <Text style={[styles.legendText, { color: theme.text.primary }]}>Completed</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: theme.button.primary || '#FF9800', borderColor: theme.border.primary }]} />
-          <Text style={[styles.legendText, { color: theme.text.primary }]}>Current</Text>
+        // Set initial region to show all locations
+        if (coordinates.length > 0) {
+          const latitudes = coordinates.map(loc => loc.latitude);
+          const longitudes = coordinates.map(loc => loc.longitude);
+          
+          const minLat = Math.min(...latitudes);
+          const maxLat = Math.max(...latitudes);
+          const minLng = Math.min(...longitudes);
+          const maxLng = Math.max(...longitudes);
+          
+          setRegion({
+            latitude: (minLat + maxLat) / 2,
+            longitude: (minLng + maxLng) / 2,
+            latitudeDelta: (maxLat - minLat) * 1.5,
+            longitudeDelta: (maxLng - minLng) * 1.5,
+          });
+        }
+      } else {
+        // Fallback: extract coordinates on-demand (for backward compatibility)
+        console.log('No pre-extracted coordinates provided, extracting on-demand');
+        setLocations([]);
+      }
+    }, [coordinates]);
+
+    const getMarkerColor = (stopNumber: number) => {
+      if (completedStops.includes(stopNumber)) {
+        return theme.button.success || '#4CAF50'; // Green for completed
+      } else if (stopNumber === currentStopNumber) {
+        return theme.button.primary || '#FF9800'; // Primary color for current
+      } else {
+        return theme.button.disabled || '#9E9E9E'; // Disabled color for locked
+      }
+    };
+
+    const getVisibleLocations = () => {
+      // Only show completed and current locations
+      const visible = locations.filter(location => {
+        const stopNumber = location.stopNumber;
+        return completedStops.includes(stopNumber) || stopNumber === currentStopNumber;
+      });
+      console.log('Visible locations (completed + current):', visible);
+      return visible;
+    };
+
+    const getRouteCoordinates = () => {
+      const allLocations = getVisibleLocations();
+      return allLocations
+        .sort((a, b) => a.stopNumber - b.stopNumber)
+        .map(location => ({
+          latitude: location.latitude,
+          longitude: location.longitude,
+        }));
+    };
+
+    // Map style for dark/light theme
+    const mapStyle = themeType === 'dark' ? [
+      {
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#242f3e"
+          }
+        ]
+      },
+      {
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#746855"
+          }
+        ]
+      },
+      {
+        "elementType": "labels.text.stroke",
+        "stylers": [
+          {
+            "color": "#242f3e"
+          }
+        ]
+      },
+      {
+        "featureType": "administrative.locality",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#d59563"
+          }
+        ]
+      },
+      {
+        "featureType": "poi",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#d59563"
+          }
+        ]
+      },
+      {
+        "featureType": "poi.park",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#263c3f"
+          }
+        ]
+      },
+      {
+        "featureType": "poi.park",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#6b9a76"
+          }
+        ]
+      },
+      {
+        "featureType": "road",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#38414e"
+          }
+        ]
+      },
+      {
+        "featureType": "road",
+        "elementType": "geometry.stroke",
+        "stylers": [
+          {
+            "color": "#212a37"
+          }
+        ]
+      },
+      {
+        "featureType": "road",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#9ca5b3"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#746855"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "geometry.stroke",
+        "stylers": [
+          {
+            "color": "#1f2835"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#f3d19c"
+          }
+        ]
+      },
+      {
+        "featureType": "transit",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#2f3948"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.station",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#d59563"
+          }
+        ]
+      },
+      {
+        "featureType": "water",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#17263c"
+          }
+        ]
+      },
+      {
+        "featureType": "water",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#515c6d"
+          }
+        ]
+      },
+      {
+        "featureType": "water",
+        "elementType": "labels.text.stroke",
+        "stylers": [
+          {
+            "color": "#17263c"
+          }
+        ]
+      }
+    ] : [];
+
+    console.log('Legend theme values:', {
+      buttonSuccess: theme.button.success,
+      buttonPrimary: theme.button.primary,
+      borderPrimary: theme.border.primary,
+      backgroundPrimary: theme.background.primary,
+      textPrimary: theme.text.primary,
+    });
+
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background.primary }]}>
+        <MapView
+          style={styles.map}
+          region={region}
+          showsUserLocation={true}
+          showsMyLocationButton={true}
+          customMapStyle={themeType === 'dark' ? mapStyle : undefined}
+          mapType="standard"
+          loadingEnabled={true}
+          loadingIndicatorColor={theme.button.primary}
+          loadingBackgroundColor={theme.background.primary}
+        >
+          {/* Wrap all children in a fragment to avoid stray arrays or commas */}
+          <>
+            {getVisibleLocations().map((location) => {
+              // Defensive: ensure title and stopNumber are correct types
+              console.log('Rendering Marker location:', location);
+              const markerTitle = typeof location.title === 'string' ? location.title : JSON.stringify(location.title);
+              const markerDescription = typeof location.stopNumber === 'number' ? `Stop ${location.stopNumber}` : String(location.stopNumber);
+              if (typeof location.title !== 'string' || typeof location.stopNumber !== 'number') {
+                return <Marker key={location.stopNumber || Math.random()} coordinate={{ latitude: location.latitude, longitude: location.longitude }} title={markerTitle} description={markerDescription} pinColor={getMarkerColor(location.stopNumber)} />;
+              }
+              return (
+                <Marker
+                  key={location.stopNumber}
+                  coordinate={{
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                  }}
+                  title={markerTitle}
+                  description={markerDescription}
+                  pinColor={getMarkerColor(location.stopNumber)}
+                />
+              );
+            })}
+            {/* Draw route line between visible stops */}
+            {getRouteCoordinates().length > 1 && (
+              <Polyline
+                coordinates={getRouteCoordinates()}
+                strokeColor={theme.button.primary || "#007AFF"}
+                strokeWidth={3}
+                lineDashPattern={[5, 5]}
+              />
+            )}
+          </>
+        </MapView>
+        
+        {/* Minimal legend for debugging */}
+        <View style={[styles.legend, { backgroundColor: theme.background.primary }]}> 
+          <Text style={[styles.legendTitle, { color: theme.text.primary }]}>Legend:</Text>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: theme.button.success || '#4CAF50', borderColor: theme.border.primary }]} />
+            <Text style={[styles.legendText, { color: theme.text.primary }]}>Completed</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: theme.button.primary || '#FF9800', borderColor: theme.border.primary }]} />
+            <Text style={[styles.legendText, { color: theme.text.primary }]}>Current</Text>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  } catch (err) {
+    setError(err instanceof Error ? err : new Error(String(err)));
+    return null;
+  }
 };
 
 const styles = StyleSheet.create({
