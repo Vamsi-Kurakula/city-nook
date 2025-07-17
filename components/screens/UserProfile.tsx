@@ -1,16 +1,38 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useNavigation, CommonActions, useFocusEffect } from '@react-navigation/native';
 import { useAuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { deleteUserAccount, exportUserData } from '../../utils/database/userOperations';
+import { getPendingRequests } from '../../utils/database/friendRequestOperations';
 import BackButton from '../ui/BackButton';
 
 const UserProfile: React.FC = () => {
   const { user, userProfile, signOut, isLoading, isSignedIn } = useAuthContext();
   const { theme, themeType, setTheme } = useTheme();
   const navigation = useNavigation<any>();
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+
+  const fetchPendingRequests = async () => {
+    if (!user?.id) return;
+    try {
+      const requests = await getPendingRequests(user.id);
+      setPendingRequestsCount(requests.length);
+    } catch (err) {
+      console.error('Error fetching pending requests:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPendingRequests();
+  }, [user?.id]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchPendingRequests();
+    }, [user?.id])
+  );
 
   const handleSignOut = async () => {
     Alert.alert(
@@ -218,6 +240,18 @@ const UserProfile: React.FC = () => {
           </View>
 
           <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Social</Text>
+            <TouchableOpacity style={[styles.activityButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary, position: 'relative' }]} onPress={() => navigation.navigate('FriendsList')}>
+              <Text style={[styles.activityButtonText, { color: theme.text.primary }]}>👥 Friends</Text>
+              {pendingRequestsCount > 0 && (
+                <View style={[styles.badge, { backgroundColor: theme.button.secondary }]}>
+                  <Text style={[styles.badgeText, { color: theme.button.primary }]}>{pendingRequestsCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Appearance</Text>
             <View style={styles.themeSection}>
               <Text style={[styles.themeLabel, { color: theme.text.secondary }]}>Theme</Text>
@@ -404,6 +438,7 @@ const styles = StyleSheet.create({
     borderColor: '#f0f0f0',
     borderRadius: 8,
     marginBottom: 8,
+    position: 'relative', // Added for badge positioning
   },
   activityButtonText: {
     fontSize: 16,
@@ -511,6 +546,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });
 

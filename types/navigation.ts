@@ -9,4 +9,5 @@ export type RootStackParamList = {
   CrawlHistoryDetail: { crawlId: string };
   CrawlLibraryFilters: { minStops: number; maxDistanceMiles: number } | undefined;
   CrawlCompletion: { crawlName?: string; completionData?: any };
+  SocialTest: undefined; // For testing social features
 }; 

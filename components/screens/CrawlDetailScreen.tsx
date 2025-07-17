@@ -3,30 +3,70 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import { useCrawlContext } from '../context/CrawlContext';
-import { Crawl } from '../../types/crawl';
+import { Crawl, CrawlStop } from '../../types/crawl';
 import DatabaseImage from '../ui/DatabaseImage';
 import { useAuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../../utils/database';
 import { MaterialIcons } from '@expo/vector-icons';
 import BackButton from '../ui/BackButton';
+import { getCrawlWithStopsById } from '../../utils/database/crawlDefinitionOperations';
+
+// Helper to map CrawlDefinition to Crawl
+function mapCrawlDefinitionToCrawl(definition: any, stops: CrawlStop[]): Crawl {
+  return {
+    id: definition.crawl_definition_id,
+    name: definition.name,
+    description: definition.description,
+    duration: definition.duration,
+    difficulty: definition.difficulty,
+    distance: definition.distance,
+    'public-crawl': definition.is_public,
+    start_time: definition.start_time,
+    hero_image_url: definition.hero_image_url,
+    stops,
+  };
+}
 
 const CrawlDetailScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
   const { theme } = useTheme();
   
-  // Defensive extraction and logging
-  const routeParams = route.params as { crawl?: Crawl } | undefined;
-  const crawl = routeParams?.crawl;
-  console.log('CrawlDetailScreen route params:', routeParams);
-  if (!crawl) {
+  // Accept either a crawl object or a crawlId
+  const routeParams = route.params as { crawl?: Crawl; crawlId?: string } | undefined;
+  const [crawl, setCrawl] = useState<Crawl | null>(routeParams?.crawl || null);
+  const [loading, setLoading] = useState(!routeParams?.crawl && !!routeParams?.crawlId);
+
+  useEffect(() => {
+    const fetchCrawl = async () => {
+      if (!crawl && routeParams?.crawlId) {
+        setLoading(true);
+        try {
+          const crawlData = await getCrawlWithStopsById(routeParams.crawlId);
+          if (crawlData && crawlData.definition) {
+            setCrawl(mapCrawlDefinitionToCrawl(crawlData.definition, crawlData.stops));
+          }
+        } catch (e) {
+          setCrawl(null);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    fetchCrawl();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeParams?.crawlId]);
+
+  if (loading || !crawl) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
         <View style={styles.header}>
           <BackButton onPress={() => navigation.goBack()} />
         </View>
-        <Text style={[styles.title, { color: theme.text.primary }]}>No crawl data found (CrawlDetailScreen).</Text>
+        <View style={styles.loadingContainer}>
+          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
+        </View>
       </SafeAreaView>
     );
   }

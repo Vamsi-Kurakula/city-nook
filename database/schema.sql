@@ -17,6 +17,26 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create crawl_definitions table (combines both public and library crawls)
+-- This table is created before any tables that reference it via foreign keys
+-- (crawl_progress, user_crawl_history, crawl_stops, public_crawl_signups)
+CREATE TABLE IF NOT EXISTS crawl_definitions (
+  crawl_definition_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT UNIQUE NOT NULL, -- Use name as the unique identifier
+  description TEXT NOT NULL,
+  duration TEXT NOT NULL, -- e.g., '2-3 hours'
+  difficulty TEXT NOT NULL, -- e.g., 'Easy', 'Medium'
+  distance TEXT NOT NULL, -- e.g., '1.5 miles'
+  is_public BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE for public crawls, FALSE for library crawls
+  is_featured BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE for featured crawls
+  start_time TIMESTAMP WITH TIME ZONE, -- NULL for library crawls, timestamp for public crawls
+  hero_image_url TEXT, -- Public Supabase Storage URL
+  hero_image_path TEXT, -- Storage bucket path
+  created_by TEXT, -- Name of the person who created the crawl (from git config or other source)
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create crawl_progress table
 -- Tracks in-progress crawls for each user (only 1 record per user)
 -- Note: user_id is TEXT to match Clerk user IDs (not UUID)
@@ -46,6 +66,32 @@ CREATE TABLE IF NOT EXISTS user_crawl_history (
   total_time_minutes INTEGER, -- Time taken to complete the crawl
   score INTEGER, -- Optional score/rating for the crawl
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create crawl stops table with JSON stop_components
+CREATE TABLE IF NOT EXISTS crawl_stops (
+  crawl_stop_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  crawl_definition_id UUID NOT NULL REFERENCES crawl_definitions(crawl_definition_id) ON DELETE CASCADE,
+  stop_number INTEGER NOT NULL, -- 1-based indexing
+  stop_type TEXT NOT NULL, -- 'location', 'riddle', 'photo', 'button'
+  location_name TEXT NOT NULL,
+  location_link TEXT, -- Google Maps link
+  stop_components JSONB NOT NULL DEFAULT '{}', -- Flexible JSON field for stop-specific data
+  reveal_after_minutes INTEGER, -- Optional timing for stops
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(crawl_definition_id, stop_number)
+);
+
+-- Create public_crawl_signups table
+-- Tracks user signups for scheduled public crawls
+-- Note: user_id is TEXT to match Clerk user IDs (not UUID)
+CREATE TABLE IF NOT EXISTS public_crawl_signups (
+  public_crawl_signup_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE, -- Clerk user ID (TEXT, not UUID)
+  crawl_id TEXT NOT NULL, -- References public crawl ID
+  is_public BOOLEAN NOT NULL DEFAULT TRUE, -- Always TRUE for public crawl signups
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, crawl_id, is_public) -- One signup per user per public crawl
 );
 
 -- Create indexes for better performance
@@ -146,75 +192,7 @@ CREATE TRIGGER update_crawl_progress_updated_at
   BEFORE UPDATE ON crawl_progress
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); 
 
--- Create public_crawl_signups table
--- Tracks user signups for scheduled public crawls
--- Note: user_id is TEXT to match Clerk user IDs (not UUID)
-CREATE TABLE IF NOT EXISTS public_crawl_signups (
-  public_crawl_signup_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE, -- Clerk user ID (TEXT, not UUID)
-  crawl_id TEXT NOT NULL, -- References public crawl ID
-  is_public BOOLEAN NOT NULL DEFAULT TRUE, -- Always TRUE for public crawl signups
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(user_id, crawl_id, is_public) -- One signup per user per public crawl
-);
-
--- Additional useful indexes for performance
-CREATE INDEX IF NOT EXISTS idx_crawl_progress_completed_at ON crawl_progress(completed_at);
-CREATE INDEX IF NOT EXISTS idx_crawl_progress_started_at ON crawl_progress(started_at);
-CREATE INDEX IF NOT EXISTS idx_user_crawl_history_completed_at ON user_crawl_history(completed_at);
-
--- Add comments to tables for better documentation
-COMMENT ON TABLE user_profiles IS 'User profile information synced from Clerk authentication';
-COMMENT ON TABLE crawl_progress IS 'Tracks in-progress crawls for each user (only 1 record per user)';
-COMMENT ON TABLE user_crawl_history IS 'Stores completed crawl records for statistics and history';
-COMMENT ON TABLE public_crawl_signups IS 'Tracks user signups for scheduled public crawls';
-
--- Add comments to important columns
-COMMENT ON COLUMN crawl_progress.completed_stops IS 'Array of completed stop numbers (1-based indexing)';
-COMMENT ON COLUMN crawl_progress.current_stop IS 'Current stop number (1-based indexing)';
-COMMENT ON COLUMN crawl_progress.completed_at IS 'NULL if crawl is in progress, timestamp when completed';
-COMMENT ON COLUMN crawl_progress.is_public IS 'TRUE for public crawls, FALSE for crawl library crawls';
-COMMENT ON COLUMN user_crawl_history.is_public IS 'TRUE for public crawls, FALSE for crawl library crawls';
-COMMENT ON COLUMN public_crawl_signups.is_public IS 'Always TRUE for public crawl signups';
-
--- Add comments explaining the datatype fixes
-COMMENT ON FUNCTION handle_new_user() IS 'Trigger function to create user profiles with proper TEXT type handling for Clerk user IDs - fixed ambiguous column reference';
-COMMENT ON FUNCTION create_user_profile(TEXT, TEXT, TEXT, TEXT) IS 'Manual function to create/update user profiles with conflict resolution - fixed ambiguous column reference';
-COMMENT ON FUNCTION debug_user_profile(TEXT) IS 'Debug function to check user profile and auth user existence - fixed ambiguous column reference';
-
--- Create crawl definitions table (combines both public and library crawls)
-CREATE TABLE IF NOT EXISTS crawl_definitions (
-  crawl_definition_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT UNIQUE NOT NULL, -- Use name as the unique identifier
-  description TEXT NOT NULL,
-  duration TEXT NOT NULL, -- e.g., '2-3 hours'
-  difficulty TEXT NOT NULL, -- e.g., 'Easy', 'Medium'
-  distance TEXT NOT NULL, -- e.g., '1.5 miles'
-  is_public BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE for public crawls, FALSE for library crawls
-  is_featured BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE for featured crawls
-  start_time TIMESTAMP WITH TIME ZONE, -- NULL for library crawls, timestamp for public crawls
-  hero_image_url TEXT, -- Public Supabase Storage URL
-  hero_image_path TEXT, -- Storage bucket path
-  created_by TEXT, -- Name of the person who created the crawl (from git config or other source)
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Create crawl stops table with JSON stop_components
-CREATE TABLE IF NOT EXISTS crawl_stops (
-  crawl_stop_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  crawl_definition_id UUID NOT NULL REFERENCES crawl_definitions(crawl_definition_id) ON DELETE CASCADE,
-  stop_number INTEGER NOT NULL, -- 1-based indexing
-  stop_type TEXT NOT NULL, -- 'location', 'riddle', 'photo', 'button'
-  location_name TEXT NOT NULL,
-  location_link TEXT, -- Google Maps link
-  stop_components JSONB NOT NULL DEFAULT '{}', -- Flexible JSON field for stop-specific data
-  reveal_after_minutes INTEGER, -- Optional timing for stops
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(crawl_definition_id, stop_number)
-);
-
--- Indexes for crawl definitions and stops performance
+-- Create indexes for crawl definitions and stops performance
 CREATE INDEX IF NOT EXISTS idx_crawl_definitions_name ON crawl_definitions(name);
 CREATE INDEX IF NOT EXISTS idx_crawl_definitions_is_public ON crawl_definitions(is_public);
 CREATE INDEX IF NOT EXISTS idx_crawl_definitions_is_featured ON crawl_definitions(is_featured);
@@ -227,17 +205,32 @@ CREATE TRIGGER update_crawl_definitions_updated_at
   BEFORE UPDATE ON crawl_definitions
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Add comments to new tables for better documentation
+-- Add comments to tables for better documentation
+COMMENT ON TABLE user_profiles IS 'User profile information synced from Clerk authentication';
+COMMENT ON TABLE crawl_progress IS 'Tracks in-progress crawls for each user (only 1 record per user)';
+COMMENT ON TABLE user_crawl_history IS 'Stores completed crawl records for statistics and history';
+COMMENT ON TABLE public_crawl_signups IS 'Tracks user signups for scheduled public crawls';
 COMMENT ON TABLE crawl_definitions IS 'Crawl definitions combining both public and library crawls with metadata and image storage';
 COMMENT ON TABLE crawl_stops IS 'Individual stops for each crawl with flexible JSONB components for different stop types';
 
 -- Add comments to important columns
+COMMENT ON COLUMN crawl_progress.completed_stops IS 'Array of completed stop numbers (1-based indexing)';
+COMMENT ON COLUMN crawl_progress.current_stop IS 'Current stop number (1-based indexing)';
+COMMENT ON COLUMN crawl_progress.completed_at IS 'NULL if crawl is in progress, timestamp when completed';
+COMMENT ON COLUMN crawl_progress.is_public IS 'TRUE for public crawls, FALSE for crawl library crawls';
+COMMENT ON COLUMN user_crawl_history.is_public IS 'TRUE for public crawls, FALSE for crawl library crawls';
+COMMENT ON COLUMN public_crawl_signups.is_public IS 'Always TRUE for public crawl signups';
 COMMENT ON COLUMN crawl_definitions.name IS 'Unique identifier for crawl definitions, used for upserts during migration';
 COMMENT ON COLUMN crawl_definitions.is_public IS 'TRUE for public crawls, FALSE for crawl library crawls';
 COMMENT ON COLUMN crawl_definitions.is_featured IS 'TRUE for featured crawls displayed prominently';
 COMMENT ON COLUMN crawl_definitions.hero_image_url IS 'Public Supabase Storage URL for hero image';
 COMMENT ON COLUMN crawl_stops.stop_components IS 'JSONB field containing stop-specific data (coordinates, riddle, photo instructions, etc.)';
 COMMENT ON COLUMN crawl_stops.stop_number IS '1-based indexing for stop order within a crawl';
+
+-- Add comments explaining the datatype fixes
+COMMENT ON FUNCTION handle_new_user() IS 'Trigger function to create user profiles with proper TEXT type handling for Clerk user IDs - fixed ambiguous column reference';
+COMMENT ON FUNCTION create_user_profile(TEXT, TEXT, TEXT, TEXT) IS 'Manual function to create/update user profiles with conflict resolution - fixed ambiguous column reference';
+COMMENT ON FUNCTION debug_user_profile(TEXT) IS 'Debug function to check user profile and auth user existence - fixed ambiguous column reference';
 
 -- Create Supabase Storage bucket for crawl images
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -307,5 +300,102 @@ USING (
   AND auth.role() = 'authenticated'
 );
 */
+
+-- SOCIAL FEATURES: BEGIN
+
+-- 1. Add social fields to user_profiles
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS bio TEXT;
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS show_crawl_activity BOOLEAN DEFAULT true;
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS allow_friend_requests BOOLEAN DEFAULT true;
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+-- 2. Friend request status enum
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'friend_request_status') THEN
+    CREATE TYPE friend_request_status AS ENUM ('pending', 'accepted', 'rejected', 'cancelled');
+  END IF;
+END $$;
+
+-- 3. Friendships table
+CREATE TABLE IF NOT EXISTS friendships (
+  friendship_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id_1 TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE,
+  user_id_2 TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id_1, user_id_2),
+  CHECK (user_id_1 < user_id_2)
+);
+CREATE TRIGGER update_friendships_updated_at
+  BEFORE UPDATE ON friendships
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- 4. Friend requests table
+CREATE TABLE IF NOT EXISTS friend_requests (
+  friend_request_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  from_user_id TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE,
+  to_user_id TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE,
+  message TEXT,
+  status friend_request_status DEFAULT 'pending',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  responded_at TIMESTAMP WITH TIME ZONE,
+  responded_by TEXT REFERENCES user_profiles(user_profile_id),
+  UNIQUE(from_user_id, to_user_id),
+  CHECK (from_user_id <> to_user_id)
+);
+
+-- 5. Blocked users table
+CREATE TABLE IF NOT EXISTS blocked_users (
+  blocked_user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  blocker_id TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE,
+  blocked_id TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(blocker_id, blocked_id),
+  CHECK (blocker_id <> blocked_id)
+);
+
+-- 6. User reports table
+CREATE TABLE IF NOT EXISTS user_reports (
+  user_report_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  reported_user_id TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE,
+  reporter_user_id TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE,
+  reason TEXT NOT NULL,
+  details TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 7. Social notifications table
+CREATE TABLE IF NOT EXISTS social_notifications (
+  notification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL REFERENCES user_profiles(user_profile_id) ON DELETE CASCADE,
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  related_user_id TEXT,
+  read_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 8. Indexes for social features
+-- Friendships
+CREATE INDEX IF NOT EXISTS idx_friendships_user_id_1 ON friendships(user_id_1);
+CREATE INDEX IF NOT EXISTS idx_friendships_user_id_2 ON friendships(user_id_2);
+CREATE INDEX IF NOT EXISTS idx_friendships_composite ON friendships(user_id_1, user_id_2);
+-- Friend Requests
+CREATE INDEX IF NOT EXISTS idx_friend_requests_to_user_id ON friend_requests(to_user_id);
+CREATE INDEX IF NOT EXISTS idx_friend_requests_from_user_id ON friend_requests(from_user_id);
+CREATE INDEX IF NOT EXISTS idx_friend_requests_status ON friend_requests(status);
+CREATE INDEX IF NOT EXISTS idx_friend_requests_composite ON friend_requests(from_user_id, to_user_id);
+-- Blocked Users
+CREATE INDEX IF NOT EXISTS idx_blocked_users_blocker_id ON blocked_users(blocker_id);
+CREATE INDEX IF NOT EXISTS idx_blocked_users_blocked_id ON blocked_users(blocked_id);
+-- User Search
+CREATE INDEX IF NOT EXISTS idx_user_profiles_full_name ON user_profiles(full_name);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_email ON user_profiles(email);
+-- Social Notifications
+CREATE INDEX IF NOT EXISTS idx_social_notifications_user_id ON social_notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_social_notifications_type ON social_notifications(type);
+
+-- SOCIAL FEATURES: END
 
 SELECT 'Database schema created successfully with datatype fixes for Clerk user IDs, ambiguous column reference fixes, new crawl tables, and Supabase Storage configuration.' AS status; 

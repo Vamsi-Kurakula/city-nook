@@ -21,7 +21,7 @@ export async function getCrawlStats(userId: string) {
     .select('crawl_id, is_public, completed_at')
     .eq('user_id', userId)
     .is('completed_at', null)
-    .single();
+    .maybeSingle();
 
   if (progressError) {
     console.error('Error fetching crawl progress:', progressError);

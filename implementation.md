@@ -8,7 +8,7 @@ This plan outlines the implementation of social features for the City Crawler ap
 ## TypeScript Type Definitions
 
 ### Core Social Types
-- [ ] **Create `types/social.ts`**
+- [x] **Create `types/social.ts`**
   ```typescript
   // Friend request status enum
   export type FriendRequestStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled';
@@ -106,7 +106,7 @@ This plan outlines the implementation of social features for the City Crawler ap
 ## Database Schema Changes
 
 ### Profile System Tables
-- **Extend `user_profiles` table** (already exists, add social fields)
+- [x] **Extend `user_profiles` table** (already exists, add social fields)
   ```sql
   -- Add social fields to existing user_profiles table
   ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS profile_visibility TEXT DEFAULT 'public' CHECK (profile_visibility IN ('public,nds_only','private'));  ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS bio TEXT;
@@ -120,12 +120,12 @@ This plan outlines the implementation of social features for the City Crawler ap
   ```
 
 ### Friends System Tables
-- [ ] **Create `friend_request_status` enum**
+- [x] **Create `friend_request_status` enum**
   ```sql
   CREATE TYPE friend_request_status AS ENUM ('pending', 'accepted', 'rejected', 'cancelled');
   ```
 
-- [ ] **Create `friendships` table**
+- [x] **Create `friendships` table**
   ```sql
   CREATE TABLE IF NOT EXISTS friendships (
     friendship_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -143,7 +143,7 @@ This plan outlines the implementation of social features for the City Crawler ap
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
   ```
 
-- [ ] **Create `friend_requests` table**
+- [x] **Create `friend_requests` table**
   - `friend_request_id` (UUID PRIMARY KEY DEFAULT gen_random_uuid())
   - `from_user_id` (TEXT - references user_profiles(user_profile_id) ON DELETE CASCADE)
   - `to_user_id` (TEXT - references user_profiles(user_profile_id) ON DELETE CASCADE)
@@ -155,7 +155,7 @@ This plan outlines the implementation of social features for the City Crawler ap
   - Unique constraint on (from_user_id, to_user_id) to prevent duplicate requests
   - Check constraint to ensure from_user_id != to_user_id
 
-- [ ] **Create `blocked_users` table**
+- [x] **Create `blocked_users` table**
   - `blocked_user_id` (UUID PRIMARY KEY DEFAULT gen_random_uuid())
   - `blocker_id` (TEXT - references user_profiles(user_profile_id) ON DELETE CASCADE)
   - `blocked_id` (TEXT - references user_profiles(user_profile_id) ON DELETE CASCADE)
@@ -164,7 +164,7 @@ This plan outlines the implementation of social features for the City Crawler ap
   - Check constraint to ensure blocker_id != blocked_id
 
 ### Reports Table
--  **Create `user_reports` table**
+- [x] **Create `user_reports` table**
   - Stores reports of inappropriate behavior for later review.
   - Example schema:
 
@@ -180,19 +180,19 @@ CREATE TABLE user_reports (
 ```
 
 ### Recommended Indexes
-- [ ] **Friendships Table**
+- [x] **Friendships Table**
   - CREATE INDEX idx_friendships_user_id_1 ON friendships(user_id_1);
   - CREATE INDEX idx_friendships_user_id_2 ON friendships(user_id_2);
   - CREATE INDEX idx_friendships_composite ON friendships(user_id_1, user_id_2);
-- [ ] **Friend Requests Table**
+- [x] **Friend Requests Table**
   - CREATE INDEX idx_friend_requests_to_user_id ON friend_requests(to_user_id);
   - CREATE INDEX idx_friend_requests_from_user_id ON friend_requests(from_user_id);
   - CREATE INDEX idx_friend_requests_status ON friend_requests(status);
   - CREATE INDEX idx_friend_requests_composite ON friend_requests(from_user_id, to_user_id);
-- [ ] **Blocked Users Table**
+- [x] **Blocked Users Table**
   - CREATE INDEX idx_blocked_users_blocker_id ON blocked_users(blocker_id);
   - CREATE INDEX idx_blocked_users_blocked_id ON blocked_users(blocked_id);
-- [ ] **User Search**
+- [x] **User Search**
   - CREATE INDEX idx_user_profiles_full_name ON user_profiles(full_name);
   - CREATE INDEX idx_user_profiles_email ON user_profiles(email);
 

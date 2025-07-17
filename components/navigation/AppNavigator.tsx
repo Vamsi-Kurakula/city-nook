@@ -13,6 +13,10 @@ import CrawlLibraryFilters from '../screens/CrawlLibraryFilters';
 import CrawlCompletionScreen from '../screens/CrawlCompletionScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import TermsOfServiceScreen from '../screens/TermsOfServiceScreen';
+import SocialTestScreen from '../screens/SocialTestScreen';
+import FriendsListScreen from '../screens/FriendsListScreen';
+import AddFriendsScreen from '../screens/AddFriendsScreen';
+import FriendProfileScreen from '../screens/FriendProfileScreen';
 
 const Stack = createStackNavigator();
 
@@ -33,6 +37,10 @@ export default function AppNavigator() {
       <Stack.Screen name="CrawlCompletion" component={CrawlCompletionScreen} />
       <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
+      <Stack.Screen name="SocialTest" component={SocialTestScreen} options={{ title: 'Test Social Features' }} />
+      <Stack.Screen name="FriendsList" component={FriendsListScreen} options={{ title: 'Friends' }} />
+      <Stack.Screen name="AddFriends" component={AddFriendsScreen} options={{ title: 'Add Friends' }} />
+      <Stack.Screen name="FriendProfile" component={FriendProfileScreen} options={{ title: 'Friend Profile' }} />
     </Stack.Navigator>
   );
 } 

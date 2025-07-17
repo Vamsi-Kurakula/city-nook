@@ -106,66 +106,135 @@ BEGIN
 
     -- Step 5: Drop all tables in the correct order (respecting foreign key constraints)
     -- Drop crawl_stops first (references crawl_definitions)
-    BEGIN
-        DROP TABLE IF EXISTS crawl_stops CASCADE;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'crawl_stops') THEN
+        EXECUTE 'DROP TABLE IF EXISTS crawl_stops CASCADE';
         result := result || 'crawl_stops table dropped. ';
-    EXCEPTION WHEN OTHERS THEN
-        result := result || 'crawl_stops table drop failed: ' || SQLERRM || '. ';
-    END;
+    END IF;
 
     -- Drop crawl_definitions (no foreign key dependencies)
-    BEGIN
-        DROP TABLE IF EXISTS crawl_definitions CASCADE;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'crawl_definitions') THEN
+        EXECUTE 'DROP TABLE IF EXISTS crawl_definitions CASCADE';
         result := result || 'crawl_definitions table dropped. ';
-    EXCEPTION WHEN OTHERS THEN
-        result := result || 'crawl_definitions table drop failed: ' || SQLERRM || '. ';
-    END;
+    END IF;
 
     -- Drop public_crawl_signups (references user_profiles)
-    BEGIN
-        DROP TABLE IF EXISTS public_crawl_signups CASCADE;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'public_crawl_signups') THEN
+        EXECUTE 'DROP TABLE IF EXISTS public_crawl_signups CASCADE';
         result := result || 'public_crawl_signups table dropped. ';
-    EXCEPTION WHEN OTHERS THEN
-        result := result || 'public_crawl_signups table drop failed: ' || SQLERRM || '. ';
-    END;
+    END IF;
 
     -- Drop user_crawl_history (references user_profiles)
-    BEGIN
-        DROP TABLE IF EXISTS user_crawl_history CASCADE;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_crawl_history') THEN
+        EXECUTE 'DROP TABLE IF EXISTS user_crawl_history CASCADE';
         result := result || 'user_crawl_history table dropped. ';
-    EXCEPTION WHEN OTHERS THEN
-        result := result || 'user_crawl_history table drop failed: ' || SQLERRM || '. ';
-    END;
+    END IF;
 
     -- Drop crawl_progress (references user_profiles)
-    BEGIN
-        DROP TABLE IF EXISTS crawl_progress CASCADE;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'crawl_progress') THEN
+        EXECUTE 'DROP TABLE IF EXISTS crawl_progress CASCADE';
         result := result || 'crawl_progress table dropped. ';
-    EXCEPTION WHEN OTHERS THEN
-        result := result || 'crawl_progress table drop failed: ' || SQLERRM || '. ';
-    END;
+    END IF;
+
+    -- Drop new columns from user_profiles (if supported by your DB)
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_profiles') THEN
+        EXECUTE 'ALTER TABLE user_profiles DROP COLUMN IF EXISTS bio';
+        EXECUTE 'ALTER TABLE user_profiles DROP COLUMN IF EXISTS show_crawl_activity';
+        EXECUTE 'ALTER TABLE user_profiles DROP COLUMN IF EXISTS allow_friend_requests';
+        EXECUTE 'ALTER TABLE user_profiles DROP COLUMN IF EXISTS last_active_at';
+    END IF;
 
     -- Drop user_profiles last (referenced by other tables)
-    BEGIN
-        DROP TABLE IF EXISTS user_profiles CASCADE;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_profiles') THEN
+        EXECUTE 'DROP TABLE IF EXISTS user_profiles CASCADE';
         result := result || 'user_profiles table dropped. ';
-    EXCEPTION WHEN OTHERS THEN
-        result := result || 'user_profiles table drop failed: ' || SQLERRM || '. ';
-    END;
+    END IF;
+
+    -- SOCIAL FEATURES: BEGIN
+    -- Drop social indexes
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_friendships_user_id_1' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_friendships_user_id_1';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_friendships_user_id_2' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_friendships_user_id_2';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_friendships_composite' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_friendships_composite';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_friend_requests_to_user_id' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_friend_requests_to_user_id';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_friend_requests_from_user_id' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_friend_requests_from_user_id';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_friend_requests_status' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_friend_requests_status';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_friend_requests_composite' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_friend_requests_composite';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_blocked_users_blocker_id' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_blocked_users_blocker_id';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_blocked_users_blocked_id' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_blocked_users_blocked_id';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_user_profiles_full_name' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_user_profiles_full_name';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_user_profiles_email' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_user_profiles_email';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_social_notifications_user_id' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_social_notifications_user_id';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_social_notifications_type' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_social_notifications_type';
+    END IF;
+
+    -- Drop social tables (in dependency order)
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'social_notifications') THEN
+        EXECUTE 'DROP TABLE IF EXISTS social_notifications CASCADE';
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_reports') THEN
+        EXECUTE 'DROP TABLE IF EXISTS user_reports CASCADE';
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'blocked_users') THEN
+        EXECUTE 'DROP TABLE IF EXISTS blocked_users CASCADE';
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'friend_requests') THEN
+        EXECUTE 'DROP TABLE IF EXISTS friend_requests CASCADE';
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'friendships') THEN
+        EXECUTE 'DROP TABLE IF EXISTS friendships CASCADE';
+    END IF;
+
+    -- Drop friend_request_status enum type
+    IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'friend_request_status') THEN
+        EXECUTE 'DROP TYPE IF EXISTS friend_request_status';
+    END IF;
+    -- SOCIAL FEATURES: END
 
     -- Step 6: Clean up any remaining indexes (in case they weren't dropped with tables)
     -- Crawl definitions and stops indexes
-    BEGIN
-        DROP INDEX IF EXISTS idx_crawl_definitions_name;
-        DROP INDEX IF EXISTS idx_crawl_definitions_is_public;
-        DROP INDEX IF EXISTS idx_crawl_definitions_is_featured;
-        DROP INDEX IF EXISTS idx_crawl_stops_crawl_definition_id;
-        DROP INDEX IF EXISTS idx_crawl_stops_stop_number;
-        DROP INDEX IF EXISTS idx_crawl_stops_stop_components;
-        result := result || 'Crawl indexes dropped. ';
-    EXCEPTION WHEN OTHERS THEN
-        result := result || 'Crawl indexes drop failed: ' || SQLERRM || '. ';
-    END;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_crawl_definitions_name' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_crawl_definitions_name';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_crawl_definitions_is_public' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_crawl_definitions_is_public';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_crawl_definitions_is_featured' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_crawl_definitions_is_featured';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_crawl_stops_crawl_definition_id' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_crawl_stops_crawl_definition_id';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_crawl_stops_stop_number' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_crawl_stops_stop_number';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_crawl_stops_stop_components' AND relkind = 'i') THEN
+        EXECUTE 'DROP INDEX IF EXISTS idx_crawl_stops_stop_components';
+    END IF;
+    result := result || 'Crawl indexes dropped. ';
 
     -- User progress and history indexes
     BEGIN

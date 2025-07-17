@@ -184,3 +184,19 @@ export const updateUserProfile = async (
     return { success: false, error: 'Internal server error' };
   }
 }; 
+
+/**
+ * Fetch multiple user profiles by their IDs.
+ */
+export async function getUserProfilesByIds(userIds: string[]): Promise<any[]> {
+  if (!userIds || userIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('user_profile_id, email, full_name, avatar_url, created_at, updated_at')
+    .in('user_profile_id', userIds);
+  if (error) {
+    console.error('Error fetching user profiles by IDs:', error);
+    return [];
+  }
+  return data || [];
+} 
