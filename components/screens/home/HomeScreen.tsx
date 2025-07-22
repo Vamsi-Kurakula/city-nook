@@ -11,6 +11,8 @@ import FeaturedCrawlsSection from './FeaturedCrawlsSection';
 import DatabaseImage from '../../ui/DatabaseImage';
 import { useHomeData } from './hooks/useHomeData';
 import { useCrawlActions } from './hooks/useCrawlActions';
+import { getFriendsList } from '../../../utils/database/friendshipOperations';
+import { SocialUserProfile } from '../../../types/social';
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
@@ -34,6 +36,25 @@ export default function HomeScreen() {
     handleSignUpForCrawl,
   } = useCrawlActions();
 
+  const [friends, setFriends] = React.useState<SocialUserProfile[]>([]);
+  const [friendsLoading, setFriendsLoading] = React.useState(true);
+  React.useEffect(() => {
+    let mounted = true;
+    async function fetchFriends() {
+      if (!userId) return;
+      setFriendsLoading(true);
+      try {
+        const result = await getFriendsList(userId);
+        if (mounted) setFriends(result);
+      } catch (e) {
+        if (mounted) setFriends([]);
+      } finally {
+        if (mounted) setFriendsLoading(false);
+      }
+    }
+    fetchFriends();
+    return () => { mounted = false; };
+  }, [userId]);
 
 
   // Convert CrawlDefinition to Crawl format for compatibility
@@ -165,6 +186,39 @@ export default function HomeScreen() {
           onCrawlStart={handleFeaturedCrawlCardStart}
           onViewAllPress={handleViewAllFeaturedCrawls}
         />
+        {/* Fellow Crawlers Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Fellow Crawlers</Text>
+          </View>
+          {friendsLoading ? (
+            <ActivityIndicator size="small" color={theme.button.primary} style={{ marginVertical: 16 }} />
+          ) : friends.length === 0 ? (
+            <Text style={{ color: theme.text.secondary, textAlign: 'center', marginVertical: 16 }}>No friends yet.</Text>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.friendsScroll}>
+              {friends.map(friend => (
+                <TouchableOpacity
+                  key={friend.user_profile_id}
+                  style={styles.friendAvatarWrapper}
+                  onPress={() => navigation.navigate('FriendProfile', { friend })}
+                  activeOpacity={0.8}
+                >
+                  {friend.avatar_url ? (
+                    <Image source={{ uri: friend.avatar_url }} style={[styles.friendAvatar, { borderColor: theme.background.secondary }]} />
+                  ) : (
+                    <View style={[styles.friendAvatar, styles.friendAvatarPlaceholder, { backgroundColor: theme.button.primary }]}> 
+                      <Text style={[styles.friendAvatarText, { color: theme.text.inverse }]}> 
+                        {friend.full_name?.charAt(0) || friend.email?.charAt(0) || 'F'}
+                      </Text>
+                    </View>
+                  )}
+                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={1}>{friend.full_name || 'Unknown'}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -283,5 +337,40 @@ const styles = StyleSheet.create({
   debugText: {
     fontSize: 14,
     marginBottom: 4,
+  },
+  friendsScroll: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 16,
+    alignItems: 'flex-start',
+    paddingBottom: 8,
+  },
+  friendAvatarWrapper: {
+    alignItems: 'center',
+    marginRight: 12,
+    width: 72,
+  },
+  friendAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 2,
+    marginBottom: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  friendAvatarPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  friendAvatarText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  friendName: {
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+    maxWidth: 64,
   },
 }); 
