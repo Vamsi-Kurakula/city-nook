@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Text, ActivityIndicator, Image } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Text, ActivityIndicator, Image, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../../context/AuthContext';
@@ -12,6 +12,7 @@ import DatabaseImage from '../../ui/DatabaseImage';
 import { useHomeData } from './hooks/useHomeData';
 import { useCrawlActions } from './hooks/useCrawlActions';
 import { getFriendsList } from '../../../utils/database/friendshipOperations';
+import { getPendingRequests } from '../../../utils/database/friendRequestOperations';
 import { SocialUserProfile } from '../../../types/social';
 
 export default function HomeScreen() {
@@ -38,6 +39,37 @@ export default function HomeScreen() {
 
   const [friends, setFriends] = React.useState<SocialUserProfile[]>([]);
   const [friendsLoading, setFriendsLoading] = React.useState(true);
+  const [pendingRequestsCount, setPendingRequestsCount] = React.useState(0);
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  // Helper to reload all home data and friends
+  const onRefresh = async () => {
+    setRefreshing(true);
+    // Optionally, you can trigger a reload in useHomeData if it supports it, or force a re-render
+    // For now, manually re-fetch friends and pending requests
+    if (userId) {
+      try {
+        setFriendsLoading(true);
+        const [friendsResult, pending] = await Promise.all([
+          getFriendsList(userId),
+          getPendingRequests(userId)
+        ]);
+        setFriends(friendsResult);
+        setPendingRequestsCount(pending.length);
+      } catch {
+        setFriends([]);
+        setPendingRequestsCount(0);
+      } finally {
+        setFriendsLoading(false);
+      }
+    }
+    // If useHomeData supports a reload, trigger it here (e.g., by calling a refetch function or updating a key)
+    if (typeof window !== 'undefined' && window.dispatchEvent) {
+      window.dispatchEvent(new Event('homeDataRefresh'));
+    }
+    setRefreshing(false);
+  };
+
   React.useEffect(() => {
     let mounted = true;
     async function fetchFriends() {
@@ -53,6 +85,21 @@ export default function HomeScreen() {
       }
     }
     fetchFriends();
+    return () => { mounted = false; };
+  }, [userId]);
+
+  React.useEffect(() => {
+    let mounted = true;
+    async function fetchPendingRequests() {
+      if (!userId) return;
+      try {
+        const pending = await getPendingRequests(userId);
+        if (mounted) setPendingRequestsCount(pending.length);
+      } catch {
+        if (mounted) setPendingRequestsCount(0);
+      }
+    }
+    fetchPendingRequests();
     return () => { mounted = false; };
   }, [userId]);
 
@@ -84,21 +131,32 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme.button.primary]}
+            tintColor={theme.button.primary}
+          />
+        }
+      >
         <HomeHeader />
-        
+
         {/* Crawl Library Button - Moved to top for better visibility */}
         <View style={[styles.section, { marginTop: 20 }]}>
           <View style={styles.buttonRow}>
-            <TouchableOpacity 
-              style={[styles.fullWidthButton, { backgroundColor: theme.background.secondary }]} 
+            <TouchableOpacity
+              style={[styles.fullWidthButton, { backgroundColor: theme.background.secondary }]}
               onPress={() => navigation.navigate('CrawlLibrary')}
             >
               <Text style={[styles.fullWidthButtonText, { color: theme.text.primary }]}>Crawl Library</Text>
             </TouchableOpacity>
           </View>
         </View>
-        
+
         {/* Debug Section - Disabled for now */}
         {false && (
           <View style={styles.section}>
@@ -131,7 +189,7 @@ export default function HomeScreen() {
             </View>
           </View>
         )}
-        
+
         {/* In Progress Crawl Section */}
         {currentCrawl && currentCrawlDetails && (
           <View style={styles.section}>
@@ -193,11 +251,9 @@ export default function HomeScreen() {
           </View>
           {friendsLoading ? (
             <ActivityIndicator size="small" color={theme.button.primary} style={{ marginVertical: 16 }} />
-          ) : friends.length === 0 ? (
-            <Text style={{ color: theme.text.secondary, textAlign: 'center', marginVertical: 16 }}>No friends yet.</Text>
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.friendsScroll}>
-              {friends.map(friend => (
+              {friends.slice(0, 3).map(friend => (
                 <TouchableOpacity
                   key={friend.user_profile_id}
                   style={styles.friendAvatarWrapper}
@@ -207,15 +263,44 @@ export default function HomeScreen() {
                   {friend.avatar_url ? (
                     <Image source={{ uri: friend.avatar_url }} style={[styles.friendAvatar, { borderColor: theme.background.secondary }]} />
                   ) : (
-                    <View style={[styles.friendAvatar, styles.friendAvatarPlaceholder, { backgroundColor: theme.button.primary }]}> 
-                      <Text style={[styles.friendAvatarText, { color: theme.text.inverse }]}> 
+                    <View style={[styles.friendAvatar, styles.friendAvatarPlaceholder, { backgroundColor: theme.button.primary }]}>
+                      <Text style={[styles.friendAvatarText, { color: theme.text.inverse }]}>
                         {friend.full_name?.charAt(0) || friend.email?.charAt(0) || 'F'}
                       </Text>
                     </View>
                   )}
-                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={1}>{friend.full_name || 'Unknown'}</Text>
+                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>{friend.full_name || 'Unknown'}</Text>
                 </TouchableOpacity>
               ))}
+              {friends.length > 3 && (
+                <TouchableOpacity
+                  style={[styles.friendAvatarWrapper, styles.viewAllButtonWrapper]}
+                  onPress={() => navigation.navigate('FriendsList')}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.friendAvatar, styles.viewAllButton, { backgroundColor: theme.button.primary, borderColor: theme.background.secondary }]}>
+                    <Text style={[styles.viewAllButtonText, { color: theme.text.inverse }]}>+{friends.length - 3}</Text>
+                  </View>
+                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>View All</Text>
+                </TouchableOpacity>
+              )}
+              {friends.length < 3 && (
+                <TouchableOpacity
+                  style={[styles.friendAvatarWrapper, styles.addFriendButtonWrapper]}
+                  onPress={() => navigation.navigate('AddFriends')}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.friendAvatar, styles.addFriendButton, { backgroundColor: theme.button.primary, borderColor: theme.background.secondary }]}>
+                    <Text style={[styles.addFriendButtonText, { color: theme.text.inverse }]}>+</Text>
+                    {pendingRequestsCount > 0 && (
+                      <View style={[styles.badge, { backgroundColor: theme.button.secondary }]}>
+                        <Text style={[styles.badgeText, { color: theme.button.primary }]}>{pendingRequestsCount}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>Add Friends</Text>
+                </TouchableOpacity>
+              )}
             </ScrollView>
           )}
         </View>
@@ -248,7 +333,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: 8,
   },
   sectionTitle: {
     fontSize: 20,
@@ -340,15 +425,19 @@ const styles = StyleSheet.create({
   },
   friendsScroll: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
+    paddingLeft: 20,
+    paddingRight: 70, // even more space for badge overflow
     gap: 16,
     alignItems: 'flex-start',
     paddingBottom: 8,
+    overflow: 'visible', // Ensure overflow is visible for badge
   },
   friendAvatarWrapper: {
     alignItems: 'center',
     marginRight: 12,
     width: 72,
+    position: 'relative',
+    overflow: 'visible', // Ensure overflow is visible for badge
   },
   friendAvatar: {
     width: 56,
@@ -372,5 +461,55 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     maxWidth: 64,
+    lineHeight: 16,
+    height: 32,
+    flexWrap: 'wrap',
+  },
+  viewAllButtonWrapper: {
+    alignItems: 'center',
+    marginRight: 0,
+    width: 72,
+  },
+  viewAllButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#888',
+  },
+  viewAllButtonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  addFriendButtonWrapper: {
+    alignItems: 'center',
+    marginRight: 48, // even more space for badge
+    width: 72,
+    position: 'relative',
+    overflow: 'visible', // Ensure overflow is visible for badge
+  },
+  addFriendButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#888',
+  },
+  addFriendButtonText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: -2,
+  },
+  badge: {
+    position: 'absolute',
+    top: 0, // Move badge slightly inward
+    right: 0, // Move badge slightly inward
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+    backgroundColor: '#FF5252', // fallback, will be overridden inline
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 }); 

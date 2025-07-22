@@ -121,7 +121,6 @@ export default function FriendProfileScreen() {
               )}
             </View>
             <Text style={[styles.name, { color: theme.text.primary }]}>{friend.full_name || 'Unknown User'}</Text>
-            <Text style={[styles.email, { color: theme.text.secondary }]}>{friend.email}</Text>
           </View>
 
           {/* Crawl Stats Row */}

@@ -48,9 +48,6 @@ export default function FriendCard({
         <Text style={[styles.name, { color: theme.text.primary }]} numberOfLines={1}>
           {friend.full_name || 'Unknown User'}
         </Text>
-        <Text style={[styles.email, { color: theme.text.secondary }]} numberOfLines={1}>
-          {friend.email}
-        </Text>
         {friend.mutual_friends_count !== undefined && friend.mutual_friends_count > 0 && (
           <Text style={[styles.mutualFriends, { color: theme.text.tertiary }]}>
             {friend.mutual_friends_count} mutual friend{friend.mutual_friends_count !== 1 ? 's' : ''}
