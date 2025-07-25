@@ -120,9 +120,10 @@ city_crawler/
 ├── database/                 # Database schema and scripts
 │   ├── schema.sql
 │   └── deleteDatabase.sql
-└── scripts/                  # Build and utility scripts
-    ├── checkDatabaseSchema.js
-    └── migrateCrawlsFromFolders.js
+├── assets-source/            # Source crawl data and migration tools
+│   ├── README.md
+│   ├── migrateCrawlsFromFolders.js
+│   └── [crawl folders]/
 ```
 
 ## 🎨 Features
