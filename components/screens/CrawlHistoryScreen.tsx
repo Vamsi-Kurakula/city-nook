@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useAuthContext } from '../context/AuthContext';
+import { useAuth } from '@clerk/clerk-expo';
 import { useTheme } from '../context/ThemeContext';
-import { getCrawlHistory, getCrawlNameMapping } from '../../utils/database';
+import { getCrawlHistory } from '../../utils/database/historyOperations';
+import { getCrawlNameMapping } from '../../utils/database/crawlMetadataOperations';
 import BackButton from '../ui/BackButton';
 
 interface CrawlHistoryItem {
@@ -20,6 +22,7 @@ interface CrawlHistoryItem {
 const CrawlHistoryScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { user, isLoading } = useAuthContext();
+  const { getToken } = useAuth();
   const { theme } = useTheme();
   const [history, setHistory] = useState<CrawlHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +33,8 @@ const CrawlHistoryScreen: React.FC = () => {
       
       setLoading(true);
       try {
-        const history = await getCrawlHistory(user.id);
+        const token = await getToken({ template: 'supabase' });
+        const history = token ? await getCrawlHistory(user.id, token) : [];
         const crawlNameMapping = await getCrawlNameMapping();
         setHistory(
           (history || []).map((item: any) => ({

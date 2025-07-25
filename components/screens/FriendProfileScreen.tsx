@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
+import { useAuth } from '@clerk/clerk-expo';
 import { useTheme } from '../context/ThemeContext';
 import BackButton from '../ui/BackButton';
 import { SocialUserProfile } from '../../types/social';
@@ -28,6 +29,7 @@ export default function FriendProfileScreen() {
   const route = useRoute<any>();
   const { theme } = useTheme();
   const { friend } = route.params as FriendProfileRouteParams;
+  const { getToken } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>(null);
@@ -37,9 +39,14 @@ export default function FriendProfileScreen() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const statsResult = await getCrawlStats(friend.user_profile_id);
-        setStats(statsResult);
-        const history = await getCrawlHistory(friend.user_profile_id) || [];
+        const token = await getToken({ template: 'supabase' });
+        if (token) {
+          const statsResult = await getCrawlStats(friend.user_profile_id, token);
+          setStats(statsResult);
+        } else {
+          console.log('No JWT token available for loading friend stats');
+        }
+        const history = token ? await getCrawlHistory(friend.user_profile_id, token) || [] : [];
         const latest = history.slice(0, 5);
         // Fetch crawl details for each
         const crawlsWithDetails = await Promise.all(latest.map(async (h: any) => {

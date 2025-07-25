@@ -5,6 +5,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { addCrawlHistory, deleteCrawlProgress } from '../../utils/database';
 import { useCrawlContext } from '../context/CrawlContext';
+import { useAuth } from '@clerk/clerk-expo';
 
 const CrawlCompletionScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -14,6 +15,7 @@ const CrawlCompletionScreen: React.FC = () => {
   const completionData = routeParams?.completionData;
   const { theme } = useTheme();
   const { clearCrawlSession } = useCrawlContext();
+  const { getToken } = useAuth();
   const [isProcessing, setIsProcessing] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,19 +33,24 @@ const CrawlCompletionScreen: React.FC = () => {
         
         const totalTimeMinutes = Math.round((completionData.completed.getTime() - completionData.started.getTime()) / 60000);
         
-        // Add to history first
-        await addCrawlHistory({
-          userId: completionData.userId,
-          crawlId: completionData.crawlId,
-          isPublic: completionData.isPublic,
-          completedAt: completionData.completed.toISOString(),
-          totalTimeMinutes,
-        });
-        
-        // Delete the progress record since crawl is completed
-        await deleteCrawlProgress({
-          userId: completionData.userId,
-        });
+        const token = await getToken({ template: 'supabase' });
+        if (token) {
+          // Add to history first
+          await addCrawlHistory({
+            userId: completionData.userId,
+            crawlId: completionData.crawlId,
+            isPublic: completionData.isPublic,
+            completedAt: completionData.completed.toISOString(),
+            totalTimeMinutes,
+            token,
+          });
+          
+          // Delete the progress record since crawl is completed
+          await deleteCrawlProgress({
+            userId: completionData.userId,
+            token,
+          });
+        }
         
         console.log('Crawl completed and progress record deleted');
         

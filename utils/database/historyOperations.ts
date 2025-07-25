@@ -1,16 +1,19 @@
-import { supabase } from './client';
+import { getSupabaseClient } from './client';
 
 /**
  * Add a crawl completion record to user_crawl_history
  */
-export async function addCrawlHistory({ userId, crawlId, isPublic, completedAt, totalTimeMinutes, score }: {
+export async function addCrawlHistory({ userId, crawlId, isPublic, completedAt, totalTimeMinutes, score, token }: {
   userId: string;
   crawlId: string;
   isPublic: boolean;
   completedAt: string;
   totalTimeMinutes: number;
   score?: number;
+  token: string;
 }) {
+  const supabase = getSupabaseClient(token);
+  
   return supabase.from('user_crawl_history').insert([
     {
       user_id: userId,
@@ -26,7 +29,9 @@ export async function addCrawlHistory({ userId, crawlId, isPublic, completedAt, 
 /**
  * Get crawl history for a user with crawl details
  */
-export async function getCrawlHistory(userId: string) {
+export async function getCrawlHistory(userId: string, token: string) {
+  const supabase = getSupabaseClient(token);
+  
   const { data: history, error } = await supabase
     .from('user_crawl_history')
     .select(`

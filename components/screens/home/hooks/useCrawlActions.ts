@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { useCrawlContext } from '../../../context/CrawlContext';
-import { supabase } from '../../../../utils/database/client';
+import { useAuth } from '@clerk/clerk-expo';
+import { getSupabaseClient } from '../../../../utils/database/client';
 import { getCrawlWithStopsById, getFeaturedCrawlDefinitions } from '../../../../utils/database/crawlDefinitionOperations';
 import { Crawl } from '../../../../types/crawl';
 
@@ -15,6 +16,7 @@ interface CrawlProgress {
 export function useCrawlActions() {
   const navigation = useNavigation<any>();
   const { endCurrentCrawlAndStartNew } = useCrawlContext();
+  const { getToken } = useAuth();
 
   const handleContinueCrawl = async (crawlProgress: CrawlProgress) => {
     try {
@@ -134,6 +136,13 @@ export function useCrawlActions() {
 
   const handleSignUpForCrawl = async (crawlId: string, userId: string) => {
     try {
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        console.error('No JWT token available for signing up for crawl');
+        return;
+      }
+
+      const supabase = getSupabaseClient(token);
       const { error } = await supabase
         .from('public_crawl_signups')
         .insert([

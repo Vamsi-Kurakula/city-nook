@@ -8,15 +8,17 @@ import { Crawl, CrawlStop } from '../../types/crawl';
 import { loadCrawlStops } from '../../utils/database';
 import { StopComponent } from '../ui/stops';
 import { useAuthContext } from '../context/AuthContext';
-import { saveCrawlProgress, addCrawlHistory, deleteCrawlProgress, supabase } from '../../utils/database';
+import { saveCrawlProgress, addCrawlHistory, deleteCrawlProgress } from '../../utils/database';
 import { getCrawlProgress } from '../../utils/database/progressOperations';
 import { extractAllCoordinates, LocationCoordinates } from '../../utils/coordinateExtractor';
 import BackButton from '../ui/BackButton';
+import { useAuth } from '@clerk/clerk-expo';
 
 const CrawlSessionScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
   const { theme } = useTheme();
+  const { getToken } = useAuth();
   // Defensive extraction and logging
   const routeParams = route.params as { crawl?: any; crawlId?: string; resumeData?: any; resumeProgress?: any } | undefined;
   const crawlData = routeParams?.crawl;
@@ -113,7 +115,8 @@ const CrawlSessionScreen: React.FC = () => {
           const isPublic = crawlData['public-crawl'] || false;
           
           // Only check for progress, not completion
-          const progressFound = await getCrawlProgress(user.id, crawlData.id, isPublic);
+          const token = await getToken({ template: 'supabase' });
+          const progressFound = token ? await getCrawlProgress(user.id, crawlData.id, isPublic, token) : null;
           
           if (progressFound) {
             // Progress was found for this specific crawl
@@ -209,6 +212,10 @@ const CrawlSessionScreen: React.FC = () => {
         isResumingFromDatabase,
       });
       
+      // Add log for Clerk getToken result
+      const token = await getToken({ template: 'supabase' });
+      console.log('Clerk getToken result:', token);
+      
       if (user?.id && currentProgress && currentCrawl && crawlData && 
           !routeParams?.resumeData && !routeParams?.resumeProgress &&
           isNewProgress) {
@@ -220,26 +227,30 @@ const CrawlSessionScreen: React.FC = () => {
         const isPublic = currentProgress.is_public ?? (crawlData?.['public-crawl'] || false);
         console.log('Determined is_public value:', isPublic, 'from currentProgress.is_public:', currentProgress.is_public, 'from crawlData:', crawlData?.['public-crawl']);
         
-        // Temporarily save without completed_stops until database schema is fixed
-        const progressData = {
-          user_id: user.id,
-          crawl_id: currentProgress.crawl_id,
-          is_public: isPublic,
-          current_stop: currentProgress.current_stop,
-          started_at: new Date(currentProgress.started_at).toISOString(),
-          completed_at: undefined,
-        };
+        // Use the proper saveCrawlProgress function with JWT authentication
+        const completedStopNumbers = currentProgress.completed_stops.map((s: any) => 
+          typeof s === 'number' ? s : s.stop_number
+        );
         
-        console.log('Progress data to save:', progressData);
-        
-        const { error } = await supabase
-          .from('crawl_progress')
-          .upsert([progressData], { onConflict: 'user_id' });
-          
-        if (error) {
-          console.error('Error saving initial progress:', error);
+        if (token) {
+          const { error } = await saveCrawlProgress({
+            userId: user.id,
+            crawlId: currentProgress.crawl_id,
+            isPublic: isPublic,
+            currentStop: currentProgress.current_stop,
+            completedStops: completedStopNumbers,
+            startedAt: new Date(currentProgress.started_at).toISOString(),
+            completedAt: undefined,
+            token,
+          });
+            
+          if (error) {
+            console.error('Error saving initial progress:', error);
+          } else {
+            console.log('Initial progress saved successfully');
+          }
         } else {
-          console.log('Initial progress saved successfully');
+          console.error('No JWT token available for saving initial progress');
         }
       } else {
         console.log('Not saving initial progress - conditions not met');
@@ -253,23 +264,29 @@ const CrawlSessionScreen: React.FC = () => {
           console.log('Attempting fallback save of initial progress');
           
           const isPublic = currentProgress.is_public ?? (crawlData?.['public-crawl'] || false);
-          const progressData = {
-            user_id: user.id,
-            crawl_id: currentProgress.crawl_id,
-            is_public: isPublic,
-            current_stop: currentProgress.current_stop,
-            started_at: new Date(currentProgress.started_at).toISOString(),
-            completed_at: undefined,
-          };
+          const completedStopNumbers = currentProgress.completed_stops.map((s: any) => 
+            typeof s === 'number' ? s : s.stop_number
+          );
           
-          const { error } = await supabase
-            .from('crawl_progress')
-            .upsert([progressData], { onConflict: 'user_id' });
-            
-          if (error) {
-            console.error('Error in fallback save of initial progress:', error);
+          if (token) {
+            const { error } = await saveCrawlProgress({
+              userId: user.id,
+              crawlId: currentProgress.crawl_id,
+              isPublic: isPublic,
+              currentStop: currentProgress.current_stop,
+              completedStops: completedStopNumbers,
+              startedAt: new Date(currentProgress.started_at).toISOString(),
+              completedAt: undefined,
+              token,
+            });
+              
+            if (error) {
+              console.error('Error in fallback save of initial progress:', error);
+            } else {
+              console.log('Fallback initial progress saved successfully');
+            }
           } else {
-            console.log('Fallback initial progress saved successfully');
+            console.error('No JWT token available for fallback save of initial progress');
           }
         }
       }
@@ -294,15 +311,19 @@ const CrawlSessionScreen: React.FC = () => {
         typeof s === 'number' ? s : s.stop_number
       );
       
-      await saveCrawlProgress({
-        userId: user.id,
-        crawlId: currentProgress.crawl_id,
-        isPublic: currentProgress.is_public ?? (crawlData?.['public-crawl'] || false),
-        currentStop: currentProgress.current_stop,
-        completedStops: completedStopNumbers,
-        startedAt: new Date(currentProgress.started_at).toISOString(),
-        completedAt: currentProgress.completed ? new Date().toISOString() : undefined,
-      });
+      const token = await getToken({ template: 'supabase' });
+      if (token) {
+        await saveCrawlProgress({
+          userId: user.id,
+          crawlId: currentProgress.crawl_id,
+          isPublic: currentProgress.is_public ?? (crawlData?.['public-crawl'] || false),
+          currentStop: currentProgress.current_stop,
+          completedStops: completedStopNumbers,
+          startedAt: new Date(currentProgress.started_at).toISOString(),
+          completedAt: currentProgress.completed ? new Date().toISOString() : undefined,
+          token,
+        });
+      }
     }
     await saveAndClearCrawlSession();
     navigation.reset({ index: 0, routes: [{ name: 'Home' }] });

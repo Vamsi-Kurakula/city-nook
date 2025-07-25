@@ -1,9 +1,11 @@
-import { supabase } from './client';
+import { getSupabaseClient } from './client';
 
 /**
  * Get crawl statistics for a user
  */
-export async function getCrawlStats(userId: string) {
+export async function getCrawlStats(userId: string, token: string) {
+  const supabase = getSupabaseClient(token);
+  
   // Get completed crawls from history
   const { data: completedCrawls, error: historyError } = await supabase
     .from('user_crawl_history')

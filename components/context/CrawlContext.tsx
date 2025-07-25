@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useAuth } from '@clerk/clerk-expo';
 import { Crawl, CrawlProgress, UserStopProgress } from '../../types/crawl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { deleteCrawlProgress, getCurrentCrawlProgress, saveCrawlProgress, addCrawlHistory, getCrawlNameMapping } from '../../utils/database';
@@ -49,6 +50,7 @@ interface CrawlProviderProps {
 }
 
 export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
+  const { getToken } = useAuth();
   const [currentCrawl, setCurrentCrawl] = useState<Crawl | null>(null);
   const [isCrawlActive, setIsCrawlActive] = useState(false);
   const [currentProgress, setCurrentProgress] = useState<CrawlProgress | null>(null);
@@ -144,15 +146,19 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
         completedStops: completedStopNumbers,
         completed: updatedProgress.completed
       });
-      await saveCrawlProgress({
-        userId,
-        crawlId: updatedProgress.crawl_id,
-        isPublic: updatedProgress.is_public,
-        currentStop: updatedProgress.current_stop,
-        completedStops: completedStopNumbers,
-        startedAt: new Date(updatedProgress.started_at).toISOString(),
-        completedAt: updatedProgress.completed ? new Date().toISOString() : undefined,
-      });
+      const token = await getToken({ template: 'supabase' });
+      if (token) {
+        await saveCrawlProgress({
+          userId,
+          crawlId: updatedProgress.crawl_id,
+          isPublic: updatedProgress.is_public,
+          currentStop: updatedProgress.current_stop,
+          completedStops: completedStopNumbers,
+          startedAt: new Date(updatedProgress.started_at).toISOString(),
+          completedAt: updatedProgress.completed ? new Date().toISOString() : undefined,
+          token,
+        });
+      }
     }
   };
 
@@ -189,15 +195,19 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
     if (userId) {
       const completedStopNumbers = updatedProgress.completed_stops.map(s => s.stop_number);
       console.log('Saving progress to database - currentStop:', updatedProgress.current_stop, 'completedStops:', completedStopNumbers);
-      await saveCrawlProgress({
-        userId,
-        crawlId: updatedProgress.crawl_id,
-        isPublic: updatedProgress.is_public,
-        currentStop: updatedProgress.current_stop,
-        completedStops: completedStopNumbers,
-        startedAt: new Date(updatedProgress.started_at).toISOString(),
-        completedAt: updatedProgress.completed ? new Date().toISOString() : undefined,
-      });
+      const token = await getToken({ template: 'supabase' });
+      if (token) {
+        await saveCrawlProgress({
+          userId,
+          crawlId: updatedProgress.crawl_id,
+          isPublic: updatedProgress.is_public,
+          currentStop: updatedProgress.current_stop,
+          completedStops: completedStopNumbers,
+          startedAt: new Date(updatedProgress.started_at).toISOString(),
+          completedAt: updatedProgress.completed ? new Date().toISOString() : undefined,
+          token,
+        });
+      }
       console.log('Progress saved to database successfully');
     }
   };
@@ -221,7 +231,8 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
     try {
       // If we have specific crawl parameters, use getCrawlProgress for that specific crawl
       if (crawlId !== undefined && isPublic !== undefined) {
-        const dbProgress = await getCrawlProgress(userId, crawlId, isPublic);
+        const token = await getToken({ template: 'supabase' });
+        const dbProgress = token ? await getCrawlProgress(userId, crawlId, isPublic, token) : null;
         if (dbProgress) {
           // Convert database format to local format
           const localProgress: CrawlProgress = {
@@ -249,7 +260,8 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
         }
       } else {
         // Fallback to getCurrentCrawlProgress for backward compatibility
-        const dbProgress = await getCurrentCrawlProgress(userId);
+        const token = await getToken({ template: 'supabase' });
+        const dbProgress = token ? await getCurrentCrawlProgress(userId, token) : null;
         if (dbProgress) {
           // Convert database format to local format
           const localProgress: CrawlProgress = {
@@ -318,7 +330,8 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
   // Check if there's any crawl in progress in the database
   const checkDatabaseForActiveCrawl = async (userId: string): Promise<{ hasActive: boolean; crawlName?: string }> => {
     try {
-      const dbProgress = await getCurrentCrawlProgress(userId);
+      const token = await getToken({ template: 'supabase' });
+      const dbProgress = token ? await getCurrentCrawlProgress(userId, token) : null;
       if (dbProgress && !dbProgress.completed_at) {
         // We found active progress, now get the crawl name
         const crawlNameMapping = await getCrawlNameMapping();
@@ -332,7 +345,7 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
     }
   };
 
-  const endCurrentCrawlAndStartNew = (newCrawl: Crawl, onComplete: () => void, userId?: string) => {
+  const endCurrentCrawlAndStartNew = async (newCrawl: Crawl, onComplete: () => void, userId?: string) => {
     // Mark current crawl as "did not finish" and add to history
     if (currentProgress && currentCrawl) {
       const unfinishedProgress = {
@@ -344,13 +357,18 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
       
       // Delete the old progress record from database if we have user ID
       if (userId) {
-        deleteCrawlProgress({
-          userId,
-        }).then(() => {
-          console.log('Old crawl progress deleted from database');
-        }).catch((error) => {
-          console.error('Error deleting old crawl progress:', error);
-        });
+        const token = await getToken({ template: 'supabase' });
+        if (token) {
+          try {
+            await deleteCrawlProgress({
+              userId,
+              token,
+            });
+            console.log('Old crawl progress deleted from database');
+          } catch (error) {
+            console.error('Error deleting old crawl progress:', error);
+          }
+        }
       }
     }
 

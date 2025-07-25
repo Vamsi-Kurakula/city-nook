@@ -34,6 +34,7 @@ if (!isValidSupabaseKey(supabaseKey)) {
   console.error('Invalid Supabase key format');
 }
 
+// Base Supabase client (without auth)
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
@@ -41,6 +42,25 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     detectSessionInUrl: false
   }
 });
+
+// Function to get Supabase client with Clerk authentication
+export const getSupabaseClient = (token: string | undefined) => {
+  if (token) {
+    return createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      },
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false
+      }
+    });
+  }
+  return supabase;
+};
 
 // Test the connection
 supabase.auth.getSession().then(({ data, error }) => {

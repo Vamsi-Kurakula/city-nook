@@ -5,7 +5,8 @@
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "test:jwt": "node scripts/test-jwt-config.js"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.14.10",

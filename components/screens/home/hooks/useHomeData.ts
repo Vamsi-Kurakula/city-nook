@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import { useState, useEffect } from 'react';
 import { useAuthContext } from '../../../context/AuthContext';
-import { getFeaturedCrawlDefinitions } from '../../../../utils/database/crawlDefinitionOperations';
-import { CrawlDefinition } from '../../../../types/crawl';
-import { supabase } from '../../../../utils/database/client';
+import { useAuth } from '@clerk/clerk-expo';
+import { getCurrentCrawlProgress } from '../../../../utils/database/progressOperations';
 
 interface PublicCrawl {
   id: string;
@@ -25,75 +23,97 @@ interface CrawlProgress {
 }
 
 export function useHomeData() {
-  const { user, isLoading: authLoading } = useAuthContext();
-  const [featuredCrawls, setFeaturedCrawls] = useState<CrawlDefinition[]>([]);
+  const { user } = useAuthContext();
+  const { getToken } = useAuth();
+  const [featuredCrawls, setFeaturedCrawls] = useState<PublicCrawl[]>([]);
   const [upcomingCrawls, setUpcomingCrawls] = useState<PublicCrawl[]>([]);
-  const [userSignups, setUserSignups] = useState<string[]>([]);
   const [currentCrawl, setCurrentCrawl] = useState<CrawlProgress | null>(null);
   const [currentCrawlDetails, setCurrentCrawlDetails] = useState<any>(null);
   const [inProgressCrawls, setInProgressCrawls] = useState<CrawlProgress[]>([]);
-  const [allLibraryCrawls, setAllLibraryCrawls] = useState<CrawlDefinition[]>([]);
+  const [allLibraryCrawls, setAllLibraryCrawls] = useState<PublicCrawl[]>([]);
+  const [userSignups, setUserSignups] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Load data when user changes
   useEffect(() => {
-    console.log('useHomeData useEffect triggered:', { userId: user?.id, authLoading });
-    if (!authLoading) {
+    if (user?.id) {
       loadHomeData();
+    } else {
+      setLoading(false);
     }
-  }, [user?.id, authLoading]);
-
-  // Refresh data when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
-      console.log('Home screen focused, refreshing data');
-      if (!authLoading && user?.id) {
-        loadHomeData();
-      }
-    }, [user?.id, authLoading])
-  );
+  }, [user?.id]);
 
   const loadHomeData = async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      console.log('loadHomeData called');
       setLoading(true);
       setError(null);
-      
-      // Load featured crawls from database with stops
+
+      console.log('Loading data for user:', user.id);
+
+      // Load featured crawls
+      const { getFeaturedCrawlDefinitions } = await import('../../../../utils/database/crawlDefinitionOperations');
       const featuredDefinitions = await getFeaturedCrawlDefinitions();
       
-      // Load stops for each featured crawl
-      const { getCrawlStops } = await import('../../../../utils/database/crawlDefinitionOperations');
-      const featuredWithStops = await Promise.all(
-        featuredDefinitions.map(async (crawlDef) => {
-          try {
-            const stops = await getCrawlStops(crawlDef.crawl_definition_id);
-            return {
-              ...crawlDef,
-              stops: stops
-            };
-          } catch (error) {
-            console.warn(`Could not load stops for ${crawlDef.name}:`, error);
-            return {
-              ...crawlDef,
-              stops: []
-            };
-          }
-        })
-      );
-      
-      setFeaturedCrawls(featuredWithStops);
+      // Transform to PublicCrawl format
+      const featured = featuredDefinitions.map(def => ({
+        id: def.crawl_definition_id,
+        name: def.name,
+        title: def.name,
+        description: def.description,
+        start_time: def.start_time || '',
+        hero_image: def.hero_image_url || '',
+        stops: [],
+        assetFolder: ''
+      }));
+      setFeaturedCrawls(featured);
 
-      // Load user signups (keeping for future use)
-      if (user?.id) {
-        console.log('Loading data for user:', user.id);
-        const signups = await loadUserSignups();
-        setUserSignups(signups);
-        setUpcomingCrawls([]); // No public crawls for now
-      }
+      // Load upcoming crawls (public crawls with start times)
+      const { getPublicCrawlDefinitions } = await import('../../../../utils/database/crawlDefinitionOperations');
+      const upcomingDefinitions = await getPublicCrawlDefinitions();
+      
+      // Transform to PublicCrawl format
+      const upcoming = upcomingDefinitions.map(def => ({
+        id: def.crawl_definition_id,
+        name: def.name,
+        title: def.name,
+        description: def.description,
+        start_time: def.start_time || '',
+        hero_image: def.hero_image_url || '',
+        stops: [],
+        assetFolder: ''
+      }));
+      setUpcomingCrawls(upcoming);
+
+      // Load user signups
+      const signups = await loadUserSignups();
+      setUserSignups(signups);
 
       // Load current crawl progress
       await loadCurrentCrawl();
+
+      // Load all library crawls
+      const { getAllCrawlDefinitions } = await import('../../../../utils/database/crawlDefinitionOperations');
+      const allDefinitions = await getAllCrawlDefinitions();
+      
+      // Transform to PublicCrawl format
+      const allCrawls = allDefinitions.map(def => ({
+        id: def.crawl_definition_id,
+        name: def.name,
+        title: def.name,
+        description: def.description,
+        start_time: def.start_time || '',
+        hero_image: def.hero_image_url || '',
+        stops: [],
+        assetFolder: ''
+      }));
+      setAllLibraryCrawls(allCrawls);
+
     } catch (error) {
       console.error('Error loading home data:', error);
       setError(error instanceof Error ? error.message : 'Failed to load data');
@@ -106,6 +126,15 @@ export function useHomeData() {
     if (!user?.id) return [];
     
     try {
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        console.log('No JWT token available for loading user signups');
+        return [];
+      }
+
+      const { getSupabaseClient } = await import('../../../../utils/database/client');
+      const supabase = getSupabaseClient(token);
+      
       const { data, error } = await supabase
         .from('public_crawl_signups')
         .select('crawl_id')
@@ -145,17 +174,22 @@ export function useHomeData() {
     try {
       console.log('Loading current crawl for user:', user.id);
       
-      // Get the user's current crawl progress (only 1 record per user now)
-      const { data: progress, error } = await supabase
-        .from('crawl_progress')
-        .select('*')
-        .eq('user_id', user.id)
-        .is('completed_at', null)
-        .maybeSingle(); // Use maybeSingle to avoid errors when no record exists
+      // Get JWT token for authenticated database access
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        console.log('No JWT token available for loading current crawl');
+        setCurrentCrawl(null);
+        setCurrentCrawlDetails(null);
+        setInProgressCrawls([]);
+        return;
+      }
+      
+      // Use the authenticated getCurrentCrawlProgress function
+      const progress = await getCurrentCrawlProgress(user.id, token);
 
-      console.log('Current progress from DB:', progress, 'Error:', error);
+      console.log('Current progress from DB:', progress, 'Error:', null);
 
-      if (progress && !error) {
+      if (progress) {
         console.log('Found active progress in DB:', {
           crawlId: progress.crawl_id,
           currentStop: progress.current_stop,

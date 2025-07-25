@@ -1,15 +1,17 @@
 import { FriendRequest, SocialError, SocialErrorCodes } from '../../types/social';
-import { supabase } from './client';
+import { getSupabaseClient, supabase } from './client';
 
 /**
  * Send a friend request.
  */
-export async function sendFriendRequest(fromUserId: string, toUserId: string, message?: string): Promise<void> {
+export async function sendFriendRequest(fromUserId: string, toUserId: string, message?: string, token?: string): Promise<void> {
   try {
     // Validate inputs
     if (!fromUserId || !toUserId) {
       throw new SocialError('User IDs are required', SocialErrorCodes.USER_NOT_FOUND);
     }
+
+    const supabaseClient = token ? getSupabaseClient(token) : supabase;
 
     // Prevent self-friending
     if (fromUserId === toUserId) {
@@ -17,7 +19,7 @@ export async function sendFriendRequest(fromUserId: string, toUserId: string, me
     }
 
     // Check if users exist
-    const { data: fromUser, error: fromUserError } = await supabase
+    const { data: fromUser, error: fromUserError } = await supabaseClient
       .from('user_profiles')
       .select('user_profile_id')
       .eq('user_profile_id', fromUserId)
@@ -27,7 +29,7 @@ export async function sendFriendRequest(fromUserId: string, toUserId: string, me
       throw new SocialError('From user not found', SocialErrorCodes.USER_NOT_FOUND);
     }
 
-    const { data: toUser, error: toUserError } = await supabase
+    const { data: toUser, error: toUserError } = await supabaseClient
       .from('user_profiles')
       .select('user_profile_id')
       .eq('user_profile_id', toUserId)
@@ -38,7 +40,7 @@ export async function sendFriendRequest(fromUserId: string, toUserId: string, me
     }
 
     // Check if already friends
-    const { data: existingFriendship } = await supabase
+    const { data: existingFriendship } = await supabaseClient
       .from('friendships')
       .select('friendship_id')
       .or(`user_id_1.eq.${fromUserId},user_id_2.eq.${fromUserId}`)
@@ -50,7 +52,7 @@ export async function sendFriendRequest(fromUserId: string, toUserId: string, me
     }
 
     // Check if request already exists
-    const { data: existingRequest } = await supabase
+    const { data: existingRequest } = await supabaseClient
       .from('friend_requests')
       .select('friend_request_id, status')
       .eq('from_user_id', fromUserId)
@@ -66,7 +68,7 @@ export async function sendFriendRequest(fromUserId: string, toUserId: string, me
     }
 
     // Check if blocked
-    const { data: blockedCheck } = await supabase
+    const { data: blockedCheck } = await supabaseClient
       .from('blocked_users')
       .select('blocked_user_id')
       .or(`blocker_id.eq.${fromUserId},blocked_id.eq.${toUserId}`)
@@ -83,7 +85,7 @@ export async function sendFriendRequest(fromUserId: string, toUserId: string, me
     }
 
     // Insert friend request
-    const { error: insertError } = await supabase
+    const { error: insertError } = await supabaseClient
       .from('friend_requests')
       .insert({
         from_user_id: fromUserId,
@@ -109,13 +111,15 @@ export async function sendFriendRequest(fromUserId: string, toUserId: string, me
 /**
  * Get pending friend requests for a user.
  */
-export async function getPendingRequests(userId: string): Promise<FriendRequest[]> {
+export async function getPendingRequests(userId: string, token?: string): Promise<FriendRequest[]> {
   try {
     if (!userId) {
       throw new SocialError('User ID is required', SocialErrorCodes.USER_NOT_FOUND);
     }
 
-    const { data: requests, error } = await supabase
+    const supabaseClient = token ? getSupabaseClient(token) : supabase;
+
+    const { data: requests, error } = await supabaseClient
       .from('friend_requests')
       .select(`
         friend_request_id,

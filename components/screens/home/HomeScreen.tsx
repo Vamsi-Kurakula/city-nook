@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../../context/AuthContext';
 import { useCrawlContext } from '../../context/CrawlContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '@clerk/clerk-expo';
 
 import HomeHeader from './HomeHeader';
 import FeaturedCrawlsSection from './FeaturedCrawlsSection';
@@ -20,6 +21,7 @@ export default function HomeScreen() {
   const { user, isLoading } = useAuthContext();
   const { hasCrawlInProgress, getCurrentCrawlName } = useCrawlContext();
   const { theme } = useTheme();
+  const { getToken } = useAuth();
   const userId = user?.id;
 
   const {
@@ -50,12 +52,19 @@ export default function HomeScreen() {
     if (userId) {
       try {
         setFriendsLoading(true);
-        const [friendsResult, pending] = await Promise.all([
-          getFriendsList(userId),
-          getPendingRequests(userId)
-        ]);
-        setFriends(friendsResult);
-        setPendingRequestsCount(pending.length);
+        const token = await getToken({ template: 'supabase' });
+        if (token) {
+          const [friendsResult, pending] = await Promise.all([
+            getFriendsList(userId, token),
+            getPendingRequests(userId, token)
+          ]);
+          setFriends(friendsResult);
+          setPendingRequestsCount(pending.length);
+        } else {
+          console.log('No JWT token available for refreshing friends data');
+          setFriends([]);
+          setPendingRequestsCount(0);
+        }
       } catch {
         setFriends([]);
         setPendingRequestsCount(0);
@@ -76,8 +85,14 @@ export default function HomeScreen() {
       if (!userId) return;
       setFriendsLoading(true);
       try {
-        const result = await getFriendsList(userId);
-        if (mounted) setFriends(result);
+        const token = await getToken({ template: 'supabase' });
+        if (token) {
+          const result = await getFriendsList(userId, token);
+          if (mounted) setFriends(result);
+        } else {
+          console.log('No JWT token available for fetching friends');
+          if (mounted) setFriends([]);
+        }
       } catch (e) {
         if (mounted) setFriends([]);
       } finally {
@@ -93,8 +108,14 @@ export default function HomeScreen() {
     async function fetchPendingRequests() {
       if (!userId) return;
       try {
-        const pending = await getPendingRequests(userId);
-        if (mounted) setPendingRequestsCount(pending.length);
+        const token = await getToken({ template: 'supabase' });
+        if (token) {
+          const pending = await getPendingRequests(userId, token);
+          if (mounted) setPendingRequestsCount(pending.length);
+        } else {
+          console.log('No JWT token available for fetching pending requests');
+          if (mounted) setPendingRequestsCount(0);
+        }
       } catch {
         if (mounted) setPendingRequestsCount(0);
       }
@@ -104,17 +125,18 @@ export default function HomeScreen() {
   }, [userId]);
 
 
-  // Convert CrawlDefinition to Crawl format for compatibility
+  // Convert PublicCrawl to Crawl format for compatibility
   const convertedFeaturedCrawls = featuredCrawls.map(crawl => ({
-    id: crawl.crawl_definition_id,
+    id: crawl.id,
     name: crawl.name,
     description: crawl.description,
-    duration: crawl.duration,
-    difficulty: crawl.difficulty,
-    distance: crawl.distance,
-    'public-crawl': crawl.is_public,
-    hero_image_url: crawl.hero_image_url,
-    stops: (crawl as any).stops || [], // Use the stops that were loaded from database
+    duration: '2-4 hours', // Default since PublicCrawl doesn't have duration
+    difficulty: 'Easy', // Default since PublicCrawl doesn't have difficulty
+    distance: '2-4 miles', // Default since PublicCrawl doesn't have distance
+    'public-crawl': false, // Default since PublicCrawl doesn't have is_public
+    hero_image_url: crawl.hero_image,
+    assetFolder: crawl.assetFolder,
+    stops: crawl.stops || [], // Use the stops that were loaded from database
   }));
 
   if (loading) {
@@ -274,6 +296,7 @@ export default function HomeScreen() {
               ))}
               {friends.length > 3 && (
                 <TouchableOpacity
+                  key="view-all-friends"
                   style={[styles.friendAvatarWrapper, styles.viewAllButtonWrapper]}
                   onPress={() => navigation.navigate('FriendsList')}
                   activeOpacity={0.8}
@@ -286,6 +309,7 @@ export default function HomeScreen() {
               )}
               {friends.length < 3 && (
                 <TouchableOpacity
+                  key="add-friends"
                   style={[styles.friendAvatarWrapper, styles.addFriendButtonWrapper]}
                   onPress={() => navigation.navigate('AddFriends')}
                   activeOpacity={0.8}
