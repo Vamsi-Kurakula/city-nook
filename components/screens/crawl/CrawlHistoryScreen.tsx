@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, CommonActions } from '@react-navigation/native';
-import { useAuthContext } from '../context/AuthContext';
+import { useAuthContext } from '../../context/AuthContext';
 import { useAuth } from '@clerk/clerk-expo';
-import { useTheme } from '../context/ThemeContext';
-import { getCrawlHistory } from '../../utils/database/historyOperations';
-import { getCrawlNameMapping } from '../../utils/database/crawlMetadataOperations';
-import BackButton from '../ui/BackButton';
+import { useTheme } from '../../context/ThemeContext';
+import { getCrawlHistory } from '../../../utils/database/historyOperations';
+import { getCrawlNameMapping } from '../../../utils/database/crawlMetadataOperations';
+import BackButton from '../../ui/common/BackButton';
 
 interface CrawlHistoryItem {
   user_crawl_history_id: string;

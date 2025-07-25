@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { Crawl } from '../../types/crawl';
-import { calculateCrawlStatus, formatTimeForDisplay, parseTimeString } from '../../utils/crawlStatus';
+import { Crawl } from '../../../types/crawl';
+import { calculateCrawlStatus, formatTimeForDisplay, parseTimeString } from '../../../utils/crawlStatus';
 import DatabaseImage from './DatabaseImage';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface CrawlCardProps {
   crawl: Crawl;

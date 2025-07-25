@@ -75,6 +75,7 @@ export interface Crawl {
   'public-crawl': boolean;
   start_time?: string; // Format: "YYYY-MM-DD HH:MM" or "HH:MM" for today
   hero_image_url?: string;
+  assetFolder?: string;
   stops?: CrawlStop[];
 }
 

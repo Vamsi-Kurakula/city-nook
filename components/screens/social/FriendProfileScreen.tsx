@@ -3,12 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIn
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
 import { useAuth } from '@clerk/clerk-expo';
-import { useTheme } from '../context/ThemeContext';
-import BackButton from '../ui/BackButton';
-import { SocialUserProfile } from '../../types/social';
-import { getCrawlStats } from '../../utils/database/statsOperations';
-import { getCrawlHistory } from '../../utils/database/historyOperations';
-import { getCrawlDefinitionById } from '../../utils/database/crawlDefinitionOperations';
+import { useTheme } from '../../context/ThemeContext';
+import BackButton from '../../ui/common/BackButton';
+import { SocialUserProfile } from '../../../types/social';
+import { getCrawlStats } from '../../../utils/database/statsOperations';
+import { getCrawlHistory } from '../../../utils/database/historyOperations';
+import { getCrawlDefinitionById } from '../../../utils/database/crawlDefinitionOperations';
 
 interface FriendProfileRouteParams {
   friend: SocialUserProfile;

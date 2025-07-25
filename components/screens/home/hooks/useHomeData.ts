@@ -8,8 +8,13 @@ interface PublicCrawl {
   name: string;
   title?: string;
   description: string;
+  duration?: string;
+  difficulty?: string;
+  distance?: string;
+  is_public?: boolean;
   start_time: string;
   hero_image: string;
+  hero_image_url?: string;
   stops: any[];
   assetFolder: string;
 }
@@ -54,23 +59,50 @@ export function useHomeData() {
       setLoading(true);
       setError(null);
 
-      console.log('Loading data for user:', user.id);
-
       // Load featured crawls
-      const { getFeaturedCrawlDefinitions } = await import('../../../../utils/database/crawlDefinitionOperations');
+      const { getFeaturedCrawlDefinitions, getCrawlStops } = await import('../../../../utils/database/crawlDefinitionOperations');
       const featuredDefinitions = await getFeaturedCrawlDefinitions();
       
-      // Transform to PublicCrawl format
-      const featured = featuredDefinitions.map(def => ({
-        id: def.crawl_definition_id,
-        name: def.name,
-        title: def.name,
-        description: def.description,
-        start_time: def.start_time || '',
-        hero_image: def.hero_image_url || '',
-        stops: [],
-        assetFolder: ''
-      }));
+      // Load complete data for featured crawls including stops
+      const featured = await Promise.all(
+        featuredDefinitions.map(async (def) => {
+          try {
+            const stops = await getCrawlStops(def.crawl_definition_id);
+            return {
+              id: def.crawl_definition_id,
+              name: def.name,
+              title: def.name,
+              description: def.description,
+              duration: def.duration,
+              difficulty: def.difficulty,
+              distance: def.distance,
+              is_public: def.is_public,
+              start_time: def.start_time || '',
+              hero_image: def.hero_image_url || '',
+              hero_image_url: def.hero_image_url || '',
+              assetFolder: '', // Default since asset_folder doesn't exist in schema
+              stops: stops
+            };
+          } catch (error) {
+            console.warn(`Could not load stops for featured crawl ${def.name}:`, error);
+            return {
+              id: def.crawl_definition_id,
+              name: def.name,
+              title: def.name,
+              description: def.description,
+              duration: def.duration,
+              difficulty: def.difficulty,
+              distance: def.distance,
+              is_public: def.is_public,
+              start_time: def.start_time || '',
+              hero_image: def.hero_image_url || '',
+              hero_image_url: def.hero_image_url || '',
+              assetFolder: '', // Default since asset_folder doesn't exist in schema
+              stops: []
+            };
+          }
+        })
+      );
       setFeaturedCrawls(featured);
 
       // Load upcoming crawls (public crawls with start times)
@@ -172,8 +204,6 @@ export function useHomeData() {
     if (!user?.id) return;
 
     try {
-      console.log('Loading current crawl for user:', user.id);
-      
       // Get JWT token for authenticated database access
       const token = await getToken({ template: 'supabase' });
       if (!token) {
@@ -187,17 +217,7 @@ export function useHomeData() {
       // Use the authenticated getCurrentCrawlProgress function
       const progress = await getCurrentCrawlProgress(user.id, token);
 
-      console.log('Current progress from DB:', progress, 'Error:', null);
-
       if (progress) {
-        console.log('Found active progress in DB:', {
-          crawlId: progress.crawl_id,
-          currentStop: progress.current_stop,
-          isPublic: progress.is_public,
-          startedAt: progress.started_at,
-          completedStops: progress.completed_stops
-        });
-        
         // Load the full crawl details
         const crawlDetails = await loadCrawlDetailsById(progress.crawl_id, progress.is_public);
         
@@ -211,7 +231,6 @@ export function useHomeData() {
             isPublicCrawl: progress.is_public,
           };
 
-          console.log('Setting currentCrawl to:', crawlProgress);
           setCurrentCrawl(crawlProgress);
           setCurrentCrawlDetails(crawlDetails); // Store full details
           setInProgressCrawls([crawlProgress]);

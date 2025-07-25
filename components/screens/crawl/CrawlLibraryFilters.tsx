@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { RootStackParamList } from '../../types/navigation';
+import { RootStackParamList } from '../../../types/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
 
 // Define navigation types
 

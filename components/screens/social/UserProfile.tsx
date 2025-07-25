@@ -2,14 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, CommonActions, useFocusEffect } from '@react-navigation/native';
-import { useAuthContext } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { deleteUserAccount, exportUserData } from '../../utils/database/userOperations';
-import { getPendingRequests } from '../../utils/database/friendRequestOperations';
-import BackButton from '../ui/BackButton';
+import { useAuthContext } from '../../context/AuthContext';
+import { useAuth } from '@clerk/clerk-expo';
+import { useTheme } from '../../context/ThemeContext';
+import { deleteUserAccount, exportUserData } from '../../../utils/database/userOperations';
+import { getPendingRequests } from '../../../utils/database/friendRequestOperations';
+import BackButton from '../../ui/common/BackButton';
 
 const UserProfile: React.FC = () => {
   const { user, userProfile, signOut, isLoading, isSignedIn } = useAuthContext();
+  const { getToken } = useAuth();
   const { theme, themeType, setTheme } = useTheme();
   const navigation = useNavigation<any>();
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
@@ -17,7 +19,13 @@ const UserProfile: React.FC = () => {
   const fetchPendingRequests = async () => {
     if (!user?.id) return;
     try {
-      const requests = await getPendingRequests(user.id);
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        console.error('Failed to get authentication token');
+        return;
+      }
+      
+      const requests = await getPendingRequests(user.id, token);
       setPendingRequestsCount(requests.length);
     } catch (err) {
       console.error('Error fetching pending requests:', err);

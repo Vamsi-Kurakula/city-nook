@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { Crawl } from '../../../types/crawl';
-import DatabaseImage from '../../ui/DatabaseImage';
+import DatabaseImage from '../../ui/crawl/DatabaseImage';
 import { useTheme } from '../../context/ThemeContext';
 
 interface FeaturedCrawlsSectionProps {
@@ -40,6 +40,9 @@ export default function FeaturedCrawlsSection({
           </Text>
           <View style={styles.crawlMeta}>
             <Text style={[styles.crawlStops, { color: theme.button.primary }]}>{item.stops?.length || 0} stops</Text>
+            <Text style={[styles.crawlDistance, { color: theme.button.primary }]}>• {item.distance}</Text>
+            <Text style={[styles.crawlDuration, { color: theme.button.primary }]}>• {item.duration}</Text>
+            <Text style={[styles.crawlDifficulty, { color: theme.text.secondary }]}>• {item.difficulty}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -128,10 +131,22 @@ const styles = StyleSheet.create({
   },
   crawlMeta: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
   },
   crawlStops: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  crawlDistance: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  crawlDuration: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  crawlDifficulty: {
     fontSize: 14,
     fontWeight: '500',
   },

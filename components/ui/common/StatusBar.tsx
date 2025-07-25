@@ -1,6 +1,6 @@
 import React from 'react';
 import { StatusBar as RNStatusBar, StatusBarStyle } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export const StatusBar: React.FC = () => {
   const { theme } = useTheme();

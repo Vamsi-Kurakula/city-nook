@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Markdown from 'react-native-markdown-display';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 
 const privacyPolicyMarkdown = `# Privacy Policy

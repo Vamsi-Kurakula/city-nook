@@ -2,11 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useAuthContext } from '../context/AuthContext';
-import SignInScreen from '../screens/SignInScreen';
-import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
-import TermsOfServiceScreen from '../screens/TermsOfServiceScreen';
+import { SignInScreen } from '../screens/auth';
+import { PrivacyPolicyScreen, TermsOfServiceScreen } from '../screens/legal';
 import { AppNavigator } from './index';
-import LoadingScreen from '../ui/LoadingScreen';
+import { LoadingScreen } from '../ui/common';
 
 const Stack = createStackNavigator();
 

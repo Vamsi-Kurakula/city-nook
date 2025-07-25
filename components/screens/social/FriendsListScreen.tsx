@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAuthContext } from '../context/AuthContext';
-import { getFriendsList } from '../../utils/database/friendshipOperations';
-import { getPendingRequests } from '../../utils/database/friendRequestOperations';
-import FriendCard from '../ui/social/FriendCard';
-import { SocialUserProfile } from '../../types/social';
-import { useTheme } from '../context/ThemeContext';
+import { useAuthContext } from '../../context/AuthContext';
+import { useAuth } from '@clerk/clerk-expo';
+import { getFriendsList } from '../../../utils/database/friendshipOperations';
+import { getPendingRequests } from '../../../utils/database/friendRequestOperations';
+import FriendCard from '../../ui/social/FriendCard';
+import { SocialUserProfile } from '../../../types/social';
+import { useTheme } from '../../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BackButton from '../ui/BackButton';
+import BackButton from '../../ui/common/BackButton';
 
 export default function FriendsListScreen() {
   const { user } = useAuthContext();
+  const { getToken } = useAuth();
   const navigation = useNavigation<any>();
   const { theme } = useTheme();
   const [friends, setFriends] = useState<SocialUserProfile[]>([]);
@@ -31,10 +33,17 @@ export default function FriendsListScreen() {
     }
     
     try {
+      // Get JWT token for Supabase authentication
+      const token = await getToken({ template: 'supabase' });
+      
+      if (!token) {
+        throw new Error('Failed to get authentication token');
+      }
+      
       // Fetch friends and pending requests in parallel
       const [friendsResult, pendingRequests] = await Promise.all([
-        getFriendsList(user.id),
-        getPendingRequests(user.id)
+        getFriendsList(user.id, token),
+        getPendingRequests(user.id, token)
       ]);
       
       setFriends(friendsResult);

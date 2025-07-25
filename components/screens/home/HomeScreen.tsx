@@ -9,7 +9,7 @@ import { useAuth } from '@clerk/clerk-expo';
 
 import HomeHeader from './HomeHeader';
 import FeaturedCrawlsSection from './FeaturedCrawlsSection';
-import DatabaseImage from '../../ui/DatabaseImage';
+import { DatabaseImage } from '../../ui/crawl';
 import { useHomeData } from './hooks/useHomeData';
 import { useCrawlActions } from './hooks/useCrawlActions';
 import { getFriendsList } from '../../../utils/database/friendshipOperations';
@@ -130,13 +130,13 @@ export default function HomeScreen() {
     id: crawl.id,
     name: crawl.name,
     description: crawl.description,
-    duration: '2-4 hours', // Default since PublicCrawl doesn't have duration
-    difficulty: 'Easy', // Default since PublicCrawl doesn't have difficulty
-    distance: '2-4 miles', // Default since PublicCrawl doesn't have distance
-    'public-crawl': false, // Default since PublicCrawl doesn't have is_public
-    hero_image_url: crawl.hero_image,
+    duration: crawl.duration || '',
+    difficulty: crawl.difficulty || '',
+    distance: crawl.distance || '',
+    'public-crawl': crawl.is_public || false,
+    hero_image_url: crawl.hero_image_url || crawl.hero_image,
     assetFolder: crawl.assetFolder,
-    stops: crawl.stops || [], // Use the stops that were loaded from database
+    stops: crawl.stops || [],
   }));
 
   if (loading) {

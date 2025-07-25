@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useTheme } from '../context/ThemeContext';
-import { getCrawlWithStopsById } from '../../utils/database/crawlDefinitionOperations';
-import { CrawlStop } from '../../types/crawl';
+import { useTheme } from '../../context/ThemeContext';
+import { getCrawlWithStopsById } from '../../../utils/database/crawlDefinitionOperations';
+import { CrawlStop } from '../../../types/crawl';
 
 interface CrawlHistoryDetailParams {
   crawlId: string;

@@ -2,11 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { useTheme } from '../context/ThemeContext';
-import { CrawlStop } from '../../types/crawl';
-import { LocationCoordinates } from '../../utils/coordinateExtractor';
-import CrawlMap from '../ui/CrawlMap';
-import BackButton from '../ui/BackButton';
+import { useTheme } from '../../context/ThemeContext';
+import { CrawlStop } from '../../../types/crawl';
+import { LocationCoordinates } from '../../../utils/coordinateExtractor';
+import CrawlMap from '../../ui/crawl/CrawlMap';
+import BackButton from '../../ui/common/BackButton';
 import MapView, { Marker } from 'react-native-maps';
 
 interface CrawlMapScreenRouteParams {

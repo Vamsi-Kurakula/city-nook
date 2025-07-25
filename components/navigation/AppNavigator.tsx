@@ -1,21 +1,27 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from '../screens/home/HomeScreen';
-import CrawlLibrary from '../screens/CrawlLibrary';
-import UserProfile from '../screens/UserProfile';
-import CrawlDetailScreen from '../screens/CrawlDetailScreen';
-import CrawlSessionScreen from '../screens/CrawlSessionScreen';
-import CrawlMapScreen from '../screens/CrawlMapScreen';
-import CrawlStatsScreen from '../screens/CrawlStatsScreen';
-import CrawlHistoryScreen from '../screens/CrawlHistoryScreen';
-import CrawlHistoryDetailScreen from '../screens/CrawlHistoryDetailScreen';
-import CrawlLibraryFilters from '../screens/CrawlLibraryFilters';
-import CrawlCompletionScreen from '../screens/CrawlCompletionScreen';
-import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
-import TermsOfServiceScreen from '../screens/TermsOfServiceScreen';
-import FriendsListScreen from '../screens/FriendsListScreen';
-import AddFriendsScreen from '../screens/AddFriendsScreen';
-import FriendProfileScreen from '../screens/FriendProfileScreen';
+import { 
+  CrawlLibrary, 
+  CrawlDetailScreen, 
+  CrawlSessionScreen, 
+  CrawlMapScreen, 
+  CrawlStatsScreen, 
+  CrawlHistoryScreen, 
+  CrawlHistoryDetailScreen, 
+  CrawlLibraryFilters, 
+  CrawlCompletionScreen 
+} from '../screens/crawl';
+import { 
+  UserProfile, 
+  FriendsListScreen, 
+  AddFriendsScreen, 
+  FriendProfileScreen 
+} from '../screens/social';
+import { 
+  PrivacyPolicyScreen, 
+  TermsOfServiceScreen 
+} from '../screens/legal';
 
 const Stack = createStackNavigator();
 

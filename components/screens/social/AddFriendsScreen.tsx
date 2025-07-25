@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BackButton from '../ui/BackButton';
-import { useAuthContext } from '../context/AuthContext';
-import { searchUsers } from '../../utils/database/userSearchOperations';
-import { sendFriendRequest } from '../../utils/database/friendRequestOperations';
-import { getPendingRequests, acceptFriendRequest, rejectFriendRequest } from '../../utils/database/friendRequestOperations';
-import { getUserProfilesByIds } from '../../utils/database/userOperations';
-import UserSearchCard from '../ui/social/UserSearchCard';
-import FriendRequestCard from '../ui/social/FriendRequestCard';
-import { SocialUserProfile, FriendRequest } from '../../types/social';
+import BackButton from '../../ui/common/BackButton';
+import { useAuthContext } from '../../context/AuthContext';
+import { useAuth } from '@clerk/clerk-expo';
+import { searchUsers } from '../../../utils/database/userSearchOperations';
+import { sendFriendRequest } from '../../../utils/database/friendRequestOperations';
+import { getPendingRequests, acceptFriendRequest, rejectFriendRequest } from '../../../utils/database/friendRequestOperations';
+import { getUserProfilesByIds } from '../../../utils/database/userOperations';
+import UserSearchCard from '../../ui/social/UserSearchCard';
+import FriendRequestCard from '../../ui/social/FriendRequestCard';
+import { SocialUserProfile, FriendRequest } from '../../../types/social';
 
 export default function AddFriendsScreen() {
   const navigation = useNavigation<any>();
   const { theme } = useTheme();
   const { user } = useAuthContext();
+  const { getToken } = useAuth();
 
   // Friend requests state
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
@@ -36,7 +38,12 @@ export default function AddFriendsScreen() {
     if (!user?.id) return;
     setLoadingRequests(true);
     try {
-      const requests = await getPendingRequests(user.id);
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        throw new Error('Failed to get authentication token');
+      }
+      
+      const requests = await getPendingRequests(user.id, token);
       setFriendRequests(requests);
       const senderIds = requests.map(r => r.from_user_id);
       const profiles = await getUserProfilesByIds(senderIds);
@@ -58,7 +65,12 @@ export default function AddFriendsScreen() {
     if (!user?.id) return;
     setLoadingRequests(true);
     try {
-      const requests = await getPendingRequests(user.id);
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        throw new Error('Failed to get authentication token');
+      }
+      
+      const requests = await getPendingRequests(user.id, token);
       setFriendRequests(requests);
       const senderIds = requests.map(r => r.from_user_id);
       const profiles = await getUserProfilesByIds(senderIds);
@@ -108,6 +120,11 @@ export default function AddFriendsScreen() {
     setSearching(true);
     setError(null);
     try {
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        throw new Error('Failed to get authentication token');
+      }
+      
       const results = await searchUsers(searchQuery.trim(), user.id);
       setSearchResults(results);
     } catch (err) {
@@ -121,7 +138,12 @@ export default function AddFriendsScreen() {
   const handleSendFriendRequest = async (toUserId: string) => {
     if (!user?.id) return;
     try {
-      await sendFriendRequest(user.id, toUserId);
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        throw new Error('Failed to get authentication token');
+      }
+      
+      await sendFriendRequest(user.id, toUserId, undefined, token);
       setRequestSentIds(prev => [...prev, toUserId]);
       Alert.alert('Success', 'Friend request sent!');
     } catch (err) {

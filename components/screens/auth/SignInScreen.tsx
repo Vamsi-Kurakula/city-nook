@@ -2,11 +2,11 @@ import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Image, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOAuth, useAuth } from '@clerk/clerk-expo';
-import { useAuthContext } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useAuthContext } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import * as WebBrowser from 'expo-web-browser';
 import { useNavigation } from '@react-navigation/native';
-import { CLERK_PUBLISHABLE_KEY_CONFIG as CLERK_PUBLISHABLE_KEY } from '../../utils/config';
+import { CLERK_PUBLISHABLE_KEY_CONFIG as CLERK_PUBLISHABLE_KEY } from '../../../utils/config';
 
 WebBrowser.maybeCompleteAuthSession();
 

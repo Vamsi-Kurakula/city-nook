@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { FlatList, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { Crawl } from '../../types/crawl';
+import { Crawl } from '../../../types/crawl';
 import DatabaseImage from './DatabaseImage';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface CrawlListProps {
   crawls: Crawl[];

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
-import { CrawlStop } from '../../types/crawl';
-import { LocationCoordinates } from '../../utils/coordinateExtractor';
-import { useTheme } from '../context/ThemeContext';
+import { CrawlStop } from '../../../types/crawl';
+import { LocationCoordinates } from '../../../utils/coordinateExtractor';
+import { useTheme } from '../../context/ThemeContext';
 
 interface CrawlMapProps {
   stops: CrawlStop[];

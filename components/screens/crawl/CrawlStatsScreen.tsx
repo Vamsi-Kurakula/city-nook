@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthContext } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useNavigation } from '@react-navigation/native';
+import { useAuthContext } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '@clerk/clerk-expo';
-import BackButton from '../ui/BackButton';
-import { getCrawlStats } from '../../utils/database/statsOperations';
+import BackButton from '../../ui/common/BackButton';
+import { getCrawlStats } from '../../../utils/database/statsOperations';
 
 export default function CrawlStatsScreen() {
+  const navigation = useNavigation<any>();
   const { user } = useAuthContext();
   const { theme } = useTheme();
   const { getToken } = useAuth();
@@ -50,10 +52,9 @@ export default function CrawlStatsScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.header}>
-          <BackButton onPress={() => {}} />
-          <Text style={[styles.title, { color: theme.text.primary }]}>Crawl Statistics</Text>
+          <BackButton onPress={() => navigation.goBack()} />
         </View>
-        <View style={styles.loadingContainer}>
+        <View style={styles.content}>
           <ActivityIndicator size="large" color={theme.button.primary} />
           <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading stats...</Text>
         </View>
@@ -65,10 +66,9 @@ export default function CrawlStatsScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
         <View style={styles.header}>
-          <BackButton onPress={() => {}} />
-          <Text style={[styles.title, { color: theme.text.primary }]}>Crawl Statistics</Text>
+          <BackButton onPress={() => navigation.goBack()} />
         </View>
-        <View style={styles.errorContainer}>
+        <View style={styles.content}>
           <Text style={[styles.errorText, { color: theme.text.secondary }]}>{error}</Text>
         </View>
       </SafeAreaView>
@@ -78,25 +78,25 @@ export default function CrawlStatsScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <View style={styles.header}>
-        <BackButton onPress={() => {}} />
-        <Text style={[styles.title, { color: theme.text.primary }]}>Crawl Statistics</Text>
+        <BackButton onPress={() => navigation.goBack()} />
       </View>
-      
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
+        <Text style={[styles.title, { color: theme.text.primary }]}>Crawl Statistics</Text>
+        
         {stats ? (
           <View style={styles.statsContainer}>
-            <View style={[styles.statCard, { backgroundColor: theme.background.secondary }]}>
-              <Text style={[styles.statNumber, { color: theme.button.primary }]}>{stats.totalCompleted}</Text>
+            <View style={[styles.statCard, { backgroundColor: 'transparent', borderColor: theme.background.secondary }]}>
+              <Text style={[styles.statNumber, { color: theme.text.primary }]}>{stats.totalCompleted || 0}</Text>
               <Text style={[styles.statLabel, { color: theme.text.secondary }]}>Total Crawls Completed</Text>
             </View>
             
-            <View style={[styles.statCard, { backgroundColor: theme.background.secondary }]}>
-              <Text style={[styles.statNumber, { color: theme.button.primary }]}>{stats.uniqueCompleted}</Text>
+            <View style={[styles.statCard, { backgroundColor: 'transparent', borderColor: theme.background.secondary }]}>
+              <Text style={[styles.statNumber, { color: theme.text.primary }]}>{stats.uniqueCompleted || 0}</Text>
               <Text style={[styles.statLabel, { color: theme.text.secondary }]}>Unique Crawls Completed</Text>
             </View>
             
-            <View style={[styles.statCard, { backgroundColor: theme.background.secondary }]}>
-              <Text style={[styles.statNumber, { color: theme.button.primary }]}>{stats.inProgress}</Text>
+            <View style={[styles.statCard, { backgroundColor: 'transparent', borderColor: theme.background.secondary }]}>
+              <Text style={[styles.statNumber, { color: theme.text.primary }]}>{stats.inProgress || 0}</Text>
               <Text style={[styles.statLabel, { color: theme.text.secondary }]}>Crawls In Progress</Text>
             </View>
           </View>
@@ -105,7 +105,7 @@ export default function CrawlStatsScreen() {
             <Text style={[styles.emptyText, { color: theme.text.secondary }]}>No statistics available</Text>
           </View>
         )}
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -113,7 +113,6 @@ export default function CrawlStatsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   header: {
     flexDirection: 'row',
@@ -127,14 +126,12 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     marginTop: 16,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 30,
     textAlign: 'center',
   },
@@ -142,44 +139,19 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   statCard: {
-    backgroundColor: '#f8f9fa',
     padding: 24,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e9ecef',
   },
   statNumber: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#007AFF',
     marginBottom: 8,
   },
   statLabel: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
-  },
-  backButton: { 
-    paddingVertical: 8, 
-    paddingHorizontal: 12 
-  },
-  backButtonText: { 
-    color: '#888', 
-    fontSize: 16, 
-    fontWeight: '600' 
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
   },
   errorText: {
     fontSize: 18,

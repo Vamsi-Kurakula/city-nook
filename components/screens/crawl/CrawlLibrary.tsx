@@ -3,16 +3,16 @@ import { Text, StyleSheet, ActivityIndicator, View, TouchableOpacity, Image } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import CrawlList from '../ui/CrawlList';
-import { useCrawlContext } from '../context/CrawlContext';
-import { useTheme } from '../context/ThemeContext';
+import CrawlList from '../../ui/crawl/CrawlList';
+import { useCrawlContext } from '../../context/CrawlContext';
+import { useTheme } from '../../context/ThemeContext';
 import { Alert } from 'react-native';
-import { useAuthContext } from '../context/AuthContext';
-import { RootStackParamList } from '../../types/navigation';
-import { Crawl, CrawlDefinition } from '../../types/crawl';
-import { getCrawlDefinitionsByType, getCrawlStops } from '../../utils/database';
+import { useAuthContext } from '../../context/AuthContext';
+import { RootStackParamList } from '../../../types/navigation';
+import { Crawl, CrawlDefinition } from '../../../types/crawl';
+import { getCrawlDefinitionsByType, getCrawlStops } from '../../../utils/database';
 import { useNavigation, CommonActions } from '@react-navigation/native';
-import BackButton from '../ui/BackButton';
+import BackButton from '../../ui/common/BackButton';
 
 type CrawlLibraryNavigationProp = StackNavigationProp<RootStackParamList, 'CrawlLibrary'>;
 type CrawlLibraryRouteProp = RouteProp<RootStackParamList, 'CrawlLibrary'>;

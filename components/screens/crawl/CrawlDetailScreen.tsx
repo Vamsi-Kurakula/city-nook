@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
-import { useCrawlContext } from '../context/CrawlContext';
-import { Crawl, CrawlStop } from '../../types/crawl';
-import DatabaseImage from '../ui/DatabaseImage';
-import { useAuthContext } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { supabase } from '../../utils/database';
+import { useCrawlContext } from '../../context/CrawlContext';
+import { Crawl, CrawlStop } from '../../../types/crawl';
+import DatabaseImage from '../../ui/crawl/DatabaseImage';
+import { useAuthContext } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { supabase } from '../../../utils/database';
 import { MaterialIcons } from '@expo/vector-icons';
-import BackButton from '../ui/BackButton';
-import { getCrawlWithStopsById } from '../../utils/database/crawlDefinitionOperations';
+import BackButton from '../../ui/common/BackButton';
+import { getCrawlWithStopsById } from '../../../utils/database/crawlDefinitionOperations';
 
 // Helper to map CrawlDefinition to Crawl
 function mapCrawlDefinitionToCrawl(definition: any, stops: CrawlStop[]): Crawl {

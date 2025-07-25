@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface BackButtonProps {
   onPress: () => void;

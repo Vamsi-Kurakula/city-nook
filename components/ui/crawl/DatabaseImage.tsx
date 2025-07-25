@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';
-import { getHeroImageSourceAsync } from '../../utils/database/imageLoader';
+import { getHeroImageSourceAsync } from '../../../utils/database/imageLoader';
 
 interface DatabaseImageProps {
   assetFolder?: string;
@@ -32,7 +32,7 @@ const DatabaseImage: React.FC<DatabaseImageProps> = ({
           if (heroImageUrl.startsWith('http')) {
             setImageSource({ uri: heroImageUrl });
           } else {
-            setImageSource(fallbackSource || require('../../assets/icon.png'));
+            setImageSource(fallbackSource || require('../../../assets/icon.png'));
           }
         } else if (assetFolder) {
           // Fallback to asset folder method
@@ -43,15 +43,15 @@ const DatabaseImage: React.FC<DatabaseImageProps> = ({
             setImageSource({ uri: imageUrl });
           } else {
             // It's a local asset path, use fallback
-            setImageSource(fallbackSource || require('../../assets/icon.png'));
+            setImageSource(fallbackSource || require('../../../assets/icon.png'));
           }
         } else {
           // No image source provided, use fallback
-          setImageSource(fallbackSource || require('../../assets/icon.png'));
+          setImageSource(fallbackSource || require('../../../assets/icon.png'));
         }
       } catch (error) {
         console.error('Error loading image:', error);
-        setImageSource(fallbackSource || require('../../assets/icon.png'));
+        setImageSource(fallbackSource || require('../../../assets/icon.png'));
         onError?.(error);
       } finally {
         setLoading(false);
@@ -64,7 +64,7 @@ const DatabaseImage: React.FC<DatabaseImageProps> = ({
   if (loading || !imageSource) {
     return (
       <Image
-        source={fallbackSource || require('../../assets/icon.png')}
+        source={fallbackSource || require('../../../assets/icon.png')}
         style={style}
         resizeMode={resizeMode}
       />
@@ -78,7 +78,7 @@ const DatabaseImage: React.FC<DatabaseImageProps> = ({
       resizeMode={resizeMode}
       onError={(error) => {
         console.error('Image loading error:', error);
-        setImageSource(fallbackSource || require('../../assets/icon.png'));
+        setImageSource(fallbackSource || require('../../../assets/icon.png'));
         onError?.(error);
       }}
     />

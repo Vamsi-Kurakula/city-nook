@@ -7,7 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from './components/context/AuthContext';
 import { CrawlProvider } from './components/context/CrawlContext';
 import { ThemeProvider } from './components/context/ThemeContext';
-import StatusBar from './components/ui/StatusBar';
+import { StatusBar } from './components/ui/common';
 import ErrorBoundary from './components/error/ErrorBoundary';
 
 export default function App() {

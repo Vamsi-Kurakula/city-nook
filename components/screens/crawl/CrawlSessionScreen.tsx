@@ -2,17 +2,17 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Modal, FlatList, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { useCrawlContext } from '../context/CrawlContext';
-import { useTheme } from '../context/ThemeContext';
-import { Crawl, CrawlStop } from '../../types/crawl';
-import { loadCrawlStops } from '../../utils/database';
-import { StopComponent } from '../ui/stops';
-import { useAuthContext } from '../context/AuthContext';
-import { saveCrawlProgress, addCrawlHistory, deleteCrawlProgress } from '../../utils/database';
-import { getCrawlProgress } from '../../utils/database/progressOperations';
-import { extractAllCoordinates, LocationCoordinates } from '../../utils/coordinateExtractor';
-import BackButton from '../ui/BackButton';
+import { useCrawlContext } from '../../context/CrawlContext';
+import { useTheme } from '../../context/ThemeContext';
+import { Crawl, CrawlStop } from '../../../types/crawl';
+import { StopComponent } from '../../ui/stops';
+import { useAuthContext } from '../../context/AuthContext';
+import { saveCrawlProgress, addCrawlHistory, deleteCrawlProgress } from '../../../utils/database';
+import { getCrawlProgress } from '../../../utils/database/progressOperations';
+import { extractAllCoordinates, LocationCoordinates } from '../../../utils/coordinateExtractor';
+import BackButton from '../../ui/common/BackButton';
 import { useAuth } from '@clerk/clerk-expo';
+import { getCrawlStops } from '../../../utils/database/crawlDefinitionOperations';
 
 const CrawlSessionScreen: React.FC = () => {
   const route = useRoute();
@@ -74,7 +74,6 @@ const CrawlSessionScreen: React.FC = () => {
     if (crawlData && (!crawlData.stops || crawlData.stops.length === 0)) {
       setLoading(true);
       // Use crawl ID directly instead of asset folder
-      const { getCrawlStops } = require('../../utils/database/crawlDefinitionOperations');
       getCrawlStops(crawlData.id).then((stops: CrawlStop[]) => {
         setStops(stops || []);
         setLoading(false);
