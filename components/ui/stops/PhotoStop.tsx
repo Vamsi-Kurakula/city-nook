@@ -12,7 +12,7 @@ interface PhotoStopProps {
 export default function PhotoStop({ stop, onComplete, isCompleted, userAnswer }: PhotoStopProps) {
   const handlePhotoTaken = () => {
     onComplete('Photo taken');
-    Alert.alert('Photo Captured!', 'Great! You\'ve taken the photo.');
+
   };
 
   if (isCompleted) {

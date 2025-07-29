@@ -18,7 +18,7 @@ export default function LocationStop({ stop, onComplete, isCompleted, userAnswer
 
   const handleArrived = () => {
     onComplete('Arrived at location');
-    Alert.alert('Location Reached!', 'Great! You\'ve found the location.');
+
   };
 
   if (isCompleted) {

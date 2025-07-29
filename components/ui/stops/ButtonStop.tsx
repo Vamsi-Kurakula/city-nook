@@ -71,7 +71,6 @@ export default function ButtonStop({
 
   const handleButtonPress = () => {
     onComplete('Button pressed');
-    Alert.alert('Stop Completed!', 'Great! You\'ve completed this stop.');
   };
 
   if (isCompleted) {

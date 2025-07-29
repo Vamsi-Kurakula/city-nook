@@ -11,6 +11,58 @@ export const extractCoordinates = async (locationLink: string): Promise<{ latitu
   try {
     console.log('Extracting coordinates from:', locationLink);
     
+    // Handle Google Maps app links (short URLs)
+    if (locationLink.includes('maps.app.goo.gl')) {
+      console.log('Detected Google Maps app link, attempting to resolve...');
+      try {
+        // Follow the redirect to get the actual URL
+        const response = await fetch(locationLink, { 
+          method: 'HEAD',
+          redirect: 'follow'
+        });
+        const resolvedUrl = response.url;
+        console.log('Resolved Google Maps app link to:', resolvedUrl);
+        
+        // Now extract coordinates from the resolved URL
+        const url = new URL(resolvedUrl);
+        
+        // Check for coordinates in the resolved URL path (e.g., /@40.7829,-73.9654,15z)
+        const pathMatch = url.pathname.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (pathMatch) {
+          const latitude = parseFloat(pathMatch[1]);
+          const longitude = parseFloat(pathMatch[2]);
+          console.log('Found coordinates in resolved path:', { latitude, longitude });
+          return { latitude, longitude };
+        }
+        
+        // Check for coordinates in query parameters
+        const llParam = url.searchParams.get('ll');
+        if (llParam) {
+          const [lat, lng] = llParam.split(',').map(Number);
+          if (!isNaN(lat) && !isNaN(lng)) {
+            console.log('Found coordinates in resolved ll parameter:', { latitude: lat, longitude: lng });
+            return { latitude: lat, longitude: lng };
+          }
+        }
+        
+        // Check for coordinates in query parameters (e.g., ?q=40.7829,-73.9654)
+        const query = url.searchParams.get('q');
+        if (query) {
+          const coordMatch = query.match(/^(-?\d+\.\d+),(-?\d+\.\d+)$/);
+          if (coordMatch) {
+            const latitude = parseFloat(coordMatch[1]);
+            const longitude = parseFloat(coordMatch[2]);
+            console.log('Found coordinates in resolved q parameter:', { latitude, longitude });
+            return { latitude, longitude };
+          }
+        }
+        
+        console.log('No coordinates found in resolved Google Maps app link');
+      } catch (error) {
+        console.log('Error resolving Google Maps app link:', error);
+      }
+    }
+    
     const url = new URL(locationLink);
     
     // Method 1: Check for coordinates in the URL path (e.g., /@40.7829,-73.9654,15z)
@@ -121,6 +173,7 @@ export const extractAllCoordinates = async (stops: any[]): Promise<LocationCoord
   console.log('Extracting coordinates for', stops.length, 'stops');
   
   for (const stop of stops) {
+    console.log(`Processing stop ${stop.stop_number}:`, stop.location_link);
     if (stop.location_link) {
       const coords = await extractCoordinates(stop.location_link);
       if (coords) {
@@ -129,7 +182,12 @@ export const extractAllCoordinates = async (stops: any[]): Promise<LocationCoord
           title: stop.location_name || `Stop ${stop.stop_number}`,
           stopNumber: stop.stop_number,
         });
+        console.log(`✅ Successfully extracted coordinates for stop ${stop.stop_number}:`, coords);
+      } else {
+        console.log(`❌ Failed to extract coordinates for stop ${stop.stop_number}`);
       }
+    } else {
+      console.log(`❌ No location_link for stop ${stop.stop_number}`);
     }
   }
 

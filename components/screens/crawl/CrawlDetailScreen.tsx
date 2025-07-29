@@ -62,7 +62,7 @@ const CrawlDetailScreen: React.FC = () => {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
         <View style={styles.header}>
-          <BackButton onPress={() => navigation.goBack()} />
+          <BackButton onPress={() => navigation.navigate('Home')} />
         </View>
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
@@ -85,7 +85,7 @@ const CrawlDetailScreen: React.FC = () => {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
         <View style={styles.header}>
-          <BackButton onPress={() => navigation.goBack()} />
+          <BackButton onPress={() => navigation.navigate('Home')} />
         </View>
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
@@ -139,10 +139,55 @@ const CrawlDetailScreen: React.FC = () => {
     }
   };
 
+  const handleStartCrawlBeta = async () => {
+    // Check if there's already a crawl in progress (both local state and database)
+    let hasActiveCrawl = hasCrawlInProgress();
+    let currentCrawlName = getCurrentCrawlName();
+    
+    // If no active crawl in local state, check database
+    if (!hasActiveCrawl && user?.id) {
+      const dbCheck = await checkDatabaseForActiveCrawl(user.id);
+      hasActiveCrawl = dbCheck.hasActive;
+      currentCrawlName = dbCheck.crawlName || 'Current Crawl';
+    }
+    
+    if (hasActiveCrawl) {
+      Alert.alert(
+        'Crawl in Progress',
+        `You have "${currentCrawlName}" in progress. Would you like to end that crawl and start "${crawl.name}" (Beta)?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Yes, Start New Crawl',
+            style: 'destructive',
+            onPress: () => {
+              endCurrentCrawlAndStartNew(crawl, () => {
+                navigation.dispatch(
+                  CommonActions.navigate({
+                    name: 'CrawlBeta',
+                    params: { crawl },
+                  })
+                );
+              }, user?.id);
+            },
+          },
+        ]
+      );
+    } else {
+      // No crawl in progress, start normally
+      navigation.dispatch(
+        CommonActions.navigate({
+          name: 'CrawlBeta',
+          params: { crawl },
+        })
+      );
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
       <View style={styles.header}>
-        <BackButton onPress={() => navigation.goBack()} />
+        <BackButton onPress={() => navigation.navigate('Home')} />
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <DatabaseImage
@@ -258,6 +303,25 @@ const CrawlDetailScreen: React.FC = () => {
             { color: theme.text.button }
           ]}>
             Start Crawl
+          </Text>
+        </TouchableOpacity>
+
+        {/* Show Start Crawl Beta button */}
+        <TouchableOpacity 
+          style={[
+            styles.startButton, 
+            { 
+              backgroundColor: theme.button.secondary || '#6c757d',
+              marginTop: 12 
+            }
+          ]} 
+          onPress={handleStartCrawlBeta}
+        >
+          <Text style={[
+            styles.startButtonText, 
+            { color: theme.text.button }
+          ]}>
+            Start Crawl Beta
           </Text>
         </TouchableOpacity>
       </ScrollView>

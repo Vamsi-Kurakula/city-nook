@@ -1,15 +1,17 @@
-import { CLERK_PUBLISHABLE_KEY, SUPABASE_URL, SUPABASE_ANON_KEY } from '@env';
+import { CLERK_PUBLISHABLE_KEY, SUPABASE_URL, SUPABASE_ANON_KEY, GOOGLE_MAPS_API_KEY } from '@env';
 
 // Environment Configuration with better error handling
 export const CLERK_PUBLISHABLE_KEY_CONFIG = CLERK_PUBLISHABLE_KEY || '';
 export const SUPABASE_URL_CONFIG = SUPABASE_URL || '';
 export const SUPABASE_ANON_KEY_CONFIG = SUPABASE_ANON_KEY || '';
+export const GOOGLE_MAPS_API_KEY_CONFIG = GOOGLE_MAPS_API_KEY || '';
 
 // Debug logging for environment variables
 console.log('Environment variables loaded:', {
   CLERK_PUBLISHABLE_KEY: CLERK_PUBLISHABLE_KEY ? 'SET' : 'NOT SET',
   SUPABASE_URL: SUPABASE_URL ? 'SET' : 'NOT SET',
   SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? 'SET' : 'NOT SET',
+  GOOGLE_MAPS_API_KEY: GOOGLE_MAPS_API_KEY ? 'SET' : 'NOT SET',
   isDev: __DEV__,
   isProduction: !__DEV__
 });

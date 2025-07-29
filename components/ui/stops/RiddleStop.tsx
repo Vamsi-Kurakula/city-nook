@@ -27,7 +27,7 @@ export default function RiddleStop({ stop, onComplete, isCompleted, userAnswer }
 
     if (isValid) {
       onComplete(answer.trim());
-      Alert.alert('Correct!', 'Great job! You solved the riddle.');
+      
     } else {
       Alert.alert('Incorrect', 'That\'s not quite right. Try again!');
     }

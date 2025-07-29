@@ -110,7 +110,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "geometry",
         "stylers": [
           {
-            "color": "#242f3e"
+            "color": "#1a1a1a"
           }
         ]
       },
@@ -118,7 +118,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "labels.text.fill",
         "stylers": [
           {
-            "color": "#746855"
+            "color": "#cccccc"
           }
         ]
       },
@@ -126,7 +126,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "labels.text.stroke",
         "stylers": [
           {
-            "color": "#242f3e"
+            "color": "#1a1a1a"
           }
         ]
       },
@@ -135,7 +135,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "labels.text.fill",
         "stylers": [
           {
-            "color": "#d59563"
+            "color": "#ffffff"
           }
         ]
       },
@@ -144,7 +144,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "labels.text.fill",
         "stylers": [
           {
-            "color": "#d59563"
+            "color": "#ffffff"
           }
         ]
       },
@@ -153,7 +153,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "geometry",
         "stylers": [
           {
-            "color": "#263c3f"
+            "color": "#2d2d2d"
           }
         ]
       },
@@ -162,7 +162,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "labels.text.fill",
         "stylers": [
           {
-            "color": "#6b9a76"
+            "color": "#30D158"
           }
         ]
       },
@@ -171,7 +171,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "geometry",
         "stylers": [
           {
-            "color": "#38414e"
+            "color": "#3a3a3a"
           }
         ]
       },
@@ -180,7 +180,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "geometry.stroke",
         "stylers": [
           {
-            "color": "#212a37"
+            "color": "#2d2d2d"
           }
         ]
       },
@@ -189,7 +189,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "labels.text.fill",
         "stylers": [
           {
-            "color": "#9ca5b3"
+            "color": "#cccccc"
           }
         ]
       },
@@ -198,7 +198,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "geometry",
         "stylers": [
           {
-            "color": "#746855"
+            "color": "#4a4a4a"
           }
         ]
       },
@@ -207,7 +207,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "geometry.stroke",
         "stylers": [
           {
-            "color": "#1f2835"
+            "color": "#3a3a3a"
           }
         ]
       },
@@ -216,7 +216,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "labels.text.fill",
         "stylers": [
           {
-            "color": "#f3d19c"
+            "color": "#ffffff"
           }
         ]
       },
@@ -225,7 +225,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "geometry",
         "stylers": [
           {
-            "color": "#2f3948"
+            "color": "#3a3a3a"
           }
         ]
       },
@@ -234,7 +234,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         "elementType": "labels.text.fill",
         "stylers": [
           {
-            "color": "#d59563"
+            "color": "#ffffff"
           }
         ]
       },
