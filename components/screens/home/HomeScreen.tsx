@@ -314,8 +314,8 @@ export default function HomeScreen() {
                   onPress={() => navigation.navigate('AddFriends')}
                   activeOpacity={0.8}
                 >
-                  <View style={[styles.friendAvatar, styles.addFriendButton, { backgroundColor: theme.button.primary, borderColor: theme.background.secondary }]}>
-                    <Text style={[styles.addFriendButtonText, { color: theme.text.inverse }]}>+</Text>
+                  <View style={[styles.friendAvatar, styles.addFriendButton, { backgroundColor: 'transparent', borderColor: theme.button.primary, borderWidth: 2 }]}>
+                    <Text style={[styles.addFriendButtonText, { color: theme.button.primary }]}>+</Text>
                     {pendingRequestsCount > 0 && (
                       <View style={[styles.badge, { backgroundColor: theme.button.secondary }]}>
                         <Text style={[styles.badgeText, { color: theme.button.primary }]}>{pendingRequestsCount}</Text>
