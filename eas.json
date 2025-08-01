@@ -46,7 +46,8 @@
         "appleTeamId": "NAZZ4KJK9N"
       },
       "android": {
-        "track": "production"
+        "track": "production",
+        "serviceAccountKeyPath": "./google-service-account.json"
       }
     }
   }

@@ -45,10 +45,15 @@ export default {
         backgroundColor: "#ffffff"
       },
       edgeToEdgeEnabled: true,
-      permissions: ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+      permissions: ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "android.permission.INTERNET"],
       allowBackup: true,
       enableProguardInReleaseBuilds: false,
-      enableShrinkResourcesInReleaseBuilds: false
+      enableShrinkResourcesInReleaseBuilds: false,
+      config: {
+        googleMaps: {
+          apiKey: process.env.GOOGLE_MAPS_API_KEY || "${GOOGLE_MAPS_API_KEY}"
+        }
+      }
     },
     web: {
       favicon: "./assets/favicon.png"

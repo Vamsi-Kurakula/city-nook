@@ -38,6 +38,9 @@ yarn-error.*
 .env.test.local
 .env.production.local
 
+# Google Play Console
+google-service-account.json
+
 # typescript
 *.tsbuildinfo
 
