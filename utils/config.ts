@@ -1,35 +1,34 @@
-import { CLERK_PUBLISHABLE_KEY, SUPABASE_URL, SUPABASE_ANON_KEY, GOOGLE_MAPS_API_KEY } from '@env';
 import Constants from 'expo-constants';
 
 // Environment Configuration with better error handling
-// Use Expo environment variables for builds, fall back to local .env for development
-const getEnvVar = (localVar: string | undefined, expoKey: string): string => {
-  // In development, prefer local .env file
-  if (__DEV__ && localVar) {
-    return localVar;
-  }
-  
-  // In production/builds, use Expo environment variables
+// Use Expo environment variables for builds and development
+const getEnvVar = (expoKey: string): string => {
+  // Try to get from Expo environment variables first
   const expoVar = Constants.expoConfig?.extra?.[expoKey];
   if (expoVar) {
     return expoVar;
   }
   
-  // Fall back to local .env if Expo var not available
-  return localVar || '';
+  // For local development, we'll need to handle this differently
+  // since process.env doesn't work in React Native
+  if (__DEV__) {
+    console.warn(`Environment variable ${expoKey} not found in Expo config. Make sure it's set in your Expo dashboard or app.json.`);
+  }
+  
+  return '';
 };
 
-export const CLERK_PUBLISHABLE_KEY_CONFIG = getEnvVar(CLERK_PUBLISHABLE_KEY, 'clerkPublishableKey');
-export const SUPABASE_URL_CONFIG = getEnvVar(SUPABASE_URL, 'supabaseUrl');
-export const SUPABASE_ANON_KEY_CONFIG = getEnvVar(SUPABASE_ANON_KEY, 'supabaseAnonKey');
-export const GOOGLE_MAPS_API_KEY_CONFIG = getEnvVar(GOOGLE_MAPS_API_KEY, 'googleMapsApiKey');
+export const CLERK_PUBLISHABLE_KEY_CONFIG = getEnvVar('clerkPublishableKey');
+export const SUPABASE_URL_CONFIG = getEnvVar('supabaseUrl');
+export const SUPABASE_ANON_KEY_CONFIG = getEnvVar('supabaseAnonKey');
+export const GOOGLE_MAPS_API_KEY_CONFIG = getEnvVar('googleMapsApiKey');
 
 // Debug logging for environment variables
 console.log('Environment variables loaded:', {
-  CLERK_PUBLISHABLE_KEY: CLERK_PUBLISHABLE_KEY ? 'SET' : 'NOT SET',
-  SUPABASE_URL: SUPABASE_URL ? 'SET' : 'NOT SET',
-  SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? 'SET' : 'NOT SET',
-  GOOGLE_MAPS_API_KEY: GOOGLE_MAPS_API_KEY ? 'SET' : 'NOT SET',
+  CLERK_PUBLISHABLE_KEY: CLERK_PUBLISHABLE_KEY_CONFIG ? 'SET' : 'NOT SET',
+  SUPABASE_URL: SUPABASE_URL_CONFIG ? 'SET' : 'NOT SET',
+  SUPABASE_ANON_KEY: SUPABASE_ANON_KEY_CONFIG ? 'SET' : 'NOT SET',
+  GOOGLE_MAPS_API_KEY: GOOGLE_MAPS_API_KEY_CONFIG ? 'SET' : 'NOT SET',
   isDev: __DEV__,
   isProduction: !__DEV__
 });
