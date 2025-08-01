@@ -1,10 +1,28 @@
 import { CLERK_PUBLISHABLE_KEY, SUPABASE_URL, SUPABASE_ANON_KEY, GOOGLE_MAPS_API_KEY } from '@env';
+import Constants from 'expo-constants';
 
 // Environment Configuration with better error handling
-export const CLERK_PUBLISHABLE_KEY_CONFIG = CLERK_PUBLISHABLE_KEY || '';
-export const SUPABASE_URL_CONFIG = SUPABASE_URL || '';
-export const SUPABASE_ANON_KEY_CONFIG = SUPABASE_ANON_KEY || '';
-export const GOOGLE_MAPS_API_KEY_CONFIG = GOOGLE_MAPS_API_KEY || '';
+// Use Expo environment variables for builds, fall back to local .env for development
+const getEnvVar = (localVar: string | undefined, expoKey: string): string => {
+  // In development, prefer local .env file
+  if (__DEV__ && localVar) {
+    return localVar;
+  }
+  
+  // In production/builds, use Expo environment variables
+  const expoVar = Constants.expoConfig?.extra?.[expoKey];
+  if (expoVar) {
+    return expoVar;
+  }
+  
+  // Fall back to local .env if Expo var not available
+  return localVar || '';
+};
+
+export const CLERK_PUBLISHABLE_KEY_CONFIG = getEnvVar(CLERK_PUBLISHABLE_KEY, 'clerkPublishableKey');
+export const SUPABASE_URL_CONFIG = getEnvVar(SUPABASE_URL, 'supabaseUrl');
+export const SUPABASE_ANON_KEY_CONFIG = getEnvVar(SUPABASE_ANON_KEY, 'supabaseAnonKey');
+export const GOOGLE_MAPS_API_KEY_CONFIG = getEnvVar(GOOGLE_MAPS_API_KEY, 'googleMapsApiKey');
 
 // Debug logging for environment variables
 console.log('Environment variables loaded:', {
