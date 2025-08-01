@@ -10,7 +10,10 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "app-bundle"
+      }
     },
     "apk": {
       "android": {
@@ -46,8 +49,7 @@
         "appleTeamId": "NAZZ4KJK9N"
       },
       "android": {
-        "track": "production",
-        "serviceAccountKeyPath": "./google-service-account.json"
+        "track": "production"
       }
     }
   }
