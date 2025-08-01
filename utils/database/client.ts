@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL_CONFIG, SUPABASE_ANON_KEY_CONFIG } from './config';
+import { SUPABASE_URL_CONFIG, SUPABASE_ANON_KEY_CONFIG } from '../config';
 
 // Check if environment variables are available
 if (!SUPABASE_URL_CONFIG || !SUPABASE_ANON_KEY_CONFIG) {
