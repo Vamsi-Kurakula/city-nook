@@ -127,9 +127,4 @@ export const API_ENDPOINTS = {
   CRAWL_ENDPOINT: '/crawl',
 } as const;
 
-// Development Configuration (uncomment and modify for local development)
-/*
-export const CLERK_PUBLISHABLE_KEY = 'pk_test_your_actual_key_here';
-export const SUPABASE_URL = 'https://your-project-id.supabase.co';
-export const SUPABASE_ANON_KEY = 'your_actual_anon_key_here';
-*/ 
+ 

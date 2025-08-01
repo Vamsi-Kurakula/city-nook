@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@env';
+import { SUPABASE_URL_CONFIG, SUPABASE_ANON_KEY_CONFIG } from './config';
 
 // Check if environment variables are available
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+if (!SUPABASE_URL_CONFIG || !SUPABASE_ANON_KEY_CONFIG) {
   console.warn('Supabase environment variables are not configured. Database functionality will be limited.');
-  console.warn('SUPABASE_URL:', SUPABASE_URL ? 'SET' : 'NOT SET');
-  console.warn('SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? 'SET' : 'NOT SET');
+  console.warn('SUPABASE_URL:', SUPABASE_URL_CONFIG ? 'SET' : 'NOT SET');
+  console.warn('SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY_CONFIG ? 'SET' : 'NOT SET');
 }
 
 // Validate Supabase URL format
@@ -23,8 +23,8 @@ const isValidSupabaseKey = (key: string) => {
   return key && key.length > 20 && key.startsWith('eyJ');
 };
 
-const supabaseUrl = SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseKey = SUPABASE_ANON_KEY || 'placeholder_key';
+const supabaseUrl = SUPABASE_URL_CONFIG || 'https://placeholder.supabase.co';
+const supabaseKey = SUPABASE_ANON_KEY_CONFIG || 'placeholder_key';
 
 if (!isValidSupabaseUrl(supabaseUrl)) {
   console.error('Invalid Supabase URL format:', supabaseUrl);
