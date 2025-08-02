@@ -113,7 +113,7 @@ const CrawlStartStopScreen: React.FC = () => {
       // Navigate back to map immediately after completion
       navigation.dispatch(
         CommonActions.navigate({
-          name: 'CrawlBeta',
+          name: 'CrawlSession',
           params: { 
             crawl,
             completedStop: stopNumber,

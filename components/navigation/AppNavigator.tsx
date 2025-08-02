@@ -11,7 +11,7 @@ import {
   CrawlHistoryDetailScreen, 
   CrawlLibraryFilters, 
   CrawlCompletionScreen,
-  CrawlBetaScreen,
+
   CrawlRecsScreen,
   CrawlStartStopScreen
 } from '../screens/crawl';
@@ -43,7 +43,7 @@ export default function AppNavigator() {
       <Stack.Screen name="CrawlHistoryDetail" component={CrawlHistoryDetailScreen} />
       <Stack.Screen name="CrawlLibraryFilters" component={CrawlLibraryFilters} />
       <Stack.Screen name="CrawlCompletion" component={CrawlCompletionScreen} />
-      <Stack.Screen name="CrawlBeta" component={CrawlBetaScreen} />
+
       <Stack.Screen name="CrawlRecs" component={CrawlRecsScreen} />
       <Stack.Screen name="CrawlStartStop" component={CrawlStartStopScreen} />
       <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
