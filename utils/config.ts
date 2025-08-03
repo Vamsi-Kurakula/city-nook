@@ -1,34 +1,34 @@
 import Constants from 'expo-constants';
 
 // Environment Configuration with EXPO_PUBLIC_ prefix
-// This approach works for local development, Android, and iOS builds
-const getEnvVar = (key: string): string => {
-  // Try to get from EXPO_PUBLIC_ environment variables first
-  const envVar = process.env[key];
-  if (envVar) {
-    return envVar;
-  }
-  
-  // Fallback to Expo extra config for backward compatibility
-  const expoVar = Constants.expoConfig?.extra?.[key.replace('EXPO_PUBLIC_', '')];
-  if (expoVar) {
-    console.warn(`Using Expo extra config for ${key}. Consider migrating to EXPO_PUBLIC_ environment variables.`);
-    return expoVar;
-  }
-  
-  // For local development, we'll need to handle this differently
-  if (__DEV__) {
-    console.warn(`Environment variable ${key} not found. Make sure it's set in your .env file or Expo dashboard.`);
-  }
-  
-  return '';
-};
+// Using static references as recommended by Expo documentation
+// This ensures proper inlining during the build process
 
 // Client-side environment variables (accessible in app code)
-export const CLERK_PUBLISHABLE_KEY_CONFIG = getEnvVar('EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY');
-export const SUPABASE_URL_CONFIG = getEnvVar('EXPO_PUBLIC_SUPABASE_URL');
-export const SUPABASE_ANON_KEY_CONFIG = getEnvVar('EXPO_PUBLIC_SUPABASE_ANON_KEY');
-export const GOOGLE_MAPS_API_KEY_CONFIG = getEnvVar('EXPO_PUBLIC_GOOGLE_MAPS_API_KEY');
+// Using static process.env references for proper inlining
+export const CLERK_PUBLISHABLE_KEY_CONFIG = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
+export const SUPABASE_URL_CONFIG = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+export const SUPABASE_ANON_KEY_CONFIG = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+export const GOOGLE_MAPS_API_KEY_CONFIG = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+
+// Debug logging for environment variables
+const logEnvironmentVariables = () => {
+  console.log('🔍 Environment Variable Debug:');
+  console.log('CLERK_PUBLISHABLE_KEY_CONFIG:', CLERK_PUBLISHABLE_KEY_CONFIG ? CLERK_PUBLISHABLE_KEY_CONFIG.substring(0, 10) + '...' : 'NOT FOUND');
+  console.log('SUPABASE_URL_CONFIG:', SUPABASE_URL_CONFIG ? SUPABASE_URL_CONFIG.substring(0, 10) + '...' : 'NOT FOUND');
+  console.log('SUPABASE_ANON_KEY_CONFIG:', SUPABASE_ANON_KEY_CONFIG ? SUPABASE_ANON_KEY_CONFIG.substring(0, 10) + '...' : 'NOT FOUND');
+  console.log('GOOGLE_MAPS_API_KEY_CONFIG:', GOOGLE_MAPS_API_KEY_CONFIG ? GOOGLE_MAPS_API_KEY_CONFIG.substring(0, 10) + '...' : 'NOT FOUND');
+  
+  // Log all available EXPO_PUBLIC_ variables
+  const publicVars = Object.keys(process.env).filter(k => k.startsWith('EXPO_PUBLIC_'));
+  console.log('Available EXPO_PUBLIC_ variables:', publicVars);
+  
+  // Log Expo Constants extra config
+  console.log('Expo Constants extra keys:', Object.keys(Constants.expoConfig?.extra || {}));
+};
+
+// Run debug logging
+logEnvironmentVariables();
 
 // Server-side environment variables (for build scripts, migrations, etc.)
 export const SUPABASE_SERVICE_KEY_CONFIG = process.env.SUPABASE_SERVICE_KEY;

@@ -29,9 +29,9 @@
       "ios": {
         
       },
-      "android": {
-        "buildType": "app-bundle"
-      }
+                "android": {
+            "buildType": "app-bundle"
+          }
     }
   },
   "submit": {
