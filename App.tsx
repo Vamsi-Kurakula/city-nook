@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AuthNavigator } from './components/navigation';
 import { ClerkProvider, tokenCache } from './utils/clerk';
 import { CLERK_PUBLISHABLE_KEY_CONFIG as CLERK_PUBLISHABLE_KEY } from './utils/config';
@@ -9,8 +9,14 @@ import { CrawlProvider } from './components/context/CrawlContext';
 import { ThemeProvider } from './components/context/ThemeContext';
 import { StatusBar } from './components/ui/common';
 import ErrorBoundary from './components/error/ErrorBoundary';
+import { checkEnvironmentConfiguration } from './utils/checkEnvironment';
 
 export default function App() {
+  // Check environment configuration on app startup
+  useEffect(() => {
+    checkEnvironmentConfiguration();
+  }, []);
+
   return (
     <ErrorBoundary>
       <ClerkProvider 

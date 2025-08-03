@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "City Crawler",
     slug: "city-crawler",
-    version: "1.1.2",
+    version: "1.1.3",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -19,7 +19,7 @@ export default {
     ios: {
       bundleIdentifier: "com.vamsikurakula.citycrawler",
       supportsTablet: true,
-      buildNumber: "112",
+      buildNumber: "113",
       infoPlist: {
         NSLocationWhenInUseUsageDescription: "This app uses location to show your position on the crawl map.",
         NSAppTransportSecurity: {
@@ -39,7 +39,7 @@ export default {
     },
     android: {
       package: "com.vamsikurakula.citycrawler",
-      versionCode: 112,
+      versionCode: 113,
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
@@ -51,7 +51,7 @@ export default {
       enableShrinkResourcesInReleaseBuilds: false,
       config: {
         googleMaps: {
-          apiKey: process.env.GOOGLE_MAPS_API_KEY || "${GOOGLE_MAPS_API_KEY}"
+          apiKey: process.env.GOOGLE_MAPS_API_KEY
         }
       }
     },
@@ -62,10 +62,10 @@ export default {
       eas: {
         projectId: "f0e3027e-7d53-46eb-83e7-7a51334fa601"
       },
-      clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY || "${CLERK_PUBLISHABLE_KEY}",
-      supabaseUrl: process.env.SUPABASE_URL || "${SUPABASE_URL}",
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "${SUPABASE_ANON_KEY}",
-      googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "${GOOGLE_MAPS_API_KEY}"
+      clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+      supabaseUrl: process.env.SUPABASE_URL,
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+      googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY
     },
     plugins: [
       [

@@ -51,6 +51,73 @@ npm install
 npm start
 ```
 
+## 🚀 Production Deployment
+
+### Environment Variables for EAS Builds
+
+For production builds (App Store/Play Store), you need to configure environment variables in your Expo project:
+
+1. **Set up environment variables in Expo:**
+   ```bash
+   # Go to your Expo project dashboard
+   # Navigate to Settings > Environment Variables
+   # Add the following variables:
+   CLERK_PUBLISHABLE_KEY=pk_live_your_production_key
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_ANON_KEY=your_production_anon_key
+   GOOGLE_MAPS_API_KEY=your_google_maps_key
+   ```
+
+2. **Verify your configuration:**
+   - The app now includes environment checking on startup
+   - Check the console logs when running the app
+   - Look for ✅ or ❌ indicators for each environment variable
+
+3. **Build for production:**
+   ```bash
+   # For iOS App Store
+   eas build --platform ios --profile production
+   
+   # For Android Play Store
+   eas build --platform android --profile production
+   ```
+
+### Troubleshooting Production Issues
+
+If your app works locally but not in production:
+
+1. **Check environment variables:**
+   - Ensure all required variables are set in Expo dashboard
+   - Verify the values are correct (no typos)
+   - Make sure you're using production keys, not development keys
+
+2. **Verify database connection:**
+   - Check that your Supabase project is active
+   - Ensure RLS policies are properly configured
+   - Verify your database schema is deployed
+
+3. **Check authentication:**
+   - Ensure Clerk is configured for production
+   - Verify your Clerk publishable key is for production environment
+
+4. **Debug with environment checker:**
+   - The app now logs environment configuration on startup
+   - Look for the "🔍 Checking environment configuration..." message
+   - Check for any ❌ indicators in the console
+
+### Image Storage Setup
+
+For images to work in production:
+
+1. **Set up Supabase Storage:**
+   - Create a storage bucket in your Supabase project
+   - Configure public access policies for hero images
+   - Upload your images and get the public URLs
+
+2. **Update database records:**
+   - Ensure `hero_image_url` fields in `crawl_definitions` table point to valid Supabase Storage URLs
+   - Format: `https://your-project.supabase.co/storage/v1/object/public/bucket-name/image.jpg`
+
 ## 🏗️ Project Structure
 
 The codebase has been completely refactored for better maintainability, scalability, and developer experience.

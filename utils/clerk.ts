@@ -8,8 +8,13 @@ const isValidClerkKey = (key: string) => {
 };
 
 if (!isValidClerkKey(CLERK_PUBLISHABLE_KEY)) {
-  console.error('Invalid or missing Clerk publishable key:', CLERK_PUBLISHABLE_KEY ? 'Key provided but invalid format' : 'No key provided');
+  console.error('❌ CRITICAL: Invalid or missing Clerk publishable key');
+  console.error('Key provided:', CLERK_PUBLISHABLE_KEY ? 'Yes but invalid format' : 'No key provided');
   console.error('Clerk key should start with pk_test_ or pk_live_');
+  
+  if (!__DEV__) {
+    console.error('🚨 Production build detected - authentication will fail!');
+  }
 }
 
 const tokenCache = {
@@ -17,7 +22,7 @@ const tokenCache = {
     try {
       return SecureStore.getItemAsync(key);
     } catch (err) {
-      console.error('Error getting token from secure store:', err);
+      console.error('❌ Error getting token from secure store:', err);
       return null;
     }
   },
@@ -25,7 +30,7 @@ const tokenCache = {
     try {
       return SecureStore.setItemAsync(key, value);
     } catch (err) {
-      console.error('Error saving token to secure store:', err);
+      console.error('❌ Error saving token to secure store:', err);
       return;
     }
   },

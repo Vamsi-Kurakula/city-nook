@@ -23,8 +23,6 @@ export const SUPABASE_URL_CONFIG = getEnvVar('supabaseUrl');
 export const SUPABASE_ANON_KEY_CONFIG = getEnvVar('supabaseAnonKey');
 export const GOOGLE_MAPS_API_KEY_CONFIG = getEnvVar('googleMapsApiKey');
 
-
-
 // Validate required environment variables
 const validateEnvironment = () => {
   const missingVars = [];
@@ -43,13 +41,12 @@ const validateEnvironment = () => {
   
   if (missingVars.length > 0) {
     console.error('Missing required environment variables:', missingVars);
-    console.error('Please create a .env file with the required API keys. See env.template for reference.');
+    console.error('Please ensure these are set in your Expo project environment variables.');
     
-    // In production, we might want to show a user-friendly error
+    // In production, we should fail fast if critical environment variables are missing
     if (!__DEV__) {
-      // Instead of throwing an error, we'll log it and continue
-      // This prevents the app from crashing immediately
-      console.error('Production build missing environment variables, but continuing...');
+      console.error('Production build missing critical environment variables. App may not function properly.');
+      // You might want to show a user-friendly error screen here
     }
   }
 };
