@@ -296,7 +296,6 @@ export default function HomeScreen() {
           onViewAllPress={handleViewAllFeaturedCrawls}
         />
 
-
       </ScrollView>
     </SafeAreaView>
   );

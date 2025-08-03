@@ -5,9 +5,7 @@
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
-    "ios": "expo run:ios",
-    "test-env": "node scripts/test-environment.js",
-    "setup-env": "node scripts/setup-env.js"
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.14.10",

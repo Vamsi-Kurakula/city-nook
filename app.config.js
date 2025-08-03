@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "City Crawler",
     slug: "city-crawler",
-                version: "1.1.6",
+                version: "1.1.7",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -19,7 +19,7 @@ export default {
     ios: {
       bundleIdentifier: "com.vamsikurakula.citycrawler",
       supportsTablet: true,
-                    buildNumber: "116",
+                    buildNumber: "117",
       infoPlist: {
         NSLocationWhenInUseUsageDescription: "This app uses location to show your position on the crawl map.",
         NSAppTransportSecurity: {
@@ -32,6 +32,18 @@ export default {
             "clerk.com": {
               NSExceptionAllowsInsecureHTTPLoads: false,
               NSExceptionMinimumTLSVersion: "1.2"
+            },
+            "supabase.storage": {
+              NSExceptionAllowsInsecureHTTPLoads: false,
+              NSExceptionMinimumTLSVersion: "1.2"
+            },
+            "*.supabase.co": {
+              NSExceptionAllowsInsecureHTTPLoads: false,
+              NSExceptionMinimumTLSVersion: "1.2"
+            },
+            "*.supabase.storage": {
+              NSExceptionAllowsInsecureHTTPLoads: false,
+              NSExceptionMinimumTLSVersion: "1.2"
             }
           }
         }
@@ -39,7 +51,7 @@ export default {
     },
     android: {
       package: "com.vamsikurakula.citycrawler",
-                  versionCode: 116,
+                  versionCode: 117,
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
@@ -47,6 +59,7 @@ export default {
       edgeToEdgeEnabled: true,
       permissions: ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "android.permission.INTERNET"],
       allowBackup: true,
+      networkSecurityConfig: "./android/app/src/main/res/xml/network_security_config.xml",
       config: {
         googleMaps: {
           apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY

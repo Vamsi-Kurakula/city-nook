@@ -7,15 +7,20 @@ import { getCrawlDefinitionByName, CrawlDefinition } from './crawlDefinitionOper
  */
 export const getHeroImageSourceByName = async (crawlName: string): Promise<string> => {
   try {
+    console.log('🔍 Getting hero image for crawl:', crawlName);
     const crawlDefinition = await getCrawlDefinitionByName(crawlName);
+    console.log('📊 Crawl definition found:', crawlDefinition ? 'Yes' : 'No');
+    
     if (crawlDefinition?.hero_image_url) {
+      console.log('📸 Hero image URL from database:', crawlDefinition.hero_image_url);
       return crawlDefinition.hero_image_url;
     }
     
+    console.log('📁 No hero image URL found, using fallback');
     // Fallback to default image
     return 'assets/icon.png';
   } catch (error) {
-    console.error('Error getting hero image for ' + crawlName + ' from database:', error);
+    console.error('❌ Error getting hero image for ' + crawlName + ' from database:', error);
     // Fallback to default image
     return 'assets/icon.png';
   }
@@ -70,17 +75,21 @@ export const getHeroImageSourceAsync = async (assetFolder: string): Promise<stri
  */
 export const getHeroImageSourceById = async (crawlDefinitionId: string): Promise<string> => {
   try {
+    console.log('🔍 Getting hero image for crawl ID:', crawlDefinitionId);
     const { getCrawlDefinitionById } = await import('./crawlDefinitionOperations');
     const crawlDefinition = await getCrawlDefinitionById(crawlDefinitionId);
+    console.log('📊 Crawl definition found:', crawlDefinition ? 'Yes' : 'No');
     
     if (crawlDefinition?.hero_image_url) {
+      console.log('📸 Hero image URL from database:', crawlDefinition.hero_image_url);
       return crawlDefinition.hero_image_url;
     }
     
+    console.log('📁 No hero image URL found, using fallback');
     // Fallback to default image
     return 'assets/icon.png';
   } catch (error) {
-    console.error('Error getting hero image for ID ' + crawlDefinitionId + ' from database:', error);
+    console.error('❌ Error getting hero image for ID ' + crawlDefinitionId + ' from database:', error);
     // Fallback to default image
     return 'assets/icon.png';
   }

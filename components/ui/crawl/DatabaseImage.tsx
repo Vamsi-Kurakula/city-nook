@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';
 import { getHeroImageSourceAsync } from '../../../utils/database/imageLoader';
+import { validateImageUrl, formatSupabaseStorageUrl, isSupabaseStorageUrl } from '../../../utils/imageUrlValidator';
 
 interface DatabaseImageProps {
   assetFolder?: string;
@@ -27,30 +28,62 @@ const DatabaseImage: React.FC<DatabaseImageProps> = ({
       try {
         setLoading(true);
         
+        console.log('🔍 DatabaseImage Debug:', {
+          heroImageUrl,
+          assetFolder,
+          hasFallback: !!fallbackSource
+        });
+        
         // If heroImageUrl is provided directly, use it
         if (heroImageUrl) {
-          if (heroImageUrl.startsWith('http')) {
-            setImageSource({ uri: heroImageUrl });
+          console.log('📸 Using heroImageUrl:', heroImageUrl);
+          
+          // Validate and format the URL for production
+          const validatedUrl = validateImageUrl(heroImageUrl);
+          if (validatedUrl && validatedUrl.startsWith('http')) {
+            // Format Supabase URLs specifically
+            const formattedUrl = isSupabaseStorageUrl(validatedUrl) 
+              ? formatSupabaseStorageUrl(validatedUrl) 
+              : validatedUrl;
+            
+            console.log('🌐 Setting validated HTTP image source:', formattedUrl);
+            setImageSource({ uri: formattedUrl });
           } else {
+            console.log('📁 Using local asset fallback for heroImageUrl');
             setImageSource(fallbackSource || require('../../../assets/icon.png'));
           }
         } else if (assetFolder) {
           // Fallback to asset folder method
+          console.log('📁 Loading from asset folder:', assetFolder);
           const imageUrl = await getHeroImageSourceAsync(assetFolder);
+          console.log('📸 Retrieved image URL from asset folder:', imageUrl);
           
           if (imageUrl && imageUrl.startsWith('http')) {
-            // It's a database URL
-            setImageSource({ uri: imageUrl });
+            // Validate and format the URL for production
+            const validatedUrl = validateImageUrl(imageUrl);
+            if (validatedUrl) {
+              const formattedUrl = isSupabaseStorageUrl(validatedUrl) 
+                ? formatSupabaseStorageUrl(validatedUrl) 
+                : validatedUrl;
+              
+              console.log('🌐 Setting validated HTTP image source from asset folder:', formattedUrl);
+              setImageSource({ uri: formattedUrl });
+            } else {
+              console.log('📁 URL validation failed, using fallback');
+              setImageSource(fallbackSource || require('../../../assets/icon.png'));
+            }
           } else {
             // It's a local asset path, use fallback
+            console.log('📁 Using local asset fallback for asset folder');
             setImageSource(fallbackSource || require('../../../assets/icon.png'));
           }
         } else {
           // No image source provided, use fallback
+          console.log('📁 No image source provided, using fallback');
           setImageSource(fallbackSource || require('../../../assets/icon.png'));
         }
       } catch (error) {
-        console.error('Error loading image:', error);
+        console.error('❌ Error loading image:', error);
         setImageSource(fallbackSource || require('../../../assets/icon.png'));
         onError?.(error);
       } finally {
@@ -77,10 +110,27 @@ const DatabaseImage: React.FC<DatabaseImageProps> = ({
       style={style}
       resizeMode={resizeMode}
       onError={(error) => {
-        console.error('Image loading error:', error);
+        console.error('❌ Image loading error:', {
+          error,
+          imageSource,
+          heroImageUrl,
+          assetFolder
+        });
+        // In production, try to provide more specific error information
+        if (__DEV__) {
+          console.log('🔍 Development mode - showing detailed error');
+        } else {
+          console.log('🚀 Production mode - image load failed, using fallback');
+        }
         setImageSource(fallbackSource || require('../../../assets/icon.png'));
         onError?.(error);
       }}
+      onLoad={() => {
+        console.log('✅ Image loaded successfully:', imageSource);
+      }}
+      // Add these props for better production compatibility
+      fadeDuration={0}
+      progressiveRenderingEnabled={false}
     />
   );
 };
