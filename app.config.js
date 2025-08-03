@@ -38,7 +38,7 @@ export default {
       }
     },
     android: {
-      package: "com.vamsikurakula.citycrawler",
+      package: __DEV__ ? "com.vamsikurakula.citycrawler.dev" : "com.vamsikurakula.citycrawler",
       versionCode: 113,
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
