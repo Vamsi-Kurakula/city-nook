@@ -41,18 +41,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Debug logging
-  useEffect(() => {
-    try {
-      console.log('AuthContext state:', { isLoaded, isSignedIn, userId: user?.id });
-    } catch (err) {
-      console.error('Error in AuthContext debug logging:', err);
-    }
-  }, [isLoaded, isSignedIn, user?.id]);
-
   const fetchUserProfile = async (userId: string) => {
     try {
-      console.log('Fetching user profile for:', userId);
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -66,17 +56,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data) {
-        console.log('Found existing user profile:', data);
         setUserProfile(data);
       } else {
-        console.log('Creating new user profile for:', userId);
-        console.log('User data for profile creation:', {
-          user_id: userId,
-          user_email: user?.emailAddresses?.[0]?.emailAddress || '',
-          user_full_name: user?.fullName || '',
-          user_avatar_url: user?.imageUrl || ''
-        });
-        
         // Use the create_user_profile function instead of direct insert
         const { data: newProfile, error: createError } = await supabase
           .rpc('create_user_profile', {
@@ -88,21 +69,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (createError) {
           console.error('Error creating user profile:', createError);
-          console.error('Error details:', {
-            code: createError.code,
-            message: createError.message,
-            details: createError.details,
-            hint: createError.hint
-          });
           setError(`Profile creation error: ${createError.message}`);
         } else {
-          console.log('Created new user profile:', newProfile);
           setUserProfile(newProfile[0]); // Function returns an array, take first element
         }
       }
-    } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
-      setError(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } catch (err) {
+      console.error('Error in fetchUserProfile:', err);
+      setError(`Profile fetch error: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -114,11 +88,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      console.log('Signing out...');
       await clerkSignOut();
       setUserProfile(null);
       setError(null);
-      console.log('Sign out successful');
     } catch (error) {
       console.error('Error signing out:', error);
       setError(`Sign out error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -128,10 +100,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     try {
       if (isLoaded && isSignedIn && user?.id) {
-        console.log('User is signed in, fetching profile...');
         fetchUserProfile(user.id);
       } else if (isLoaded) {
-        console.log('Auth loaded, user not signed in');
         setIsLoading(false);
       }
     } catch (err) {

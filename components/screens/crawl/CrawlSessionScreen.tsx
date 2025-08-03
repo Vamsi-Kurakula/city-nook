@@ -97,24 +97,24 @@ const CrawlSessionScreen: React.FC = () => {
           const token = await getToken({ template: 'supabase' });
           const progressFound = token ? await getCrawlProgress(user.id, crawl.id, isPublic, token) : null;
           
-          if (progressFound) {
+          if (progressFound && progressFound.data && !progressFound.error) {
             // Progress was found for this specific crawl
             console.log('Loaded existing progress for crawl:', crawl.id);
             
             // Convert database format to local format and set it
             const localProgress = {
-              crawl_id: progressFound.crawl_id,
-              is_public: progressFound.is_public,
-              current_stop: progressFound.current_stop,
-              completed_stops: progressFound.completed_stops.map((stopNum: number) => ({
+              crawl_id: progressFound.data.crawl_id,
+              is_public: progressFound.data.is_public,
+              current_stop: progressFound.data.current_stop,
+              completed_stops: progressFound.data.completed_stops.map((stopNum: number) => ({
                 stop_number: stopNum,
                 completed: true,
                 user_answer: '',
                 completed_at: new Date(),
               })),
-              started_at: new Date(progressFound.started_at),
-              last_updated: new Date(progressFound.updated_at),
-              completed: !!progressFound.completed_at,
+              started_at: new Date(progressFound.data.started_at),
+              last_updated: new Date(progressFound.data.updated_at),
+              completed: !!progressFound.data.completed_at,
             };
             
             console.log('Setting current progress from database:', localProgress);
@@ -171,21 +171,21 @@ const CrawlSessionScreen: React.FC = () => {
           
           const progressFound = await getCrawlProgress(user.id, crawl.id, crawl['public-crawl'] || false, token);
           
-          if (progressFound) {
+          if (progressFound && progressFound.data && !progressFound.error) {
             // Convert database format to local format and set it
             const localProgress = {
-              crawl_id: progressFound.crawl_id,
-              is_public: progressFound.is_public,
-              current_stop: progressFound.current_stop,
-              completed_stops: progressFound.completed_stops.map((stopNum: number) => ({
+              crawl_id: progressFound.data.crawl_id,
+              is_public: progressFound.data.is_public,
+              current_stop: progressFound.data.current_stop,
+              completed_stops: progressFound.data.completed_stops.map((stopNum: number) => ({
                 stop_number: stopNum,
                 completed: true,
                 user_answer: '',
                 completed_at: new Date(),
               })),
-              started_at: new Date(progressFound.started_at),
-              last_updated: new Date(progressFound.updated_at),
-              completed: !!progressFound.completed_at,
+              started_at: new Date(progressFound.data.started_at),
+              last_updated: new Date(progressFound.data.updated_at),
+              completed: !!progressFound.data.completed_at,
             };
             
             console.log('Reloaded progress from database:', localProgress);

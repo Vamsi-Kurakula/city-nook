@@ -25,7 +25,7 @@ const CrawlList: React.FC<CrawlListProps> = ({ crawls, onCrawlPress, onCrawlStar
             heroImageUrl={item.hero_image_url}
             style={styles.crawlImage}
             resizeMode="cover"
-            onError={(error: any) => console.log('Image loading error:', error)}
+            onError={(error: any) => console.error('Image loading error:', error)}
           />
         </View>
         <View style={styles.crawlContent}>

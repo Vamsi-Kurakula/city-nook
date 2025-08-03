@@ -23,15 +23,7 @@ export const SUPABASE_URL_CONFIG = getEnvVar('supabaseUrl');
 export const SUPABASE_ANON_KEY_CONFIG = getEnvVar('supabaseAnonKey');
 export const GOOGLE_MAPS_API_KEY_CONFIG = getEnvVar('googleMapsApiKey');
 
-// Debug logging for environment variables
-console.log('Environment variables loaded:', {
-  CLERK_PUBLISHABLE_KEY: CLERK_PUBLISHABLE_KEY_CONFIG ? 'SET' : 'NOT SET',
-  SUPABASE_URL: SUPABASE_URL_CONFIG ? 'SET' : 'NOT SET',
-  SUPABASE_ANON_KEY: SUPABASE_ANON_KEY_CONFIG ? 'SET' : 'NOT SET',
-  GOOGLE_MAPS_API_KEY: GOOGLE_MAPS_API_KEY_CONFIG ? 'SET' : 'NOT SET',
-  isDev: __DEV__,
-  isProduction: !__DEV__
-});
+
 
 // Validate required environment variables
 const validateEnvironment = () => {
@@ -59,8 +51,6 @@ const validateEnvironment = () => {
       // This prevents the app from crashing immediately
       console.error('Production build missing environment variables, but continuing...');
     }
-  } else {
-    console.log('All required environment variables are set');
   }
 };
 

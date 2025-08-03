@@ -12,5 +12,4 @@ export type RootStackParamList = {
 
   CrawlRecs: { crawl?: any; stop?: any; stopNumber?: number };
   CrawlStartStop: { crawl?: any; stop?: any; stopNumber?: number };
-  SocialTest: undefined; // For testing social features
 }; 

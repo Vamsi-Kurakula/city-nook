@@ -59,7 +59,7 @@ export const deleteUserAccount = async (userId: string): Promise<{ success: bool
       return { success: false, error: 'Failed to delete user profile' };
     }
 
-    console.log('Successfully deleted all data for user:', userId);
+
     return { success: true };
 
   } catch (error) {

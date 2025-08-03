@@ -16,7 +16,7 @@ export const getCrawlNameMapping = async (): Promise<{ [crawlId: string]: string
       mapping[crawl.crawl_definition_id] = crawl.name;
     });
     
-    console.log('Loaded crawl name mapping from database:', mapping);
+
     return mapping;
   } catch (error) {
     console.error('Error loading crawl name mapping from database:', error);
@@ -38,7 +38,7 @@ export const getCrawlAssetFolder = async (crawlId: string): Promise<string | nul
     const crawl = allCrawls.find(c => c.crawl_definition_id === crawlId);
     
     if (crawl) {
-      return crawl.asset_folder;
+      return crawl.hero_image_path || null;
     }
     
     console.warn('Crawl asset folder not found for ID:', crawlId);

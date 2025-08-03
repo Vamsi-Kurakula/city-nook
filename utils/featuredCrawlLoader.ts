@@ -9,12 +9,8 @@ export interface FeaturedCrawl {
 
 export async function loadFeaturedCrawls(): Promise<FeaturedCrawl[]> {
   try {
-    console.log('Loading featured crawls from database...');
-    
     // Get featured crawls from database
     const featuredCrawls = await getFeaturedCrawlDefinitions();
-    
-    console.log(`Found ${featuredCrawls.length} featured crawls in database`);
     
     // Transform database data to FeaturedCrawl format
     const transformedCrawls = featuredCrawls.map(crawl => ({
@@ -24,7 +20,6 @@ export async function loadFeaturedCrawls(): Promise<FeaturedCrawl[]> {
       hero_image: crawl.hero_image_url || 'assets/icon.png'
     }));
 
-    console.log('Featured crawls loaded:', transformedCrawls.length);
     return transformedCrawls;
   } catch (error) {
     console.error('Error loading featured crawls from database:', error);

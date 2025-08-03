@@ -167,7 +167,67 @@ export default function HomeScreen() {
       >
         <HomeHeader />
 
-        {/* Crawl Library Button - Moved to top for better visibility */}
+        {/* Fellow Crawlers Section - Right under the "Crawls" title */}
+        <View style={[styles.section, { marginTop: 0 }]}>
+          {friendsLoading ? (
+            <ActivityIndicator size="small" color={theme.button.primary} style={{ marginVertical: 16 }} />
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.friendsScroll}>
+              {friends.slice(0, 3).map(friend => (
+                <TouchableOpacity
+                  key={friend.user_profile_id}
+                  style={styles.friendAvatarWrapper}
+                  onPress={() => navigation.navigate('FriendProfile', { friend })}
+                  activeOpacity={0.8}
+                >
+                  {friend.avatar_url ? (
+                    <Image source={{ uri: friend.avatar_url }} style={[styles.friendAvatar, { borderColor: theme.background.secondary }]} />
+                  ) : (
+                    <View style={[styles.friendAvatar, styles.friendAvatarPlaceholder, { backgroundColor: theme.button.primary }]}>
+                      <Text style={[styles.friendAvatarText, { color: theme.text.inverse }]}>
+                        {friend.full_name?.charAt(0) || friend.email?.charAt(0) || 'F'}
+                      </Text>
+                    </View>
+                  )}
+                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>{friend.full_name || 'Unknown'}</Text>
+                </TouchableOpacity>
+              ))}
+              {friends.length > 3 && (
+                <TouchableOpacity
+                  key="view-all-friends"
+                  style={[styles.friendAvatarWrapper, styles.viewAllButtonWrapper]}
+                  onPress={() => navigation.navigate('FriendsList')}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.friendAvatar, styles.viewAllButton, { backgroundColor: theme.button.primary, borderColor: theme.background.secondary }]}>
+                    <Text style={[styles.viewAllButtonText, { color: theme.text.inverse }]}>+{friends.length - 3}</Text>
+                  </View>
+                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>View All</Text>
+                </TouchableOpacity>
+              )}
+              {friends.length < 3 && (
+                <TouchableOpacity
+                  key="add-friends"
+                  style={[styles.friendAvatarWrapper, styles.addFriendButtonWrapper]}
+                  onPress={() => navigation.navigate('AddFriends')}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.friendAvatar, styles.addFriendButton, { backgroundColor: 'transparent', borderColor: theme.button.primary, borderWidth: 2 }]}>
+                    <Text style={[styles.addFriendButtonText, { color: theme.button.primary }]}>+</Text>
+                    {pendingRequestsCount > 0 && (
+                      <View style={[styles.badge, { backgroundColor: theme.button.secondary }]}>
+                        <Text style={[styles.badgeText, { color: theme.button.primary }]}>{pendingRequestsCount}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>Add Friends</Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+          )}
+        </View>
+
+        {/* Crawl Library Button */}
         <View style={[styles.section, { marginTop: 20 }]}>
           <View style={styles.buttonRow}>
             <TouchableOpacity
@@ -266,68 +326,6 @@ export default function HomeScreen() {
           onCrawlStart={handleFeaturedCrawlCardStart}
           onViewAllPress={handleViewAllFeaturedCrawls}
         />
-        {/* Fellow Crawlers Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Fellow Crawlers</Text>
-          </View>
-          {friendsLoading ? (
-            <ActivityIndicator size="small" color={theme.button.primary} style={{ marginVertical: 16 }} />
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.friendsScroll}>
-              {friends.slice(0, 3).map(friend => (
-                <TouchableOpacity
-                  key={friend.user_profile_id}
-                  style={styles.friendAvatarWrapper}
-                  onPress={() => navigation.navigate('FriendProfile', { friend })}
-                  activeOpacity={0.8}
-                >
-                  {friend.avatar_url ? (
-                    <Image source={{ uri: friend.avatar_url }} style={[styles.friendAvatar, { borderColor: theme.background.secondary }]} />
-                  ) : (
-                    <View style={[styles.friendAvatar, styles.friendAvatarPlaceholder, { backgroundColor: theme.button.primary }]}>
-                      <Text style={[styles.friendAvatarText, { color: theme.text.inverse }]}>
-                        {friend.full_name?.charAt(0) || friend.email?.charAt(0) || 'F'}
-                      </Text>
-                    </View>
-                  )}
-                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>{friend.full_name || 'Unknown'}</Text>
-                </TouchableOpacity>
-              ))}
-              {friends.length > 3 && (
-                <TouchableOpacity
-                  key="view-all-friends"
-                  style={[styles.friendAvatarWrapper, styles.viewAllButtonWrapper]}
-                  onPress={() => navigation.navigate('FriendsList')}
-                  activeOpacity={0.8}
-                >
-                  <View style={[styles.friendAvatar, styles.viewAllButton, { backgroundColor: theme.button.primary, borderColor: theme.background.secondary }]}>
-                    <Text style={[styles.viewAllButtonText, { color: theme.text.inverse }]}>+{friends.length - 3}</Text>
-                  </View>
-                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>View All</Text>
-                </TouchableOpacity>
-              )}
-              {friends.length < 3 && (
-                <TouchableOpacity
-                  key="add-friends"
-                  style={[styles.friendAvatarWrapper, styles.addFriendButtonWrapper]}
-                  onPress={() => navigation.navigate('AddFriends')}
-                  activeOpacity={0.8}
-                >
-                  <View style={[styles.friendAvatar, styles.addFriendButton, { backgroundColor: 'transparent', borderColor: theme.button.primary, borderWidth: 2 }]}>
-                    <Text style={[styles.addFriendButtonText, { color: theme.button.primary }]}>+</Text>
-                    {pendingRequestsCount > 0 && (
-                      <View style={[styles.badge, { backgroundColor: theme.button.secondary }]}>
-                        <Text style={[styles.badgeText, { color: theme.button.primary }]}>{pendingRequestsCount}</Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>Add Friends</Text>
-                </TouchableOpacity>
-              )}
-            </ScrollView>
-          )}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

@@ -232,61 +232,61 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
       // If we have specific crawl parameters, use getCrawlProgress for that specific crawl
       if (crawlId !== undefined && isPublic !== undefined) {
         const token = await getToken({ template: 'supabase' });
-        const dbProgress = token ? await getCrawlProgress(userId, crawlId, isPublic, token) : null;
-        if (dbProgress) {
-          // Convert database format to local format
-          const localProgress: CrawlProgress = {
-            crawl_id: dbProgress.crawl_id,
-            is_public: dbProgress.is_public,
-            current_stop: dbProgress.current_stop,
-            completed_stops: dbProgress.completed_stops.map((stopNum: number) => ({
-              stop_number: stopNum,
-              completed: true,
-              user_answer: '',
-              completed_at: new Date(),
-            })),
-            started_at: new Date(dbProgress.started_at),
-            last_updated: new Date(dbProgress.updated_at),
-            completed: !!dbProgress.completed_at,
-          };
-          
-          setCurrentProgress(localProgress);
-          setIsCrawlActive(true);
-          console.log('Loaded progress from database for specific crawl:', localProgress);
-          return true;
-        } else {
-          console.log('No progress found in database for specific crawl:', crawlId, 'isPublic:', isPublic);
-          return false;
+        if (token) {
+          const result = await getCrawlProgress(userId, crawlId, isPublic, token);
+          if (result.data && !result.error) {
+            const dbProgress = result.data;
+            // Convert database format to local format
+            const localProgress: CrawlProgress = {
+              crawl_id: dbProgress.crawl_id,
+              is_public: dbProgress.is_public,
+              current_stop: dbProgress.current_stop,
+              completed_stops: dbProgress.completed_stops.map((stopNum: number) => ({
+                stop_number: stopNum,
+                completed: true,
+                user_answer: '',
+                completed_at: new Date(),
+              })),
+              started_at: new Date(dbProgress.started_at),
+              last_updated: new Date(dbProgress.updated_at),
+              completed: !!dbProgress.completed_at,
+            };
+            
+            setCurrentProgress(localProgress);
+            setIsCrawlActive(true);
+            return true;
+          }
         }
+        return false;
       } else {
         // Fallback to getCurrentCrawlProgress for backward compatibility
         const token = await getToken({ template: 'supabase' });
-        const dbProgress = token ? await getCurrentCrawlProgress(userId, token) : null;
-        if (dbProgress) {
-          // Convert database format to local format
-          const localProgress: CrawlProgress = {
-            crawl_id: dbProgress.crawl_id,
-            is_public: dbProgress.is_public,
-            current_stop: dbProgress.current_stop,
-            completed_stops: dbProgress.completed_stops.map((stopNum: number) => ({
-              stop_number: stopNum,
-              completed: true,
-              user_answer: '',
-              completed_at: new Date(),
-            })),
-            started_at: new Date(dbProgress.started_at),
-            last_updated: new Date(dbProgress.updated_at),
-            completed: !!dbProgress.completed_at,
-          };
-          
-          setCurrentProgress(localProgress);
-          setIsCrawlActive(true);
-          console.log('Loaded progress from database (fallback):', localProgress);
-          return true;
-        } else {
-          console.log('No progress found in database');
-          return false;
+        if (token) {
+          const result = await getCurrentCrawlProgress(userId, token);
+          if (result.data && !result.error) {
+            const dbProgress = result.data;
+            // Convert database format to local format
+            const localProgress: CrawlProgress = {
+              crawl_id: dbProgress.crawl_id,
+              is_public: dbProgress.is_public,
+              current_stop: dbProgress.current_stop,
+              completed_stops: dbProgress.completed_stops.map((stopNum: number) => ({
+                stop_number: stopNum,
+                completed: true,
+                user_answer: '',
+                completed_at: new Date(),
+              })),
+              started_at: new Date(dbProgress.started_at),
+              last_updated: new Date(dbProgress.updated_at),
+              completed: !!dbProgress.completed_at,
+            };
+            
+            setCurrentProgress(localProgress);
+            setIsCrawlActive(true);
+            return true;
+          }
         }
+        return false;
       }
     } catch (error) {
       console.error('Error loading progress from database:', error);
@@ -331,12 +331,14 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
   const checkDatabaseForActiveCrawl = async (userId: string): Promise<{ hasActive: boolean; crawlName?: string }> => {
     try {
       const token = await getToken({ template: 'supabase' });
-      const dbProgress = token ? await getCurrentCrawlProgress(userId, token) : null;
-      if (dbProgress && !dbProgress.completed_at) {
-        // We found active progress, now get the crawl name
-        const crawlNameMapping = await getCrawlNameMapping();
-        const crawlName = crawlNameMapping[dbProgress.crawl_id] || 'Current Crawl';
-        return { hasActive: true, crawlName };
+      if (token) {
+        const result = await getCurrentCrawlProgress(userId, token);
+        if (result.data && !result.error && !result.data.completed_at) {
+          // We found active progress, now get the crawl name
+          const crawlNameMapping = await getCrawlNameMapping();
+          const crawlName = crawlNameMapping[result.data.crawl_id] || 'Current Crawl';
+          return { hasActive: true, crawlName };
+        }
       }
       return { hasActive: false };
     } catch (error) {

@@ -67,7 +67,7 @@ supabase.auth.getSession().then(({ data, error }) => {
   if (error) {
     console.error('Supabase connection test failed:', error);
   } else {
-    console.log('Supabase connection test successful');
+
   }
 }).catch(err => {
   console.error('Supabase connection test error:', err);

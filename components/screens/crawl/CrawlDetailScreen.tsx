@@ -260,25 +260,6 @@ const CrawlDetailScreen: React.FC = () => {
             Start Crawl
           </Text>
         </TouchableOpacity>
-
-        {/* Show Start Crawl Beta button */}
-        <TouchableOpacity 
-          style={[
-            styles.startButton, 
-            { 
-              backgroundColor: theme.button.secondary || '#6c757d',
-              marginTop: 12 
-            }
-          ]} 
-                      onPress={handleStartCrawl}
-        >
-          <Text style={[
-            styles.startButtonText, 
-            { color: theme.text.button }
-          ]}>
-            Start Crawl Beta
-          </Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );

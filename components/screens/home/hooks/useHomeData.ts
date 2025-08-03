@@ -215,9 +215,10 @@ export function useHomeData() {
       }
       
       // Use the authenticated getCurrentCrawlProgress function
-      const progress = await getCurrentCrawlProgress(user.id, token);
+      const result = await getCurrentCrawlProgress(user.id, token);
 
-      if (progress) {
+      if (result.data && !result.error) {
+        const progress = result.data;
         // Load the full crawl details
         const crawlDetails = await loadCrawlDetailsById(progress.crawl_id, progress.is_public);
         

@@ -32,7 +32,7 @@ export const loadCrawlStopsByName = async (crawlName: string): Promise<CrawlStop
       stops: transformedStops
     };
 
-    console.log('Loaded ' + transformedStops.length + ' stops for ' + crawlName + ' from database');
+
     return crawlStops;
   } catch (error) {
     console.error('Error loading stops for ' + crawlName + ' from database:', error);
