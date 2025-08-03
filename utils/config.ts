@@ -53,10 +53,10 @@ const validateEnvironment = () => {
     console.error('Missing required environment variables:', missingVars);
     console.error('Please ensure these are set in your .env file or Expo project environment variables.');
     
-    // In production, we should fail fast if critical environment variables are missing
+    // In production, log the error but don't crash the app
     if (!__DEV__) {
       console.error('Production build missing critical environment variables. App may not function properly.');
-      // You might want to show a user-friendly error screen here
+      // Don't throw an error - let the app try to start
     }
   }
 };

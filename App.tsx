@@ -41,6 +41,20 @@ export default function App() {
     console.log('🔧 Check the console for detailed database access logs');
   }, []);
 
+  // Check if we have a valid Clerk key before rendering
+  if (!CLERK_PUBLISHABLE_KEY || !CLERK_PUBLISHABLE_KEY.startsWith('pk_')) {
+    console.error('❌ Invalid or missing Clerk publishable key:', CLERK_PUBLISHABLE_KEY);
+    return (
+      <ErrorBoundary>
+        <div style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <h2>Configuration Error</h2>
+          <p>Missing or invalid Clerk publishable key. Please check your environment variables.</p>
+          <p>Key: {CLERK_PUBLISHABLE_KEY || 'undefined'}</p>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <ClerkProvider 
