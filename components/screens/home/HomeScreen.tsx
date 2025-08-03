@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Text, ActivityIndicator, Image, RefreshControl } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Text, ActivityIndicator, Image, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../../context/AuthContext';
@@ -43,6 +43,24 @@ export default function HomeScreen() {
   const [friendsLoading, setFriendsLoading] = React.useState(true);
   const [pendingRequestsCount, setPendingRequestsCount] = React.useState(0);
   const [refreshing, setRefreshing] = React.useState(false);
+
+  // Debug function to test database access
+  const debugDatabaseAccess = async () => {
+    try {
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        Alert.alert('Debug Error', 'No JWT token available');
+        return;
+      }
+
+      const { debugDatabaseAccess } = await import('../../../utils/database/debugOperations');
+      await debugDatabaseAccess(token);
+      Alert.alert('Debug Complete', 'Check console for database access results');
+    } catch (error) {
+      console.error('Debug failed:', error);
+      Alert.alert('Debug Error', `Failed to run debug: ${error}`);
+    }
+  };
 
   // Helper to reload all home data and friends
   const onRefresh = async () => {
@@ -239,8 +257,8 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Debug Section - Disabled for now */}
-        {false && (
+        {/* Debug Section */}
+        {__DEV__ && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Debug Info</Text>
@@ -268,6 +286,14 @@ export default function HomeScreen() {
                   </Text>
                 </>
               )}
+              <TouchableOpacity
+                style={[styles.debugButton, { backgroundColor: theme.button.primary }]}
+                onPress={debugDatabaseAccess}
+              >
+                <Text style={[styles.debugButtonText, { color: theme.text.inverse }]}>
+                  Test Database Access
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}
@@ -444,6 +470,17 @@ const styles = StyleSheet.create({
   debugText: {
     fontSize: 14,
     marginBottom: 4,
+  },
+  debugButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  debugButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   friendsScroll: {
     flexDirection: 'row',

@@ -66,6 +66,16 @@ CREATE POLICY "Users can update their own profile"
   ON user_profiles
   FOR UPDATE USING (user_profile_id = get_user_id_from_jwt());
 
+-- Allow users to view other user profiles for friend requests and search
+CREATE POLICY "Users can view other user profiles for social features"
+  ON user_profiles
+  FOR SELECT USING (true);
+
+-- Allow users to insert their own profile
+CREATE POLICY "Users can insert their own profile"
+  ON user_profiles
+  FOR INSERT WITH CHECK (user_profile_id = get_user_id_from_jwt());
+
 CREATE POLICY "Users can view their own crawl progress"
   ON crawl_progress
   FOR SELECT USING (user_id = get_user_id_from_jwt());
@@ -109,6 +119,11 @@ CREATE POLICY "Users can view their own friend requests"
 CREATE POLICY "Users can insert their own friend requests"
   ON friend_requests
   FOR INSERT WITH CHECK (from_user_id = get_user_id_from_jwt());
+
+-- Allow users to update friend requests (accept/reject)
+CREATE POLICY "Users can update friend requests they received"
+  ON friend_requests
+  FOR UPDATE USING (to_user_id = get_user_id_from_jwt());
 
 CREATE POLICY "Users can view their own blocked users"
   ON blocked_users
