@@ -44,23 +44,7 @@ export default function HomeScreen() {
   const [pendingRequestsCount, setPendingRequestsCount] = React.useState(0);
   const [refreshing, setRefreshing] = React.useState(false);
 
-  // Debug function to test database access
-  const debugDatabaseAccess = async () => {
-    try {
-      const token = await getToken({ template: 'supabase' });
-      if (!token) {
-        Alert.alert('Debug Error', 'No JWT token available');
-        return;
-      }
 
-      const { debugDatabaseAccess } = await import('../../../utils/database/debugOperations');
-      await debugDatabaseAccess(token);
-      Alert.alert('Debug Complete', 'Check console for database access results');
-    } catch (error) {
-      console.error('Debug failed:', error);
-      Alert.alert('Debug Error', `Failed to run debug: ${error}`);
-    }
-  };
 
   // Helper to reload all home data and friends
   const onRefresh = async () => {
@@ -257,47 +241,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Debug Section */}
-        {__DEV__ && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Debug Info</Text>
-            </View>
-            <View style={[styles.debugCard, { backgroundColor: theme.background.secondary }]}>
-              <Text style={[styles.debugText, { color: theme.text.primary }]}>
-                User ID: {userId || 'Not logged in'}
-              </Text>
-              <Text style={[styles.debugText, { color: theme.text.primary }]}>
-                Current Crawl: {currentCrawl ? 'Yes' : 'No'}
-              </Text>
-              <Text style={[styles.debugText, { color: theme.text.primary }]}>
-                Crawl Details: {currentCrawlDetails ? 'Yes' : 'No'}
-              </Text>
-              {currentCrawl && (
-                <>
-                  <Text style={[styles.debugText, { color: theme.text.primary }]}>
-                    Crawl ID: {currentCrawl?.crawlId}
-                  </Text>
-                  <Text style={[styles.debugText, { color: theme.text.primary }]}>
-                    Current Step: {currentCrawl?.currentStep}
-                  </Text>
-                  <Text style={[styles.debugText, { color: theme.text.primary }]}>
-                    Is Public: {currentCrawl?.isPublicCrawl ? 'Yes' : 'No'}
-                  </Text>
-                </>
-              )}
-              <TouchableOpacity
-                style={[styles.debugButton, { backgroundColor: theme.button.primary }]}
-                onPress={debugDatabaseAccess}
-              >
-                <Text style={[styles.debugButtonText, { color: theme.text.inverse }]}>
-                  Test Database Access
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
         {/* In Progress Crawl Section */}
         {currentCrawl && currentCrawlDetails && (
           <View style={styles.section}>
@@ -352,6 +295,8 @@ export default function HomeScreen() {
           onCrawlStart={handleFeaturedCrawlCardStart}
           onViewAllPress={handleViewAllFeaturedCrawls}
         />
+
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -458,30 +403,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  debugCard: {
-    marginHorizontal: 20,
-    borderRadius: 12,
-    padding: 16,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  debugText: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  debugButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginTop: 12,
-    alignItems: 'center',
-  },
-  debugButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
+
   friendsScroll: {
     flexDirection: 'row',
     paddingLeft: 20,
