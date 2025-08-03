@@ -6,19 +6,32 @@ A React Native app for creating and participating in interactive city crawls wit
 
 ### Environment Setup
 
+#### Option 1: Automated Setup (Recommended)
+Run the interactive setup script:
+```bash
+npm run setup-env
+```
+
+This will guide you through setting up all required environment variables for your chosen environment (development/staging/production).
+
+#### Option 2: Manual Setup
 1. Copy `env.template` to `.env`:
    ```bash
    cp env.template .env
    ```
 
-2. Fill in your API keys in the `.env` file:
+2. Fill in your API keys in the `.env` file using the `EXPO_PUBLIC_` prefix:
    ```
-   CLERK_PUBLISHABLE_KEY=pk_test_your_actual_key_here
-   SUPABASE_URL=https://your-project-id.supabase.co
-   SUPABASE_ANON_KEY=your_actual_anon_key_here
+   EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_actual_key_here
+   EXPO_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_actual_anon_key_here
+   EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
    ```
 
-3. **Alternative**: You can also directly edit `utils/config.ts` and uncomment the development section to hardcode your values.
+3. **For server-side operations** (migrations, etc.), also add:
+   ```
+   SUPABASE_SERVICE_KEY=your_supabase_service_role_key_here
+   ```
 
 ### Authentication Setup (Clerk)
 
@@ -55,32 +68,34 @@ npm start
 
 ### Environment Variables for EAS Builds
 
-For production builds (App Store/Play Store), you need to configure environment variables in your Expo project:
+For production builds (App Store/Play Store), environment variables are automatically handled through the `eas.json` configuration:
 
-1. **Set up environment variables in Expo:**
-   ```bash
-   # Go to your Expo project dashboard
-   # Navigate to Settings > Environment Variables
-   # Add the following variables:
-   CLERK_PUBLISHABLE_KEY=pk_live_your_production_key
-   SUPABASE_URL=https://your-project.supabase.co
-   SUPABASE_ANON_KEY=your_production_anon_key
-   GOOGLE_MAPS_API_KEY=your_google_maps_key
+#### Option 1: Update eas.json (Recommended)
+1. Edit `eas.json` and replace the placeholder values in the `env` sections with your actual API keys
+2. Use different keys for different environments:
+   - `development`/`preview`/`apk`: Use test keys (`pk_test_...`)
+   - `testflight`/`production`: Use production keys (`pk_live_...`)
+
+#### Option 2: Expo Dashboard (Alternative)
+You can also set environment variables in your Expo project dashboard:
+1. Go to your Expo project dashboard
+2. Navigate to Settings > Environment Variables
+3. Add the following variables with `EXPO_PUBLIC_` prefix:
+   ```
+   EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_your_production_key
+   EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
+   EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
    ```
 
-2. **Verify your configuration:**
-   - The app now includes environment checking on startup
-   - Check the console logs when running the app
-   - Look for ✅ or ❌ indicators for each environment variable
+#### Build for Production
+```bash
+# For iOS App Store
+eas build --platform ios --profile production
 
-3. **Build for production:**
-   ```bash
-   # For iOS App Store
-   eas build --platform ios --profile production
-   
-   # For Android Play Store
-   eas build --platform android --profile production
-   ```
+# For Android Play Store
+eas build --platform android --profile production
+```
 
 ### Troubleshooting Production Issues
 

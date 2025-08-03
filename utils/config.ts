@@ -1,47 +1,57 @@
 import Constants from 'expo-constants';
 
-// Environment Configuration with better error handling
-// Use Expo environment variables for builds and development
-const getEnvVar = (expoKey: string): string => {
-  // Try to get from Expo environment variables first
-  const expoVar = Constants.expoConfig?.extra?.[expoKey];
+// Environment Configuration with EXPO_PUBLIC_ prefix
+// This approach works for local development, Android, and iOS builds
+const getEnvVar = (key: string): string => {
+  // Try to get from EXPO_PUBLIC_ environment variables first
+  const envVar = process.env[key];
+  if (envVar) {
+    return envVar;
+  }
+  
+  // Fallback to Expo extra config for backward compatibility
+  const expoVar = Constants.expoConfig?.extra?.[key.replace('EXPO_PUBLIC_', '')];
   if (expoVar) {
+    console.warn(`Using Expo extra config for ${key}. Consider migrating to EXPO_PUBLIC_ environment variables.`);
     return expoVar;
   }
   
   // For local development, we'll need to handle this differently
-  // since process.env doesn't work in React Native
   if (__DEV__) {
-    console.warn(`Environment variable ${expoKey} not found in Expo config. Make sure it's set in your Expo dashboard or app.json.`);
+    console.warn(`Environment variable ${key} not found. Make sure it's set in your .env file or Expo dashboard.`);
   }
   
   return '';
 };
 
-export const CLERK_PUBLISHABLE_KEY_CONFIG = getEnvVar('clerkPublishableKey');
-export const SUPABASE_URL_CONFIG = getEnvVar('supabaseUrl');
-export const SUPABASE_ANON_KEY_CONFIG = getEnvVar('supabaseAnonKey');
-export const GOOGLE_MAPS_API_KEY_CONFIG = getEnvVar('googleMapsApiKey');
+// Client-side environment variables (accessible in app code)
+export const CLERK_PUBLISHABLE_KEY_CONFIG = getEnvVar('EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY');
+export const SUPABASE_URL_CONFIG = getEnvVar('EXPO_PUBLIC_SUPABASE_URL');
+export const SUPABASE_ANON_KEY_CONFIG = getEnvVar('EXPO_PUBLIC_SUPABASE_ANON_KEY');
+export const GOOGLE_MAPS_API_KEY_CONFIG = getEnvVar('EXPO_PUBLIC_GOOGLE_MAPS_API_KEY');
+
+// Server-side environment variables (for build scripts, migrations, etc.)
+export const SUPABASE_SERVICE_KEY_CONFIG = process.env.SUPABASE_SERVICE_KEY;
 
 // Validate required environment variables
 const validateEnvironment = () => {
   const missingVars = [];
   
   if (!CLERK_PUBLISHABLE_KEY_CONFIG) {
-    missingVars.push('CLERK_PUBLISHABLE_KEY');
+    missingVars.push('EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY');
   }
   
   if (!SUPABASE_URL_CONFIG) {
-    missingVars.push('SUPABASE_URL');
+    missingVars.push('EXPO_PUBLIC_SUPABASE_URL');
   }
   
   if (!SUPABASE_ANON_KEY_CONFIG) {
-    missingVars.push('SUPABASE_ANON_KEY');
+    missingVars.push('EXPO_PUBLIC_SUPABASE_ANON_KEY');
   }
   
   if (missingVars.length > 0) {
     console.error('Missing required environment variables:', missingVars);
-    console.error('Please ensure these are set in your Expo project environment variables.');
+    console.error('Please ensure these are set in your .env file or Expo project environment variables.');
     
     // In production, we should fail fast if critical environment variables are missing
     if (!__DEV__) {
