@@ -111,17 +111,23 @@ const DatabaseImage: React.FC<DatabaseImageProps> = ({
       resizeMode={resizeMode}
       onError={(error) => {
         console.error('❌ Image loading error:', {
-          error,
+          error: error?.nativeEvent || error,
           imageSource,
           heroImageUrl,
-          assetFolder
+          assetFolder,
+          errorType: typeof error,
+          errorKeys: error ? Object.keys(error) : 'no error object'
         });
-        // In production, try to provide more specific error information
-        if (__DEV__) {
-          console.log('🔍 Development mode - showing detailed error');
-        } else {
-          console.log('🚀 Production mode - image load failed, using fallback');
+        
+        // Log more specific error details
+        if (error?.nativeEvent) {
+          console.error('❌ Native error details:', {
+            code: error.nativeEvent.code,
+            message: error.nativeEvent.message,
+            description: error.nativeEvent.description
+          });
         }
+        
         setImageSource(fallbackSource || require('../../../assets/icon.png'));
         onError?.(error);
       }}

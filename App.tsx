@@ -11,11 +11,15 @@ import { ThemeProvider } from './components/context/ThemeContext';
 import { StatusBar } from './components/ui/common';
 import ErrorBoundary from './components/error/ErrorBoundary';
 import { checkEnvironmentConfiguration } from './utils/checkEnvironment';
+import { testSupabaseConnection } from './utils/networkTest';
 
 export default function App() {
   // Check environment configuration on app startup
   useEffect(() => {
     checkEnvironmentConfiguration();
+    
+    // Test network connectivity to Supabase Storage
+    testSupabaseConnection();
   }, []);
 
   // Check if we have a valid Clerk key before rendering
