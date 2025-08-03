@@ -10,14 +10,14 @@
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.14.10",
-    "@react-native-async-storage/async-storage": "^2.1.2",
-    "@react-native-community/slider": "^4.5.6",
+    "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-native-community/slider": "4.5.6",
     "@react-navigation/bottom-tabs": "^7.4.2",
     "@react-navigation/native": "^7.1.14",
     "@react-navigation/stack": "^7.4.2",
     "@supabase/supabase-js": "^2.50.2",
     "dotenv": "^17.2.1",
-    "expo": "53.0.19",
+    "expo": "53.0.20",
     "expo-auth-session": "~6.2.1",
     "expo-constants": "^17.1.7",
     "expo-crypto": "^14.1.5",
@@ -35,15 +35,27 @@
     "react-native-gesture-handler": "~2.24.0",
     "react-native-maps": "1.20.1",
     "react-native-markdown-display": "^7.0.2",
-    "react-native-safe-area-context": "^5.4.0",
+    "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "^4.11.1",
-    "react-native-webview": "^13.13.5"
+    "react-native-webview": "13.13.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/js-yaml": "^4.0.9",
     "@types/react": "~19.0.10",
     "typescript": "~5.8.3"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "jwt-decode",
+          "dotenv",
+          "js-yaml"
+        ],
+        "listUnknownPackages": false
+      }
+    }
   },
   "private": true
 }

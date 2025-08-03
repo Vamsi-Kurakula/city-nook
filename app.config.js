@@ -47,8 +47,6 @@ export default {
       edgeToEdgeEnabled: true,
       permissions: ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "android.permission.INTERNET"],
       allowBackup: true,
-      enableProguardInReleaseBuilds: false,
-      enableShrinkResourcesInReleaseBuilds: false,
       config: {
         googleMaps: {
           apiKey: process.env.GOOGLE_MAPS_API_KEY
