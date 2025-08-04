@@ -44,6 +44,7 @@ const CrawlSessionScreen: React.FC = () => {
 
   // Local state for UI
   const [isLoadingProgress, setIsLoadingProgress] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Get values from CrawlContext
   const currentStopNumber = getCurrentStop();
@@ -60,6 +61,7 @@ const CrawlSessionScreen: React.FC = () => {
     const loadCoordinates = async () => {
       if (crawl?.stops && crawl.stops.length > 0) {
         setIsLoadingCoordinates(true);
+        setError(null);
         try {
           console.log('Starting coordinate extraction for', crawl.stops.length, 'stops');
           console.log('First stop location_link:', crawl.stops[0]?.location_link);
@@ -68,13 +70,19 @@ const CrawlSessionScreen: React.FC = () => {
           setCoordinates(coords);
           console.log('Loaded coordinates for beta screen:', coords.length);
           console.log('Extracted coordinates:', coords);
+          
+          if (coords.length === 0) {
+            setError('No coordinates could be extracted from the crawl stops. This might be due to invalid location links or missing Google Maps API key.');
+          }
         } catch (error) {
           console.error('Error loading coordinates:', error);
+          setError(`Failed to load coordinates: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
           setIsLoadingCoordinates(false);
         }
       } else {
         console.log('No stops found for coordinate extraction');
+        setError('No crawl stops found. Please check the crawl data.');
       }
     };
 
@@ -84,47 +92,60 @@ const CrawlSessionScreen: React.FC = () => {
   // Initialize crawl session like the original CrawlSessionScreen
   useEffect(() => {
     const setupSession = async () => {
-      if (crawl && (!isCrawlActive || !currentCrawl || currentCrawl.id !== crawl.id)) {
-        console.log('Setting up new crawl session for:', crawl.id);
-        
-        setCurrentCrawl(crawl);
-        setIsCrawlActive(true);
-        
-        // Load progress from database if user is logged in
-        if (user?.id) {
-          const isPublic = crawl['public-crawl'] || false;
+      try {
+        if (crawl && (!isCrawlActive || !currentCrawl || currentCrawl.id !== crawl.id)) {
+          console.log('Setting up new crawl session for:', crawl.id);
           
-          const token = await getToken({ template: 'supabase' });
-          const progressFound = token ? await getCrawlProgress(user.id, crawl.id, isPublic, token) : null;
+          setCurrentCrawl(crawl);
+          setIsCrawlActive(true);
           
-          if (progressFound && progressFound.data && !progressFound.error) {
-            // Progress was found for this specific crawl
-            console.log('Loaded existing progress for crawl:', crawl.id);
+          // Load progress from database if user is logged in
+          if (user?.id) {
+            const isPublic = crawl['public-crawl'] || false;
             
-            // Convert database format to local format and set it
-            const localProgress = {
-              crawl_id: progressFound.data.crawl_id,
-              is_public: progressFound.data.is_public,
-              current_stop: progressFound.data.current_stop,
-              completed_stops: progressFound.data.completed_stops.map((stopNum: number) => ({
-                stop_number: stopNum,
-                completed: true,
-                user_answer: '',
-                completed_at: new Date(),
-              })),
-              started_at: new Date(progressFound.data.started_at),
-              last_updated: new Date(progressFound.data.updated_at),
-              completed: !!progressFound.data.completed_at,
-            };
+            const token = await getToken({ template: 'supabase' });
+            const progressFound = token ? await getCrawlProgress(user.id, crawl.id, isPublic, token) : null;
             
-            console.log('Setting current progress from database:', localProgress);
-            setCurrentProgress(localProgress);
+            if (progressFound && progressFound.data && !progressFound.error) {
+              // Progress was found for this specific crawl
+              console.log('Loaded existing progress for crawl:', crawl.id);
+              
+              // Convert database format to local format and set it
+              const localProgress = {
+                crawl_id: progressFound.data.crawl_id,
+                is_public: progressFound.data.is_public,
+                current_stop: progressFound.data.current_stop,
+                completed_stops: progressFound.data.completed_stops.map((stopNum: number) => ({
+                  stop_number: stopNum,
+                  completed: true,
+                  user_answer: '',
+                  completed_at: new Date(),
+                })),
+                started_at: new Date(progressFound.data.started_at),
+                last_updated: new Date(progressFound.data.updated_at),
+                completed: !!progressFound.data.completed_at,
+              };
+              
+              console.log('Setting current progress from database:', localProgress);
+              setCurrentProgress(localProgress);
+            } else {
+              // No progress was loaded from database, initialize new progress
+              console.log('No database progress found, initializing new progress for crawl:', crawl.id);
+              setCurrentProgress({
+                crawl_id: crawl.id,
+                is_public: isPublic,
+                current_stop: 1,
+                completed_stops: [],
+                started_at: new Date(),
+                last_updated: new Date(),
+                completed: false,
+              });
+            }
           } else {
-            // No progress was loaded from database, initialize new progress
-            console.log('No database progress found, initializing new progress for crawl:', crawl.id);
+            // Fallback for no user
             setCurrentProgress({
               crawl_id: crawl.id,
-              is_public: isPublic,
+              is_public: crawl['public-crawl'] || false,
               current_stop: 1,
               completed_stops: [],
               started_at: new Date(),
@@ -132,23 +153,16 @@ const CrawlSessionScreen: React.FC = () => {
               completed: false,
             });
           }
-        } else {
-          // Fallback for no user
-          setCurrentProgress({
-            crawl_id: crawl.id,
-            is_public: crawl['public-crawl'] || false,
-            current_stop: 1,
-            completed_stops: [],
-            started_at: new Date(),
-            last_updated: new Date(),
-            completed: false,
-          });
+          
+          setIsLoadingProgress(false);
+        } else if (crawl && isCrawlActive && currentCrawl && currentCrawl.id === crawl.id) {
+          // Session is already active and matches current crawl, just stop loading
+          console.log('Session already active for crawl:', crawl.id);
+          setIsLoadingProgress(false);
         }
-        
-        setIsLoadingProgress(false);
-      } else if (crawl && isCrawlActive && currentCrawl && currentCrawl.id === crawl.id) {
-        // Session is already active and matches current crawl, just stop loading
-        console.log('Session already active for crawl:', crawl.id);
+      } catch (error) {
+        console.error('Error setting up crawl session:', error);
+        setError(`Failed to setup crawl session: ${error instanceof Error ? error.message : 'Unknown error'}`);
         setIsLoadingProgress(false);
       }
     };
@@ -204,7 +218,18 @@ const CrawlSessionScreen: React.FC = () => {
     navigation.navigate('CrawlDetail', { crawl });
   };
 
-
+  // Debug logging
+  console.log('CrawlSessionScreen Debug:', {
+    crawl: crawl ? { id: crawl.id, name: crawl.name, stopsCount: crawl.stops?.length } : null,
+    isLoadingProgress,
+    isLoadingCoordinates,
+    coordinatesCount: coordinates.length,
+    error,
+    currentStopNumber,
+    completedStops,
+    totalStops,
+    progressPercent
+  });
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
@@ -228,7 +253,16 @@ const CrawlSessionScreen: React.FC = () => {
 
       {/* Map Section - Fills the remaining screen */}
       <View style={styles.mapContainer}>
-        {isLoadingProgress ? (
+        {error ? (
+          <View style={styles.mapPlaceholder}>
+            <Text style={[styles.errorText, { color: theme.status.error }]}>
+              Error: {error}
+            </Text>
+            <Text style={[styles.mapPlaceholderText, { color: theme.text.secondary }]}>
+              Please try again or contact support if the issue persists.
+            </Text>
+          </View>
+        ) : isLoadingProgress ? (
           <View style={styles.mapPlaceholder}>
             <Text style={[styles.mapPlaceholderText, { color: theme.text.secondary }]}>
               Loading progress...
@@ -314,10 +348,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   mapPlaceholderText: {
     fontSize: 16,
     textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });
 
