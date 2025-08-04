@@ -34,7 +34,7 @@ export default function AddFriendsScreen() {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch friend requests and their senders
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     if (!user?.id) return;
     setLoadingRequests(true);
     try {
@@ -45,44 +45,27 @@ export default function AddFriendsScreen() {
       
       const requests = await getPendingRequests(user.id, token);
       setFriendRequests(requests);
+      
+      // Fetch sender profiles in parallel
       const senderIds = requests.map(r => r.from_user_id);
       const profiles = await getUserProfilesByIds(senderIds);
       const senderMap: { [id: string]: SocialUserProfile } = {};
       profiles.forEach((p: SocialUserProfile) => { senderMap[p.user_profile_id] = p; });
       setRequestSenders(senderMap);
     } catch (err) {
-      // Optionally handle error
+      console.error('Error fetching friend requests:', err);
     } finally {
       setLoadingRequests(false);
     }
-  };
+  }, [user?.id, getToken]);
 
   useEffect(() => {
     fetchRequests();
-  }, [user?.id]);
+  }, [fetchRequests]);
 
-  const refreshRequests = async () => {
-    if (!user?.id) return;
-    setLoadingRequests(true);
-    try {
-      const token = await getToken({ template: 'supabase' });
-      if (!token) {
-        throw new Error('Failed to get authentication token');
-      }
-      
-      const requests = await getPendingRequests(user.id, token);
-      setFriendRequests(requests);
-      const senderIds = requests.map(r => r.from_user_id);
-      const profiles = await getUserProfilesByIds(senderIds);
-      const senderMap: { [id: string]: SocialUserProfile } = {};
-      profiles.forEach((p: SocialUserProfile) => { senderMap[p.user_profile_id] = p; });
-      setRequestSenders(senderMap);
-    } catch (err) {
-      // Optionally handle error
-    } finally {
-      setLoadingRequests(false);
-    }
-  };
+  const refreshRequests = useCallback(async () => {
+    await fetchRequests();
+  }, [fetchRequests]);
 
   const onRefresh = async () => {
     setRefreshing(true);

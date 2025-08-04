@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Crawl } from '../../../types/crawl';
 import { calculateCrawlStatus, formatTimeForDisplay, parseTimeString } from '../../../utils/crawlStatus';
 import DatabaseImage from './DatabaseImage';
 import { useTheme } from '../../context/ThemeContext';
+import { useSafeAnimation } from '../../hooks/useSafeAnimation';
 
 interface CrawlCardProps {
   crawl: Crawl;
@@ -15,67 +16,54 @@ interface CrawlCardProps {
 }
 
 const CrawlCard: React.FC<CrawlCardProps> = ({ crawl, onPress, onStart, isExpanded, width, marginHorizontal }) => {
-  const [animation] = useState(new Animated.Value(1));
-  const [crawlStatus, setCrawlStatus] = useState<any>(null);
+  const { animValue, spring } = useSafeAnimation(1);
   const { theme } = useTheme();
 
-  React.useEffect(() => {
-    Animated.spring(animation, {
-      toValue: isExpanded ? 0.95 : 1,
-      useNativeDriver: true,
-    }).start();
-  }, [isExpanded]);
-
-  // Calculate crawl status for public crawls
-  useEffect(() => {
+  // Memoized crawl status calculation
+  const crawlStatus = useMemo(() => {
     if (crawl['public-crawl'] && crawl.start_time) {
-      const status = calculateCrawlStatus(crawl.start_time, crawl.duration, crawl.stops);
-      setCrawlStatus(status);
-      
-      // Update status every minute for ongoing crawls
-      if (status.status === 'ongoing' || status.status === 'upcoming') {
-        const interval = setInterval(() => {
-          const updatedStatus = calculateCrawlStatus(crawl.start_time, crawl.duration, crawl.stops);
-          setCrawlStatus(updatedStatus);
-        }, 60000); // Update every minute
-        
-        return () => clearInterval(interval);
-      }
+      return calculateCrawlStatus(crawl.start_time, crawl.duration, crawl.stops);
     }
-  }, [crawl]);
+    return null;
+  }, [crawl.start_time, crawl.duration, crawl.stops, crawl['public-crawl']]);
 
-  const getStatusColor = (status: string) => {
+  // Animate on expansion change
+  useEffect(() => {
+    spring(isExpanded ? 0.95 : 1, { useNativeDriver: true });
+  }, [isExpanded, spring]);
+
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'upcoming': return theme.status.info;
       case 'ongoing': return theme.status.success;
       case 'completed': return theme.status.completed;
       default: return theme.text.tertiary;
     }
-  };
+  }, [theme]);
 
-  const getStatusText = (status: string) => {
+  const getStatusText = useCallback((status: string) => {
     switch (status) {
       case 'upcoming': return '⏰ Upcoming';
       case 'ongoing': return '🔄 Ongoing';
       case 'completed': return '✅ Completed';
       default: return '❓ Unknown';
     }
-  };
+  }, []);
 
-  const formatStartTime = (startTime: string) => {
+  const formatStartTime = useCallback((startTime: string) => {
     try {
       const date = parseTimeString(startTime);
       return formatTimeForDisplay(date);
     } catch {
       return startTime;
     }
-  };
+  }, []);
 
   return (
     <Animated.View style={[
       styles.crawlCard, 
       { 
-        transform: [{ scale: animation }], 
+        transform: [{ scale: animValue }], 
         width: width,
         marginHorizontal: marginHorizontal ?? 20,
         backgroundColor: theme.background.secondary,

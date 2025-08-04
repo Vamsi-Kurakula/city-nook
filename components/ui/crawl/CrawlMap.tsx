@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { saveCrawlProgress } from '../../../utils/database/progressOperations';
 import { getRoadRouteForStops } from '../../../utils/roadDirections';
 import { GOOGLE_MAPS_API_KEY_CONFIG } from '../../../utils/config';
+import { useSafeAnimation } from '../../hooks/useSafeAnimation';
 
 interface CrawlMapProps {
   stops: CrawlStop[];
@@ -38,8 +39,8 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
   const { getToken } = useAuth();
   
   // Animation values for slide-up effects
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const completionSlideAnim = useRef(new Animated.Value(-200)).current;
+  const { animValue: slideAnim, animate: animateSlide } = useSafeAnimation(0);
+  const { animValue: completionSlideAnim, animate: animateCompletion } = useSafeAnimation(-200);
 
   const [locations, setLocations] = useState<LocationCoordinates[]>([]);
   const [region, setRegion] = useState<{
@@ -61,6 +62,8 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
     hasRegion: !!region,
     error: error?.message
   });
+
+  // Cleanup is handled by useSafeAnimation hook
 
   if (error) {
     return (
@@ -267,23 +270,16 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
       if (stop) {
         setSelectedStop({ stop, stopNumber: location.stopNumber });
         setShowActionModal(true);
-        // Animate slide up
-        Animated.timing(slideAnim, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: false,
-        }).start();
+        
+        // Animate slide up using safe animation
+        animateSlide(1, { duration: 400 });
       }
     };
 
     const handleRecsPress = () => {
       if (selectedStop) {
-        // Animate slide down
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: false,
-        }).start(() => {
+        // Animate slide down using safe animation
+        animateSlide(0, { duration: 300 }, () => {
           setShowActionModal(false);
           setSelectedStop(null);
         });
@@ -297,23 +293,16 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
     };
 
     const handleClosePanel = () => {
-      // Animate slide down
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: false,
-      }).start(() => {
+      // Animate slide down using safe animation
+      animateSlide(0, { duration: 300 }, () => {
         setShowActionModal(false);
         setSelectedStop(null);
       });
     };
 
     const handleCloseCompletionModal = () => {
-      Animated.timing(completionSlideAnim, {
-        toValue: -200,
-        duration: 300,
-        useNativeDriver: false,
-      }).start(() => {
+      // Animate completion modal using safe animation
+      animateCompletion(-200, { duration: 300 }, () => {
         setShowCompletionModal(false);
       });
     };
@@ -385,11 +374,8 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
           });
         } else {
           // Navigate to start stop screen for incomplete stops
-          Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: false,
-          }).start(() => {
+          // Animate slide down using safe animation
+          animateSlide(0, { duration: 300 }, () => {
             setShowActionModal(false);
             setSelectedStop(null);
           });
