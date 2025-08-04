@@ -21,7 +21,7 @@ const CrawlRecsScreen: React.FC = () => {
   const stopNumber = routeParams?.stopNumber;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}> 
       <View style={styles.header}>
         <BackButton onPress={() => navigation.goBack()} />
         <Text style={[styles.headerTitle, { color: theme.text.primary }]}>

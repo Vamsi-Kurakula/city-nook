@@ -71,7 +71,7 @@ const PrivacyPolicyScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}> 
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={[styles.backButtonText, { color: theme.text.secondary }]}>← Back</Text>
       </TouchableOpacity>

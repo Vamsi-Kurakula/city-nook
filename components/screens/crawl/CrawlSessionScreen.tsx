@@ -169,7 +169,7 @@ const CrawlSessionScreen: React.FC = () => {
     };
     
     setupSession();
-  }, [crawl?.id, user?.id, isCrawlActive, currentCrawl]);
+  }, [crawl?.id, user?.id]);
 
   // Handle completion updates from CrawlStartStopScreen
   useEffect(() => {
@@ -233,16 +233,7 @@ const CrawlSessionScreen: React.FC = () => {
   });
 
   return (
-         <View style={[
-       styles.container, 
-       { 
-         backgroundColor: theme.background.primary,
-         paddingTop: insets.top,
-         paddingBottom: insets.bottom,
-         paddingLeft: insets.left,
-         paddingRight: insets.right,
-       }
-     ]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       {/* Fixed Top Section - Exit Button and Future Buttons */}
       <View style={[styles.topSection, { borderBottomColor: theme.border.secondary }]}>
         <BackButton onPress={handleExit} style={styles.exitButton} />
@@ -295,7 +286,7 @@ const CrawlSessionScreen: React.FC = () => {
           </View>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

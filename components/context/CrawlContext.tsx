@@ -154,7 +154,7 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
           isPublic: updatedProgress.is_public,
           currentStop: updatedProgress.current_stop,
           completedStops: completedStopNumbers,
-          startedAt: new Date(updatedProgress.started_at).toISOString(),
+          startedAt: updatedProgress.started_at ? new Date(updatedProgress.started_at).toISOString() : new Date().toISOString(),
           completedAt: updatedProgress.completed ? new Date().toISOString() : undefined,
           token,
         });

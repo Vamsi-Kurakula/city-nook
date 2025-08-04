@@ -74,7 +74,7 @@ export default function FriendsListScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}> 
       <BackButton onPress={() => navigation.goBack()} style={{ alignSelf: 'flex-start', marginBottom: 20 }} />
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.text.primary }]}>Friends</Text>

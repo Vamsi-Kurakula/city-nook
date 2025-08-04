@@ -151,7 +151,7 @@ const CrawlStartStopScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       {/* Header */}
       <View style={styles.header}>
         <BackButton onPress={() => navigation.goBack()} />

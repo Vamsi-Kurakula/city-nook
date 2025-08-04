@@ -232,16 +232,7 @@ export default function AddFriendsScreen() {
   };
 
   return (
-         <View style={[
-       styles.container, 
-       { 
-         backgroundColor: theme.background.primary,
-         paddingTop: insets.top,
-         paddingBottom: insets.bottom,
-         paddingLeft: insets.left,
-         paddingRight: insets.right,
-       }
-     ]}>  
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       <BackButton onPress={() => navigation.goBack()} style={{ alignSelf: 'flex-start', marginBottom: 20 }} />
       <ScrollView 
         style={styles.content} 
@@ -325,7 +316,7 @@ export default function AddFriendsScreen() {
           )}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

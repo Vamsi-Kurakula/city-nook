@@ -18,7 +18,7 @@ export default function HomeHeader({
   const { theme } = useTheme();
 
   return (
-    <View style={[styles.header, { backgroundColor: theme.background.primary }]}>
+    <View style={[styles.header, { backgroundColor: 'transparent' }]}>
       <View style={styles.headerTop}>
         <View style={styles.headerLeft}>
           <Text style={[styles.title, { 

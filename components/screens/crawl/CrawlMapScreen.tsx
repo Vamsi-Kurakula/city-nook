@@ -35,13 +35,13 @@ const CrawlMapScreen: React.FC = () => {
 
   // Restore full original render to see if issue reappears
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
-      <View style={[styles.header, { borderBottomColor: theme.border.secondary, backgroundColor: theme.background.primary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}> 
+              <View style={[styles.header, { borderBottomColor: theme.border.secondary, backgroundColor: 'transparent' }]}>
         <BackButton onPress={() => navigation.goBack()} />
         <Text style={[styles.title, { color: theme.text.primary }]}>Crawl Map</Text>
         <View style={{ width: 40 }} />
       </View>
-      <View style={[styles.mapContainer, { backgroundColor: theme.background.primary }]}>
+              <View style={[styles.mapContainer, { backgroundColor: 'transparent' }]}>
         <CrawlMap
           stops={stops}
           currentStopNumber={currentStopNumber}

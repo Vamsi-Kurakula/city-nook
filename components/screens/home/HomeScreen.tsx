@@ -147,7 +147,7 @@ export default function HomeScreen() {
              <View style={[
          styles.container, 
          { 
-           backgroundColor: theme.background.primary,
+           backgroundColor: 'transparent',
            paddingTop: insets.top,
            paddingBottom: insets.bottom,
            paddingLeft: insets.left,
@@ -164,16 +164,7 @@ export default function HomeScreen() {
   }
 
   return (
-         <View style={[
-       styles.container, 
-       { 
-         backgroundColor: theme.background.primary,
-         paddingTop: insets.top,
-         paddingBottom: insets.bottom,
-         paddingLeft: insets.left,
-         paddingRight: insets.right,
-       }
-     ]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -308,7 +299,7 @@ export default function HomeScreen() {
       </ScrollView>
 
 
-    </View>
+    </SafeAreaView>
   );
 }
 

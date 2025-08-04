@@ -43,8 +43,59 @@ export default function AuthNavigator() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <NavigationContainer
+      theme={{
+        dark: false,
+        colors: {
+          background: 'transparent',
+          primary: 'transparent',
+          card: 'transparent',
+          text: 'transparent',
+          border: 'transparent',
+          notification: 'transparent',
+        },
+        fonts: {
+          regular: {
+            fontFamily: 'System',
+            fontWeight: '400',
+          },
+          medium: {
+            fontFamily: 'System',
+            fontWeight: '500',
+          },
+          bold: {
+            fontFamily: 'System',
+            fontWeight: '700',
+          },
+          heavy: {
+            fontFamily: 'System',
+            fontWeight: '900',
+          },
+        },
+      }}
+    >
+      <Stack.Navigator 
+        screenOptions={{ 
+          headerShown: false,
+          cardStyle: { backgroundColor: 'transparent' },
+          cardOverlayEnabled: false,
+          gestureEnabled: false,
+          transitionSpec: {
+            open: {
+              animation: 'timing',
+              config: {
+                duration: 0,
+              },
+            },
+            close: {
+              animation: 'timing',
+              config: {
+                duration: 0,
+              },
+            },
+          },
+        }}
+      >
         {!isSignedIn ? (
           <>
             <Stack.Screen name="SignIn" component={SignInScreen} />

@@ -6,6 +6,10 @@ export interface ColorTheme {
     secondary: string;    // Card backgrounds
     tertiary: string;     // Section backgrounds
     modal: string;        // Modal backgrounds
+    gradient: {
+      start: string;      // Gradient start color
+      end: string;        // Gradient end color
+    };
   };
   
   // Text Colors
@@ -69,9 +73,13 @@ export interface ColorTheme {
 export const lightTheme: ColorTheme = {
   background: {
     primary: '#f8f9fa',      // Main app background
-    secondary: '#EB4335',    // Card backgrounds
+    secondary: '#e9ecef',    // Card backgrounds (light grey)
     tertiary: '#f8f9fa',     // Section backgrounds
     modal: 'rgba(255, 255, 255, 0.95)', // Modal backgrounds
+    gradient: {
+      start: '#4facfe',      // Bright blue
+      end: '#00f2fe',        // Cyan
+    },
   },
   
   text: {
@@ -128,9 +136,13 @@ export const lightTheme: ColorTheme = {
 export const darkTheme: ColorTheme = {
   background: {
     primary: '#1a1a1a',      // Dark main background
-    secondary: '#EB4335',    // Dark card backgrounds
+    secondary: '#3a3a3a',    // Dark card backgrounds (dark grey)
     tertiary: '#333333',     // Dark section backgrounds
     modal: 'rgba(45, 45, 45, 0.95)', // Dark modal backgrounds
+    gradient: {
+      start: '#1a1a1a',      // Very dark gray/black
+      end: '#2c3e50',        // Dark blue-gray
+    },
   },
   
   text: {

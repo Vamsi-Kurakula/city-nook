@@ -156,7 +156,7 @@ const CrawlLibrary: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
         <ActivityIndicator size="large" color={theme.button.primary} style={{ marginTop: 40 }} />
       </SafeAreaView>
     );
@@ -164,7 +164,7 @@ const CrawlLibrary: React.FC = () => {
 
   if (crawls.length === 0) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
         <View style={styles.headerWrapper}>
           <View style={styles.header}>
             <View style={styles.headerTop}>
@@ -196,7 +196,7 @@ const CrawlLibrary: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       <View style={styles.headerWrapper}>
         <View style={styles.header}>
           <View style={styles.headerTop}>

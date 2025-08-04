@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { AuthNavigator } from './components/navigation';
 import { ClerkProvider, tokenCache } from './utils/clerk';
@@ -8,10 +8,31 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from './components/context/AuthContext';
 import { CrawlProvider } from './components/context/CrawlContext';
 import { ThemeProvider } from './components/context/ThemeContext';
-import { StatusBar } from './components/ui/common';
+import { StatusBar, GradientBackground } from './components/ui/common';
 import ErrorBoundary from './components/error/ErrorBoundary';
 import { checkEnvironmentConfiguration } from './utils/checkEnvironment';
 import { testSupabaseConnection } from './utils/networkTest';
+
+const AppContent = memo(() => {
+  return (
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <AuthProvider>
+          <CrawlProvider>
+            <ThemeProvider>
+              <StatusBar />
+              <GradientBackground>
+                <AuthNavigator />
+              </GradientBackground>
+            </ThemeProvider>
+          </CrawlProvider>
+        </AuthProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
+  );
+});
+
+AppContent.displayName = 'AppContent';
 
 export default function App() {
   // Check environment configuration on app startup
@@ -42,18 +63,7 @@ export default function App() {
         publishableKey={CLERK_PUBLISHABLE_KEY}
         tokenCache={tokenCache}
       >
-        <SafeAreaProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <AuthProvider>
-              <CrawlProvider>
-                <ThemeProvider>
-                  <StatusBar />
-                  <AuthNavigator />
-                </ThemeProvider>
-              </CrawlProvider>
-            </AuthProvider>
-          </GestureHandlerRootView>
-        </SafeAreaProvider>
+        <AppContent />
       </ClerkProvider>
     </ErrorBoundary>
   );

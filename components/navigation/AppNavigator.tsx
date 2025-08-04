@@ -31,7 +31,28 @@ const Stack = createStackNavigator();
 export default function AppNavigator() {
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        cardStyle: { backgroundColor: 'transparent' },
+        cardOverlayEnabled: false,
+        gestureEnabled: false,
+        transitionSpec: {
+          open: {
+            animation: 'timing',
+            config: {
+              duration: 0,
+            },
+          },
+          close: {
+            animation: 'timing',
+            config: {
+              duration: 0,
+            },
+          },
+        },
+      }}
+    >
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="CrawlLibrary" component={CrawlLibrary} />
       <Stack.Screen name="UserProfile" component={UserProfile} />

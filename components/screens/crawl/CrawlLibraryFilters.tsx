@@ -29,7 +29,7 @@ const CrawlLibraryFilters: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       <Text style={[styles.header, { color: theme.text.primary }]}>Filter Crawls</Text>
       <View style={styles.filterRow}>
         <Text style={[styles.filterLabel, { color: theme.text.secondary }]}>Min Stops: {minStops}</Text>

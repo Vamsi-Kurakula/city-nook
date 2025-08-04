@@ -128,16 +128,7 @@ export default function SignInScreen() {
   };
 
   return (
-         <View style={[
-       styles.container, 
-       { 
-         backgroundColor: theme.background.primary,
-         paddingTop: insets.top,
-         paddingBottom: insets.bottom,
-         paddingLeft: insets.left,
-         paddingRight: insets.right,
-       }
-     ]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       <View style={styles.content}>
         {/* App Logo/Title */}
         <View style={styles.header}>
@@ -188,7 +179,7 @@ export default function SignInScreen() {
           </Text>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

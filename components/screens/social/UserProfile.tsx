@@ -156,9 +156,10 @@ const UserProfile: React.FC = () => {
     );
   };
 
+  // Show loading state
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
         <View style={styles.content}>
           <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading profile...</Text>
         </View>
@@ -169,7 +170,7 @@ const UserProfile: React.FC = () => {
   // Show sign-in prompt if user is not authenticated
   if (!isSignedIn) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
         <View style={styles.signInContent}>
           <View style={styles.signInHeader}>
             <Text style={[styles.title, { color: theme.text.primary }]}>City Crawler</Text>
@@ -197,7 +198,7 @@ const UserProfile: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       <View style={styles.header}>
         <BackButton onPress={() => navigation.goBack()} />
       </View>
@@ -239,12 +240,14 @@ const UserProfile: React.FC = () => {
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Crawl Activity</Text>
-            <TouchableOpacity style={[styles.activityButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary }]} onPress={handleCrawlStats}>
-              <Text style={[styles.activityButtonText, { color: theme.text.primary }]}>📊 Crawl Statistics</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.activityButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary }]} onPress={handleCrawlHistory}>
-              <Text style={[styles.activityButtonText, { color: theme.text.primary }]}>📋 Crawl History</Text>
-            </TouchableOpacity>
+            <View style={styles.activityButtonsContainer}>
+              <TouchableOpacity style={[styles.activityButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary, flex: 1, marginRight: 8 }]} onPress={handleCrawlStats}>
+                <Text style={[styles.activityButtonText, { color: theme.text.primary }]}>📊 Crawl Statistics</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.activityButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary, flex: 1, marginLeft: 8 }]} onPress={handleCrawlHistory}>
+                <Text style={[styles.activityButtonText, { color: theme.text.primary }]}>📋 Crawl History</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.section}>
@@ -260,53 +263,15 @@ const UserProfile: React.FC = () => {
           </View>
 
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Appearance</Text>
-            <View style={styles.themeSection}>
-              <Text style={[styles.themeLabel, { color: theme.text.secondary }]}>Theme</Text>
-              <View style={styles.themeButtons}>
-                <TouchableOpacity 
-                  style={[
-                    styles.themeButton, 
-                    { backgroundColor: themeType === 'light' ? theme.button.primary : theme.background.secondary },
-                    { borderColor: theme.border.primary }
-                  ]}
-                  onPress={() => handleThemeChange('light')}
-                >
-                  <Text style={[
-                    styles.themeButtonText, 
-                    { color: themeType === 'light' ? theme.text.inverse : theme.text.primary }
-                  ]}>
-                    Light
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[
-                    styles.themeButton, 
-                    { backgroundColor: themeType === 'dark' ? theme.button.primary : theme.background.secondary },
-                    { borderColor: theme.border.primary }
-                  ]}
-                  onPress={() => handleThemeChange('dark')}
-                >
-                  <Text style={[
-                    styles.themeButtonText, 
-                    { color: themeType === 'dark' ? theme.text.inverse : theme.text.primary }
-                  ]}>
-                    Dark
-                  </Text>
-                </TouchableOpacity>
-
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Account Details</Text>
-            <TouchableOpacity style={[styles.accountButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary }]} onPress={handleExportData}>
-              <Text style={[styles.accountButtonText, { color: theme.text.primary }]}>📤 Export My Data</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.accountButton, { backgroundColor: theme.button.danger }]} onPress={handleDeleteAccount}>
-              <Text style={[styles.accountButtonText, { color: theme.text.inverse }]}>🗑️ Delete Account</Text>
-            </TouchableOpacity>
+            <View style={styles.accountButtonsContainer}>
+              <TouchableOpacity style={[styles.accountButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary, flex: 1, marginRight: 8 }]} onPress={handleExportData}>
+                <Text style={[styles.accountButtonText, { color: theme.text.primary }]}>📤 Export My Data</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.accountButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary, flex: 1, marginLeft: 8 }]} onPress={handleDeleteAccount}>
+                <Text style={[styles.accountButtonText, { color: theme.text.primary }]}>🗑️ Delete Account</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Sign Out Section */}
@@ -445,7 +410,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f0f0f0',
     borderRadius: 8,
-    marginBottom: 8,
     position: 'relative', // Added for badge positioning
   },
   activityButtonText: {
@@ -458,7 +422,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f0f0f0',
     borderRadius: 8,
-    marginBottom: 8,
     alignItems: 'center',
   },
   accountButtonText: {
@@ -523,29 +486,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  themeSection: {
-    marginBottom: 16,
-  },
-  themeLabel: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  themeButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  themeButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  themeButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
   footer: {
     padding: 20,
     alignItems: 'center',
@@ -569,6 +509,16 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  activityButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  accountButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
   },
 });
 

@@ -102,7 +102,7 @@ const CrawlHistoryDetailScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
           <Text style={[styles.title, { color: theme.text.primary }]}>{crawlName}</Text>

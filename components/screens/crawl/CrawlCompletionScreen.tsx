@@ -107,7 +107,7 @@ const CrawlCompletionScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       <View style={styles.centered}>
         <Text style={[styles.completionTitle, { color: theme.text.primary }]}>🎉 Crawl Completed!</Text>
         <Text style={[styles.completionText, { color: theme.text.secondary }]}>

@@ -64,7 +64,7 @@ const CrawlDetailScreen: React.FC = () => {
     <View style={[
       styles.container, 
       { 
-        backgroundColor: theme.background.primary,
+        backgroundColor: 'transparent',
         paddingTop: insets.top,
         paddingBottom: insets.bottom,
         paddingLeft: insets.left,
@@ -96,7 +96,7 @@ if (isLoading) {
     <View style={[
       styles.container, 
       { 
-        backgroundColor: theme.background.primary,
+        backgroundColor: 'transparent',
         paddingTop: insets.top,
         paddingBottom: insets.bottom,
         paddingLeft: insets.left,
@@ -159,16 +159,7 @@ if (isLoading) {
   };
 
   return (
-  <View style={[
-    styles.container, 
-    { 
-      backgroundColor: theme.background.primary,
-      paddingTop: insets.top,
-      paddingBottom: insets.bottom,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-    }
-  ]}>  
+    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
       <View style={styles.header}>
         <BackButton onPress={() => navigation.navigate('Home')} />
       </View>
@@ -289,7 +280,7 @@ if (isLoading) {
           </Text>
         </TouchableOpacity>
               </ScrollView>
-      </View>
+      </SafeAreaView>
     );
 };
 
