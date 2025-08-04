@@ -241,6 +241,8 @@ export default function HomeScreen() {
           </View>
         </View>
 
+
+
         {/* In Progress Crawl Section */}
         {currentCrawl && currentCrawlDetails && (
           <View style={styles.section}>
@@ -297,6 +299,8 @@ export default function HomeScreen() {
         />
 
       </ScrollView>
+
+
     </SafeAreaView>
   );
 }

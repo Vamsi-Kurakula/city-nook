@@ -30,6 +30,14 @@ const logEnvironmentVariables = () => {
 // Run debug logging
 logEnvironmentVariables();
 
+// Additional production debugging
+if (!__DEV__) {
+  console.log('🚀 PRODUCTION BUILD - Additional Debug Info:');
+  console.log('🔍 process.env keys:', Object.keys(process.env).filter(k => k.includes('SUPABASE') || k.includes('CLERK')));
+  console.log('🔍 Constants.expoConfig?.extra:', Constants.expoConfig?.extra);
+  console.log('🔍 Constants.expoConfig?.extra?.eas:', Constants.expoConfig?.extra?.eas);
+}
+
 // Server-side environment variables (for build scripts, migrations, etc.)
 export const SUPABASE_SERVICE_KEY_CONFIG = process.env.SUPABASE_SERVICE_KEY;
 

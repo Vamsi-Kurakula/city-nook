@@ -1,22 +1,76 @@
 import { getCrawlDefinitionByName, CrawlDefinition } from './crawlDefinitionOperations';
 
 /**
+ * Simple URL fix for production HTTP 400 issues
+ * This approach ensures proper formatting for Supabase Storage URLs
+ */
+export const fixImageUrlForProduction = (imageUrl: string): string => {
+  try {
+    if (!imageUrl || !imageUrl.includes('supabase.co/storage/v1/object/public/')) {
+      return imageUrl;
+    }
+
+    // Ensure HTTPS
+    if (imageUrl.startsWith('http://')) {
+      imageUrl = imageUrl.replace('http://', 'https://');
+    }
+
+    // Add cache-busting parameter to avoid caching issues in production
+    const separator = imageUrl.includes('?') ? '&' : '?';
+    const urlWithCacheBust = `${imageUrl}${separator}t=${Date.now()}`;
+
+    return urlWithCacheBust;
+  } catch (error) {
+    console.error('❌ Error fixing URL:', error);
+    return imageUrl;
+  }
+};
+
+/**
+ * Gets an image URL with fallback strategies
+ * 1. Fix URL for production compatibility
+ * 2. Fall back to original URL if fixing fails
+ * 3. Fall back to local asset if both fail
+ */
+export const getImageUrlWithFallback = async (imageUrl: string): Promise<string> => {
+  try {
+    if (!imageUrl) {
+      return 'assets/icon.png';
+    }
+
+    // If it's not a Supabase Storage URL, return as-is
+    if (!imageUrl.includes('supabase.co/storage/v1/object/public/')) {
+      return imageUrl;
+    }
+
+    // Fix URL for production compatibility
+    const fixedUrl = fixImageUrlForProduction(imageUrl);
+    
+    if (fixedUrl !== imageUrl) {
+      return fixedUrl;
+    }
+
+    // Fall back to original URL
+    return imageUrl;
+  } catch (error) {
+    console.error('❌ Error in getImageUrlWithFallback:', error);
+    return 'assets/icon.png';
+  }
+};
+
+/**
  * Gets the hero image source for a crawl from the database
  * @param crawlName - The crawl name to get the hero image for
  * @returns Promise<string> - The hero image URL or fallback
  */
 export const getHeroImageSourceByName = async (crawlName: string): Promise<string> => {
   try {
-    console.log('🔍 Getting hero image for crawl:', crawlName);
     const crawlDefinition = await getCrawlDefinitionByName(crawlName);
-    console.log('📊 Crawl definition found:', crawlDefinition ? 'Yes' : 'No');
     
     if (crawlDefinition?.hero_image_url) {
-      console.log('📸 Hero image URL from database:', crawlDefinition.hero_image_url);
       return crawlDefinition.hero_image_url;
     }
     
-    console.log('📁 No hero image URL found, using fallback');
     // Fallback to default image
     return 'assets/icon.png';
   } catch (error) {
@@ -75,17 +129,13 @@ export const getHeroImageSourceAsync = async (assetFolder: string): Promise<stri
  */
 export const getHeroImageSourceById = async (crawlDefinitionId: string): Promise<string> => {
   try {
-    console.log('🔍 Getting hero image for crawl ID:', crawlDefinitionId);
     const { getCrawlDefinitionById } = await import('./crawlDefinitionOperations');
     const crawlDefinition = await getCrawlDefinitionById(crawlDefinitionId);
-    console.log('📊 Crawl definition found:', crawlDefinition ? 'Yes' : 'No');
     
     if (crawlDefinition?.hero_image_url) {
-      console.log('📸 Hero image URL from database:', crawlDefinition.hero_image_url);
       return crawlDefinition.hero_image_url;
     }
     
-    console.log('📁 No hero image URL found, using fallback');
     // Fallback to default image
     return 'assets/icon.png';
   } catch (error) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';
-import { getHeroImageSourceAsync } from '../../../utils/database/imageLoader';
+import { getHeroImageSourceAsync, getImageUrlWithFallback } from '../../../utils/database/imageLoader';
 import { validateImageUrl, formatSupabaseStorageUrl, isSupabaseStorageUrl } from '../../../utils/imageUrlValidator';
 
 interface DatabaseImageProps {
@@ -28,16 +28,8 @@ const DatabaseImage: React.FC<DatabaseImageProps> = ({
       try {
         setLoading(true);
         
-        console.log('🔍 DatabaseImage Debug:', {
-          heroImageUrl,
-          assetFolder,
-          hasFallback: !!fallbackSource
-        });
-        
         // If heroImageUrl is provided directly, use it
         if (heroImageUrl) {
-          console.log('📸 Using heroImageUrl:', heroImageUrl);
-          
           // Validate and format the URL for production
           const validatedUrl = validateImageUrl(heroImageUrl);
           if (validatedUrl && validatedUrl.startsWith('http')) {
@@ -46,17 +38,16 @@ const DatabaseImage: React.FC<DatabaseImageProps> = ({
               ? formatSupabaseStorageUrl(validatedUrl) 
               : validatedUrl;
             
-            console.log('🌐 Setting validated HTTP image source:', formattedUrl);
-            setImageSource({ uri: formattedUrl });
+            // Get URL with fallback strategy
+            const finalUrl = await getImageUrlWithFallback(formattedUrl);
+            
+            setImageSource({ uri: finalUrl });
           } else {
-            console.log('📁 Using local asset fallback for heroImageUrl');
             setImageSource(fallbackSource || require('../../../assets/icon.png'));
           }
         } else if (assetFolder) {
           // Fallback to asset folder method
-          console.log('📁 Loading from asset folder:', assetFolder);
           const imageUrl = await getHeroImageSourceAsync(assetFolder);
-          console.log('📸 Retrieved image URL from asset folder:', imageUrl);
           
           if (imageUrl && imageUrl.startsWith('http')) {
             // Validate and format the URL for production
@@ -66,20 +57,19 @@ const DatabaseImage: React.FC<DatabaseImageProps> = ({
                 ? formatSupabaseStorageUrl(validatedUrl) 
                 : validatedUrl;
               
-              console.log('🌐 Setting validated HTTP image source from asset folder:', formattedUrl);
-              setImageSource({ uri: formattedUrl });
+              // Get URL with fallback strategy
+              const finalUrl = await getImageUrlWithFallback(formattedUrl);
+              
+              setImageSource({ uri: finalUrl });
             } else {
-              console.log('📁 URL validation failed, using fallback');
               setImageSource(fallbackSource || require('../../../assets/icon.png'));
             }
           } else {
             // It's a local asset path, use fallback
-            console.log('📁 Using local asset fallback for asset folder');
             setImageSource(fallbackSource || require('../../../assets/icon.png'));
           }
         } else {
           // No image source provided, use fallback
-          console.log('📁 No image source provided, using fallback');
           setImageSource(fallbackSource || require('../../../assets/icon.png'));
         }
       } catch (error) {
@@ -128,15 +118,22 @@ const DatabaseImage: React.FC<DatabaseImageProps> = ({
           });
         }
         
+        // Check if it's a 400 error (file not found)
+        const errorMessage = error?.nativeEvent?.error || error?.message || '';
+        if (errorMessage.includes('400') || errorMessage.includes('Bad Request')) {
+          console.log('🚨 HTTP 400 detected - image file may not exist in Supabase Storage');
+          console.log('💡 Check if the image files are uploaded to the correct bucket and path');
+        }
+        
         setImageSource(fallbackSource || require('../../../assets/icon.png'));
         onError?.(error);
       }}
-      onLoad={() => {
-        console.log('✅ Image loaded successfully:', imageSource);
+      onLoadStart={() => {
+        // Optional: Add loading indicator if needed
       }}
-      // Add these props for better production compatibility
-      fadeDuration={0}
-      progressiveRenderingEnabled={false}
+      onLoadEnd={() => {
+        // Optional: Remove loading indicator if needed
+      }}
     />
   );
 };
