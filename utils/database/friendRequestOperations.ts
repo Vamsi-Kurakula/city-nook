@@ -153,10 +153,13 @@ export async function getPendingRequests(userId: string, token?: string): Promis
 /**
  * Accept a friend request.
  */
-export async function acceptFriendRequest(requestId: string): Promise<void> {
+export async function acceptFriendRequest(requestId: string, token?: string): Promise<void> {
   try {
+    // Use authenticated client if token is provided
+    const client = token ? getSupabaseClient(token) : supabase;
+
     // Get the friend request
-    const { data: request, error: requestError } = await supabase
+    const { data: request, error: requestError } = await client
       .from('friend_requests')
       .select('*')
       .eq('friend_request_id', requestId)
@@ -168,7 +171,7 @@ export async function acceptFriendRequest(requestId: string): Promise<void> {
     }
 
     // Check if users exist
-    const { data: fromUser, error: fromUserError } = await supabase
+    const { data: fromUser, error: fromUserError } = await client
       .from('user_profiles')
       .select('user_profile_id')
       .eq('user_profile_id', request.from_user_id)
@@ -178,7 +181,7 @@ export async function acceptFriendRequest(requestId: string): Promise<void> {
       throw new SocialError('From user not found', SocialErrorCodes.USER_NOT_FOUND);
     }
 
-    const { data: toUser, error: toUserError } = await supabase
+    const { data: toUser, error: toUserError } = await client
       .from('user_profiles')
       .select('user_profile_id')
       .eq('user_profile_id', request.to_user_id)
@@ -189,7 +192,7 @@ export async function acceptFriendRequest(requestId: string): Promise<void> {
     }
 
     // Check if already friends
-    const { data: existingFriendship } = await supabase
+    const { data: existingFriendship } = await client
       .from('friendships')
       .select('friendship_id')
       .or(`user_id_1.eq.${request.from_user_id},user_id_2.eq.${request.from_user_id}`)
@@ -201,7 +204,7 @@ export async function acceptFriendRequest(requestId: string): Promise<void> {
     }
 
     // Use a transaction to update request and create friendship
-    const { error: updateError } = await supabase
+    const { error: updateError } = await client
       .from('friend_requests')
       .update({
         status: 'accepted',
@@ -219,7 +222,7 @@ export async function acceptFriendRequest(requestId: string): Promise<void> {
     const user1 = request.from_user_id < request.to_user_id ? request.from_user_id : request.to_user_id;
     const user2 = request.from_user_id < request.to_user_id ? request.to_user_id : request.from_user_id;
 
-    const { error: friendshipError } = await supabase
+    const { error: friendshipError } = await client
       .from('friendships')
       .insert([
         {
@@ -231,7 +234,7 @@ export async function acceptFriendRequest(requestId: string): Promise<void> {
     if (friendshipError) {
       console.error('Error creating friendship:', friendshipError);
       // Try to revert the request status
-      await supabase
+      await client
         .from('friend_requests')
         .update({
           status: 'pending',
@@ -254,10 +257,13 @@ export async function acceptFriendRequest(requestId: string): Promise<void> {
 /**
  * Reject a friend request.
  */
-export async function rejectFriendRequest(requestId: string): Promise<void> {
+export async function rejectFriendRequest(requestId: string, token?: string): Promise<void> {
   try {
+    // Use authenticated client if token is provided
+    const client = token ? getSupabaseClient(token) : supabase;
+
     // Get the friend request
-    const { data: request, error: requestError } = await supabase
+    const { data: request, error: requestError } = await client
       .from('friend_requests')
       .select('*')
       .eq('friend_request_id', requestId)
@@ -269,7 +275,7 @@ export async function rejectFriendRequest(requestId: string): Promise<void> {
     }
 
     // Update request status
-    const { error: updateError } = await supabase
+    const { error: updateError } = await client
       .from('friend_requests')
       .update({
         status: 'rejected',

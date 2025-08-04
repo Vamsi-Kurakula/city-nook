@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Image, Alert, Linking } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, StyleSheet, Text, TouchableOpacity, Image, Alert, Linking, Platform } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useOAuth, useAuth } from '@clerk/clerk-expo';
 import { useAuthContext } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -17,6 +17,7 @@ export default function SignInScreen() {
   const { theme } = useTheme();
   const [isLoading, setIsLoading] = React.useState(false);
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
 
   const handleContinueWithCurrentAccount = async () => {
     try {
@@ -127,7 +128,16 @@ export default function SignInScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+         <View style={[
+       styles.container, 
+       { 
+         backgroundColor: theme.background.primary,
+         paddingTop: insets.top,
+         paddingBottom: insets.bottom,
+         paddingLeft: insets.left,
+         paddingRight: insets.right,
+       }
+     ]}>
       <View style={styles.content}>
         {/* App Logo/Title */}
         <View style={styles.header}>
@@ -178,7 +188,7 @@ export default function SignInScreen() {
           </Text>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

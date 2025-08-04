@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Alert, Platform } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import { useCrawlContext } from '../../context/CrawlContext';
 import { Crawl, CrawlStop } from '../../../types/crawl';
@@ -32,6 +32,7 @@ const CrawlDetailScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   
   // Accept either a crawl object or a crawlId
   const routeParams = route.params as { crawl?: Crawl; crawlId?: string } | undefined;
@@ -59,17 +60,26 @@ const CrawlDetailScreen: React.FC = () => {
   }, [routeParams?.crawlId]);
 
   if (loading || !crawl) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
-        <View style={styles.header}>
-          <BackButton onPress={() => navigation.navigate('Home')} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  return (
+    <View style={[
+      styles.container, 
+      { 
+        backgroundColor: theme.background.primary,
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+        paddingLeft: insets.left,
+        paddingRight: insets.right,
+      }
+    ]}> 
+      <View style={styles.header}>
+        <BackButton onPress={() => navigation.navigate('Home')} />
+      </View>
+      <View style={styles.loadingContainer}>
+        <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
+      </View>
+    </View>
+  );
+}
   
   const { 
     startCrawlWithNavigation, 
@@ -81,18 +91,27 @@ const CrawlDetailScreen: React.FC = () => {
   const { user, isLoading } = useAuthContext();
 
   // Show loading if auth is still loading
-  if (isLoading) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
-        <View style={styles.header}>
-          <BackButton onPress={() => navigation.navigate('Home')} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+if (isLoading) {
+  return (
+    <View style={[
+      styles.container, 
+      { 
+        backgroundColor: theme.background.primary,
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+        paddingLeft: insets.left,
+        paddingRight: insets.right,
+      }
+    ]}> 
+      <View style={styles.header}>
+        <BackButton onPress={() => navigation.navigate('Home')} />
+      </View>
+      <View style={styles.loadingContainer}>
+        <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
+      </View>
+    </View>
+  );
+}
 
   const handleStartCrawl = async () => {
     // Check if there's already a crawl in progress (both local state and database)
@@ -140,7 +159,16 @@ const CrawlDetailScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
+  <View style={[
+    styles.container, 
+    { 
+      backgroundColor: theme.background.primary,
+      paddingTop: insets.top,
+      paddingBottom: insets.bottom,
+      paddingLeft: insets.left,
+      paddingRight: insets.right,
+    }
+  ]}>  
       <View style={styles.header}>
         <BackButton onPress={() => navigation.navigate('Home')} />
       </View>
@@ -260,9 +288,9 @@ const CrawlDetailScreen: React.FC = () => {
             Start Crawl
           </Text>
         </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
-  );
+              </ScrollView>
+      </View>
+    );
 };
 
 const styles = StyleSheet.create({

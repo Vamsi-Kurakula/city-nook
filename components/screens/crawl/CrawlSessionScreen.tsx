@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../context/ThemeContext';
 import { useCrawlContext } from '../../context/CrawlContext';
@@ -18,6 +18,7 @@ const CrawlSessionScreen: React.FC = () => {
   const { theme } = useTheme();
   const { user } = useAuthContext();
   const { getToken } = useAuth();
+  const insets = useSafeAreaInsets();
   
   const routeParams = route.params as { 
     crawl?: Crawl; 
@@ -215,7 +216,7 @@ const CrawlSessionScreen: React.FC = () => {
   }, [completedStop, userAnswer]);
 
   const handleExit = () => {
-    navigation.navigate('CrawlDetail', { crawl });
+    navigation.navigate('Home');
   };
 
   // Debug logging
@@ -232,10 +233,19 @@ const CrawlSessionScreen: React.FC = () => {
   });
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+         <View style={[
+       styles.container, 
+       { 
+         backgroundColor: theme.background.primary,
+         paddingTop: insets.top,
+         paddingBottom: insets.bottom,
+         paddingLeft: insets.left,
+         paddingRight: insets.right,
+       }
+     ]}>
       {/* Fixed Top Section - Exit Button and Future Buttons */}
       <View style={[styles.topSection, { borderBottomColor: theme.border.secondary }]}>
-        <BackButton onPress={handleExit} label="Exit" style={styles.exitButton} textStyle={styles.exitButtonText} />
+        <BackButton onPress={handleExit} style={styles.exitButton} />
         <View style={styles.topRightButtons}>
           {/* Future buttons will go here */}
         </View>
@@ -285,7 +295,7 @@ const CrawlSessionScreen: React.FC = () => {
           </View>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -304,10 +314,6 @@ const styles = StyleSheet.create({
   exitButton: { 
     padding: 8,
     borderRadius: 6,
-  },
-  exitButtonText: { 
-    fontSize: 14, 
-    fontWeight: '600' 
   },
   topRightButtons: { 
     flexDirection: 'row', 

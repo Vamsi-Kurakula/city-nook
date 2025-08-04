@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Dimensions, Animated, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Dimensions, Animated, Alert, Platform } from 'react-native';
 import MapView, { Marker, Polyline, Callout } from 'react-native-maps';
 import { CrawlStop } from '../../../types/crawl';
 import { LocationCoordinates } from '../../../utils/coordinateExtractor';
@@ -252,7 +252,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         return roadRouteCoordinates;
       }
       
-      // Fallback to straight lines
+      // Fallback to straight lines connecting marker centers
       const allLocations = getVisibleLocations();
       const straightLineCoords = allLocations
         .sort((a, b) => a.stopNumber - b.stopNumber)
@@ -262,6 +262,67 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
         }));
       
       return straightLineCoords;
+    };
+
+    // Calculate adjusted coordinates for polyline to connect marker centers
+    const getAdjustedRouteCoordinates = () => {
+      const baseCoords = getRouteCoordinates();
+      
+      // If we have road route coordinates, return them as-is
+      if (roadRouteCoordinates.length > 0) {
+        return baseCoords;
+      }
+      
+      // For straight lines, extend the line by the marker radius to connect to circle edges
+      const visibleLocations = getVisibleLocations().sort((a, b) => a.stopNumber - b.stopNumber);
+      
+      if (visibleLocations.length < 2) return baseCoords;
+      
+             // Marker radius in degrees (approximate conversion from pixels)
+       const markerRadiusDegrees = 0.0003; // Increased to better connect to marker edges
+      
+      const adjustedCoords = [];
+      
+      for (let i = 0; i < visibleLocations.length; i++) {
+        const location = visibleLocations[i];
+        const coord = {
+          latitude: location.latitude,
+          longitude: location.longitude,
+        };
+        
+        // For the first marker, extend the line outward from the center
+        if (i === 0 && visibleLocations.length > 1) {
+          const nextLocation = visibleLocations[i + 1];
+          const latDiff = nextLocation.latitude - location.latitude;
+          const lngDiff = nextLocation.longitude - location.longitude;
+          const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
+          
+          if (distance > 0) {
+            const unitLat = latDiff / distance;
+            const unitLng = lngDiff / distance;
+            coord.latitude = location.latitude + unitLat * markerRadiusDegrees;
+            coord.longitude = location.longitude + unitLng * markerRadiusDegrees;
+          }
+        }
+        // For the last marker, extend the line outward from the center
+        else if (i === visibleLocations.length - 1 && visibleLocations.length > 1) {
+          const prevLocation = visibleLocations[i - 1];
+          const latDiff = location.latitude - prevLocation.latitude;
+          const lngDiff = location.longitude - prevLocation.longitude;
+          const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
+          
+          if (distance > 0) {
+            const unitLat = latDiff / distance;
+            const unitLng = lngDiff / distance;
+            coord.latitude = location.latitude + unitLat * markerRadiusDegrees;
+            coord.longitude = location.longitude + unitLng * markerRadiusDegrees;
+          }
+        }
+        
+        adjustedCoords.push(coord);
+      }
+      
+      return adjustedCoords;
     };
 
     const handleMarkerPress = (location: LocationCoordinates, event: any) => {
@@ -352,6 +413,176 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
       }
     };
 
+    // Get map style based on theme
+    const getMapStyle = () => {
+      if (themeType === 'dark') {
+        return [
+          {
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#1a1a1a"
+              }
+            ]
+          },
+          {
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#cccccc"
+              }
+            ]
+          },
+          {
+            "elementType": "labels.text.stroke",
+            "stylers": [
+              {
+                "color": "#1a1a1a"
+              }
+            ]
+          },
+          {
+            "featureType": "administrative.locality",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#ffffff"
+              }
+            ]
+          },
+          {
+            "featureType": "poi",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#ffffff"
+              }
+            ]
+          },
+          {
+            "featureType": "poi.park",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#2d2d2d"
+              }
+            ]
+          },
+          {
+            "featureType": "poi.park",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#30D158"
+              }
+            ]
+          },
+          {
+            "featureType": "road",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#3a3a3a"
+              }
+            ]
+          },
+          {
+            "featureType": "road",
+            "elementType": "geometry.stroke",
+            "stylers": [
+              {
+                "color": "#2d2d2d"
+              }
+            ]
+          },
+          {
+            "featureType": "road",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#cccccc"
+              }
+            ]
+          },
+          {
+            "featureType": "road.highway",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#4a4a4a"
+              }
+            ]
+          },
+          {
+            "featureType": "road.highway",
+            "elementType": "geometry.stroke",
+            "stylers": [
+              {
+                "color": "#3a3a3a"
+              }
+            ]
+          },
+          {
+            "featureType": "road.highway",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#ffffff"
+              }
+            ]
+          },
+          {
+            "featureType": "transit",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#3a3a3a"
+              }
+            ]
+          },
+          {
+            "featureType": "transit.station",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#ffffff"
+              }
+            ]
+          },
+          {
+            "featureType": "water",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#17263c"
+              }
+            ]
+          },
+          {
+            "featureType": "water",
+            "elementType": "labels.text.fill",
+            "stylers": [
+              {
+                "color": "#515c6d"
+              }
+            ]
+          },
+          {
+            "featureType": "water",
+            "elementType": "labels.text.stroke",
+            "stylers": [
+              {
+                "color": "#17263c"
+              }
+            ]
+          }
+        ];
+      } else {
+        // Light theme - use default Google Maps style
+        return undefined;
+      }
+    };
+
     const handleStartPress = () => {
       if (selectedStop) {
         // Check if stop is already completed
@@ -414,167 +645,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
           showsTraffic={false}
           showsIndoors={true}
           mapType="standard"
-          customMapStyle={themeType === 'dark' ? [
-            {
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#1a1a1a"
-                }
-              ]
-            },
-            {
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#cccccc"
-                }
-              ]
-            },
-            {
-              "elementType": "labels.text.stroke",
-              "stylers": [
-                {
-                  "color": "#1a1a1a"
-                }
-              ]
-            },
-            {
-              "featureType": "administrative.locality",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#ffffff"
-                }
-              ]
-            },
-            {
-              "featureType": "poi",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#ffffff"
-                }
-              ]
-            },
-            {
-              "featureType": "poi.park",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#2d2d2d"
-                }
-              ]
-            },
-            {
-              "featureType": "poi.park",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#30D158"
-                }
-              ]
-            },
-            {
-              "featureType": "road",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#3a3a3a"
-                }
-              ]
-            },
-            {
-              "featureType": "road",
-              "elementType": "geometry.stroke",
-              "stylers": [
-                {
-                  "color": "#2d2d2d"
-                }
-              ]
-            },
-            {
-              "featureType": "road",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#cccccc"
-                }
-              ]
-            },
-            {
-              "featureType": "road.highway",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#4a4a4a"
-                }
-              ]
-            },
-            {
-              "featureType": "road.highway",
-              "elementType": "geometry.stroke",
-              "stylers": [
-                {
-                  "color": "#3a3a3a"
-                }
-              ]
-            },
-            {
-              "featureType": "road.highway",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#ffffff"
-                }
-              ]
-            },
-            {
-              "featureType": "transit",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#3a3a3a"
-                }
-              ]
-            },
-            {
-              "featureType": "transit.station",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#ffffff"
-                }
-              ]
-            },
-            {
-              "featureType": "water",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#17263c"
-                }
-              ]
-            },
-            {
-              "featureType": "water",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#515c6d"
-                }
-              ]
-            },
-            {
-              "featureType": "water",
-              "elementType": "labels.text.stroke",
-              "stylers": [
-                {
-                  "color": "#17263c"
-                }
-              ]
-            }
-          ] : undefined}
+          customMapStyle={getMapStyle()}
         >
           {/* Render markers for visible locations */}
           {getVisibleLocations().map((location) => (
@@ -585,6 +656,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
                 longitude: location.longitude,
               }}
               onPress={(event) => handleMarkerPress(location, event)}
+              zIndex={2}
             >
               <View style={[styles.customMarker, { backgroundColor: getMarkerColor(location.stopNumber) }]}>
                 <Text style={styles.markerText}>{location.stopNumber}</Text>
@@ -593,38 +665,20 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
           ))}
 
           {/* Render route polyline */}
-          {getRouteCoordinates().length > 1 && (
+          {getAdjustedRouteCoordinates().length > 1 && (
             <Polyline
-              coordinates={getRouteCoordinates()}
+              coordinates={getAdjustedRouteCoordinates()}
               strokeColor={isLoadingRoute ? theme.text.tertiary || "#9E9E9E" : theme.button.primary || "#007AFF"}
-              strokeWidth={isLoadingRoute ? 2 : 3}
+              strokeWidth={Platform.OS === 'ios' ? (isLoadingRoute ? 1 : 2) : (isLoadingRoute ? 2 : 3)}
               lineDashPattern={isLoadingRoute ? [10, 5] : [5, 5]}
+              zIndex={1}
+              lineCap="round"
+              lineJoin="round"
             />
           )}
         </MapView>
         
-        {/* Legend positioned over the map */}
-        <View style={[styles.legend, { backgroundColor: theme.background.primary }]}> 
-          <Text style={[styles.legendTitle, { color: theme.text.primary }]}>Legend:</Text>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: theme.button.success || '#4CAF50', borderColor: theme.border.primary }]} />
-            <Text style={[styles.legendText, { color: theme.text.primary }]}>Completed</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: theme.button.primary || '#FF9800', borderColor: theme.border.primary }]} />
-            <Text style={[styles.legendText, { color: theme.text.primary }]}>Current</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: theme.button.disabled || '#9E9E9E', borderColor: theme.border.primary }]} />
-            <Text style={[styles.legendText, { color: theme.text.primary }]}>Available</Text>
-          </View>
-          {isLoadingRoute && (
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: theme.text.tertiary || '#9E9E9E', borderColor: theme.border.primary }]} />
-              <Text style={[styles.legendText, { color: theme.text.primary }]}>Calculating Route...</Text>
-            </View>
-          )}
-        </View>
+
 
         {/* Slide-up action panel */}
         {showActionModal && selectedStop && (
@@ -642,19 +696,19 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
               }
             ]}
           >
-            <View style={styles.actionPanelHeader}>
-              <Text style={[styles.actionPanelTitle, { color: theme.text.primary }]}>
-                {selectedStop.stop.location_name || `Stop ${selectedStop.stopNumber}`}
-              </Text>
-              <TouchableOpacity
-                style={styles.actionPanelCloseButton}
-                onPress={handleClosePanel}
-              >
-                <Text style={[styles.actionPanelCloseText, { color: theme.text.secondary }]}>
-                  ✕
-                </Text>
-              </TouchableOpacity>
-            </View>
+                         <View style={styles.actionPanelHeader}>
+               <Text style={[styles.actionPanelTitle, { color: theme.text.primary }]}>
+                 Stop {selectedStop.stopNumber}: {selectedStop.stop.location_name || 'Location'}
+               </Text>
+               <TouchableOpacity
+                 style={styles.actionPanelCloseButton}
+                 onPress={handleClosePanel}
+               >
+                 <Text style={[styles.actionPanelCloseText, { color: theme.text.secondary }]}>
+                   ✕
+                 </Text>
+               </TouchableOpacity>
+             </View>
             
             {/* Show completion status */}
             {completedStops.includes(selectedStop.stopNumber) && (
@@ -714,13 +768,10 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
               }
             ]}
           >
-            <View style={styles.completionModalContent}>
-              <Text style={[styles.completionTitle, { color: theme.text.primary }]}>
-                🎉 Congratulations! Crawl Complete
-              </Text>
-              <Text style={[styles.completionMessage, { color: theme.text.secondary }]}>
-                You've successfully completed all stops in this crawl!
-              </Text>
+                         <View style={styles.completionModalContent}>
+               <Text style={[styles.completionMessage, { color: theme.text.secondary }]}>
+                 🎉 Congratulations! You've successfully completed all stops in this crawl!
+               </Text>
               
               <TouchableOpacity
                 style={[styles.completionButton, { backgroundColor: theme.button.primary }]}
@@ -789,48 +840,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: 'transparent',
   },
-  legend: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    padding: 12,
-    borderRadius: 8,
-    minWidth: 160,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    borderWidth: 1,
-  },
-  legendTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 4,
-  },
-  legendDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    marginRight: 12,
-    borderWidth: 2,
-  },
-  legendText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
+
   customMarker: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
@@ -907,16 +921,17 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
+    flex: 1,
+    minWidth: 120,
   },
   actionButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
   },
   completionModalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '40%',
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   completionModalHeader: {
     flexDirection: 'row',
@@ -990,6 +1005,7 @@ const styles = StyleSheet.create({
   actionPanelButtons: {
     flexDirection: 'row',
     gap: 12,
+    justifyContent: 'center',
   },
   completionStatus: {
     alignItems: 'center',
@@ -1005,7 +1021,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    padding: 12,
+    padding: 20,
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
     shadowColor: '#000',
@@ -1018,17 +1034,20 @@ const styles = StyleSheet.create({
     elevation: 8,
     zIndex: 1001,
   },
+
   completionTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 12,
     textAlign: 'center',
+    lineHeight: 28,
   },
   completionMessage: {
-    fontSize: 14,
+    fontSize: 20,
     textAlign: 'center',
-    marginBottom: 16,
-    lineHeight: 18,
+    marginBottom: 32,
+    lineHeight: 28,
+    fontWeight: '600',
   },
 });
 

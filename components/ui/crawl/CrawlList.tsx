@@ -35,9 +35,9 @@ const CrawlList: React.FC<CrawlListProps> = ({ crawls, onCrawlPress, onCrawlStar
           </Text>
           <View style={styles.crawlMeta}>
             <View style={styles.metaLeft}>
-              <Text style={[styles.crawlStops, { color: theme.button.primary }]}>{item.stops?.length || 0} stops</Text>
-              <Text style={[styles.crawlDistance, { color: theme.button.primary }]}>• {item.distance}</Text>
-              <Text style={[styles.crawlDuration, { color: theme.button.primary }]}>• {item.duration}</Text>
+              <Text style={[styles.crawlStops, { color: theme.text.tertiary }]}>{item.stops?.length || 0} stops</Text>
+              <Text style={[styles.crawlDistance, { color: theme.text.tertiary }]}>• {item.distance}</Text>
+              <Text style={[styles.crawlDuration, { color: theme.text.tertiary }]}>• {item.duration}</Text>
             </View>
             <Text style={[styles.crawlDifficulty, { color: theme.text.secondary }]}>{item.difficulty}</Text>
           </View>

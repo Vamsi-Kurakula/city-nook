@@ -1,28 +1,27 @@
 import React from 'react';
-import { Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
+import { StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
 
 interface BackButtonProps {
   onPress: () => void;
   style?: ViewStyle;
-  textStyle?: TextStyle;
   testID?: string;
-  label?: string;
 }
 
-const BackButton: React.FC<BackButtonProps> = ({ onPress, style, textStyle, testID, label = 'Back' }) => {
+const BackButton: React.FC<BackButtonProps> = ({ onPress, style, testID }) => {
   const { theme } = useTheme();
   return (
     <TouchableOpacity
       onPress={onPress}
       style={[
         styles.backButton,
-        { backgroundColor: theme.background.secondary, shadowColor: theme.shadow.primary },
+        { backgroundColor: theme.background.tertiary, shadowColor: theme.shadow.primary },
         style,
       ]}
       testID={testID}
     >
-      <Text style={[styles.backButtonText, { color: theme.text.primary }, textStyle]}>{label}</Text>
+      <Ionicons name="arrow-back" size={24} color={theme.text.tertiary} />
     </TouchableOpacity>
   );
 };
@@ -39,10 +38,6 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 12,
     marginRight: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 

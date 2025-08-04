@@ -39,9 +39,9 @@ export default function FeaturedCrawlsSection({
             {item.description}
           </Text>
           <View style={styles.crawlMeta}>
-            <Text style={[styles.crawlStops, { color: theme.button.primary }]}>{item.stops?.length || 0} stops</Text>
-            <Text style={[styles.crawlDistance, { color: theme.button.primary }]}>• {item.distance}</Text>
-            <Text style={[styles.crawlDuration, { color: theme.button.primary }]}>• {item.duration}</Text>
+            <Text style={[styles.crawlStops, { color: theme.text.tertiary }]}>{item.stops?.length || 0} stops</Text>
+            <Text style={[styles.crawlDistance, { color: theme.text.tertiary }]}>• {item.distance}</Text>
+            <Text style={[styles.crawlDuration, { color: theme.text.tertiary }]}>• {item.duration}</Text>
             <Text style={[styles.crawlDifficulty, { color: theme.text.secondary }]}>• {item.difficulty}</Text>
           </View>
         </View>
@@ -58,7 +58,7 @@ export default function FeaturedCrawlsSection({
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Featured Crawls</Text>
         <TouchableOpacity onPress={onViewAllPress}>
-          <Text style={[styles.viewAllText, { color: theme.button.primary }]}>View All</Text>
+          <Text style={[styles.viewAllText, { color: theme.button.primary }]}>View All Crawls</Text>
         </TouchableOpacity>
       </View>
       

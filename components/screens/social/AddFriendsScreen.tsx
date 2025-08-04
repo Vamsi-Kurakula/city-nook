@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../context/ThemeContext';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackButton from '../../ui/common/BackButton';
 import { useAuthContext } from '../../context/AuthContext';
 import { useAuth } from '@clerk/clerk-expo';
@@ -19,6 +19,7 @@ export default function AddFriendsScreen() {
   const { theme } = useTheme();
   const { user } = useAuthContext();
   const { getToken } = useAuth();
+  const insets = useSafeAreaInsets();
 
   // Friend requests state
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
@@ -57,45 +58,141 @@ export default function AddFriendsScreen() {
     } finally {
       setLoadingRequests(false);
     }
-  }, [user?.id, getToken]);
+  }, [user?.id]);
 
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
 
   const refreshRequests = useCallback(async () => {
-    await fetchRequests();
-  }, [fetchRequests]);
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchRequests();
-    // Clear search results on refresh
-    setSearchQuery('');
-    setRequestSentIds([]);
-    setError(null);
-    setRefreshing(false);
-  };
-
-  const handleAcceptRequest = async (requestId: string) => {
+    if (!user?.id) return;
+    setLoadingRequests(true);
     try {
-      await acceptFriendRequest(requestId);
-      await refreshRequests();
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        throw new Error('Failed to get authentication token');
+      }
+      
+      const requests = await getPendingRequests(user.id, token);
+      setFriendRequests(requests);
+      
+      // Fetch sender profiles in parallel
+      const senderIds = requests.map(r => r.from_user_id);
+      const profiles = await getUserProfilesByIds(senderIds);
+      const senderMap: { [id: string]: SocialUserProfile } = {};
+      profiles.forEach((p: SocialUserProfile) => { senderMap[p.user_profile_id] = p; });
+      setRequestSenders(senderMap);
+    } catch (err) {
+      console.error('Error refreshing friend requests:', err);
+    } finally {
+      setLoadingRequests(false);
+    }
+  }, [user?.id]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    if (!user?.id) {
+      setRefreshing(false);
+      return;
+    }
+    try {
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        throw new Error('Failed to get authentication token');
+      }
+      
+      const requests = await getPendingRequests(user.id, token);
+      setFriendRequests(requests);
+      
+      // Fetch sender profiles in parallel
+      const senderIds = requests.map(r => r.from_user_id);
+      const profiles = await getUserProfilesByIds(senderIds);
+      const senderMap: { [id: string]: SocialUserProfile } = {};
+      profiles.forEach((p: SocialUserProfile) => { senderMap[p.user_profile_id] = p; });
+      setRequestSenders(senderMap);
+      
+      // Clear search results on refresh
+      setSearchQuery('');
+      setRequestSentIds([]);
+      setError(null);
+    } catch (err) {
+      console.error('Error refreshing:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [user?.id]);
+
+  const handleAcceptRequest = useCallback(async (requestId: string) => {
+    try {
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        throw new Error('Failed to get authentication token');
+      }
+      await acceptFriendRequest(requestId, token);
+      // Refresh the requests after accepting
+      if (!user?.id) return;
+      setLoadingRequests(true);
+      try {
+        const token = await getToken({ template: 'supabase' });
+        if (!token) {
+          throw new Error('Failed to get authentication token');
+        }
+        
+        const requests = await getPendingRequests(user.id, token);
+        setFriendRequests(requests);
+        
+        // Fetch sender profiles in parallel
+        const senderIds = requests.map(r => r.from_user_id);
+        const profiles = await getUserProfilesByIds(senderIds);
+        const senderMap: { [id: string]: SocialUserProfile } = {};
+        profiles.forEach((p: SocialUserProfile) => { senderMap[p.user_profile_id] = p; });
+        setRequestSenders(senderMap);
+      } catch (err) {
+        console.error('Error refreshing friend requests:', err);
+      } finally {
+        setLoadingRequests(false);
+      }
       Alert.alert('Success', 'Friend request accepted!');
     } catch (err) {
       Alert.alert('Error', (err as Error).message);
     }
-  };
+  }, [user?.id]);
 
-  const handleRejectRequest = async (requestId: string) => {
+  const handleRejectRequest = useCallback(async (requestId: string) => {
     try {
-      await rejectFriendRequest(requestId);
-      await refreshRequests();
+      const token = await getToken({ template: 'supabase' });
+      if (!token) {
+        throw new Error('Failed to get authentication token');
+      }
+      await rejectFriendRequest(requestId, token);
+      // Refresh the requests after rejecting
+      if (!user?.id) return;
+      setLoadingRequests(true);
+      try {
+        const token = await getToken({ template: 'supabase' });
+        if (!token) {
+          throw new Error('Failed to get authentication token');
+        }
+        
+        const requests = await getPendingRequests(user.id, token);
+        setFriendRequests(requests);
+        
+        // Fetch sender profiles in parallel
+        const senderIds = requests.map(r => r.from_user_id);
+        const profiles = await getUserProfilesByIds(senderIds);
+        const senderMap: { [id: string]: SocialUserProfile } = {};
+        profiles.forEach((p: SocialUserProfile) => { senderMap[p.user_profile_id] = p; });
+        setRequestSenders(senderMap);
+      } catch (err) {
+        console.error('Error refreshing friend requests:', err);
+      } finally {
+        setLoadingRequests(false);
+      }
       Alert.alert('Success', 'Friend request rejected.');
     } catch (err) {
       Alert.alert('Error', (err as Error).message);
     }
-  };
+  }, [user?.id]);
 
   // Search logic
   const handleSearch = async () => {
@@ -135,7 +232,16 @@ export default function AddFriendsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}> 
+         <View style={[
+       styles.container, 
+       { 
+         backgroundColor: theme.background.primary,
+         paddingTop: insets.top,
+         paddingBottom: insets.bottom,
+         paddingLeft: insets.left,
+         paddingRight: insets.right,
+       }
+     ]}>  
       <BackButton onPress={() => navigation.goBack()} style={{ alignSelf: 'flex-start', marginBottom: 20 }} />
       <ScrollView 
         style={styles.content} 
@@ -219,7 +325,7 @@ export default function AddFriendsScreen() {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

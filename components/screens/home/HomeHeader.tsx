@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -26,9 +26,9 @@ export default function HomeHeader({
             textShadowColor: '#000',
             textShadowOffset: { width: 1, height: 1 },
             textShadowRadius: 0,
-            fontSize: 48,
-            fontWeight: '400',
-            lineHeight: 67.2,
+                         fontSize: 48,
+             fontWeight: '400',
+             lineHeight: 67.2,
             letterSpacing: -0.96,
             fontFamily: 'System', // Note: Pridi font would need to be changed to Pridi when font files are added
           }]}>{title}</Text>
@@ -57,7 +57,7 @@ export default function HomeHeader({
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
-    paddingTop: 10,
+         paddingTop: 10,
     paddingBottom: 8,
   },
   headerTop: {

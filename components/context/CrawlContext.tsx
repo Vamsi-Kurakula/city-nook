@@ -203,7 +203,7 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
           isPublic: updatedProgress.is_public,
           currentStop: updatedProgress.current_stop,
           completedStops: completedStopNumbers,
-          startedAt: new Date(updatedProgress.started_at).toISOString(),
+          startedAt: updatedProgress.started_at ? new Date(updatedProgress.started_at).toISOString() : new Date().toISOString(),
           completedAt: updatedProgress.completed ? new Date().toISOString() : undefined,
           token,
         });
@@ -247,7 +247,7 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
                 user_answer: '',
                 completed_at: new Date(),
               })),
-              started_at: new Date(dbProgress.started_at),
+              started_at: dbProgress.started_at ? new Date(dbProgress.started_at) : new Date(),
               last_updated: new Date(dbProgress.updated_at),
               completed: !!dbProgress.completed_at,
             };
@@ -276,7 +276,7 @@ export const CrawlProvider: React.FC<CrawlProviderProps> = ({ children }) => {
                 user_answer: '',
                 completed_at: new Date(),
               })),
-              started_at: new Date(dbProgress.started_at),
+              started_at: dbProgress.started_at ? new Date(dbProgress.started_at) : new Date(),
               last_updated: new Date(dbProgress.updated_at),
               completed: !!dbProgress.completed_at,
             };

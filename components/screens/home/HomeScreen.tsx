@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Text, ActivityIndicator, Image, RefreshControl, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Text, ActivityIndicator, Image, RefreshControl, Alert, Platform } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../../context/AuthContext';
 import { useCrawlContext } from '../../context/CrawlContext';
@@ -23,6 +23,7 @@ export default function HomeScreen() {
   const { theme } = useTheme();
   const { getToken } = useAuth();
   const userId = user?.id;
+  const insets = useSafeAreaInsets();
 
   const {
     featuredCrawls,
@@ -143,18 +144,36 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
-        <HomeHeader />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.button.primary} />
-          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
-        </View>
-      </SafeAreaView>
+             <View style={[
+         styles.container, 
+         { 
+           backgroundColor: theme.background.primary,
+           paddingTop: insets.top,
+           paddingBottom: insets.bottom,
+           paddingLeft: insets.left,
+           paddingRight: insets.right,
+         }
+       ]}>
+         <HomeHeader />
+         <View style={styles.loadingContainer}>
+           <ActivityIndicator size="large" color={theme.button.primary} />
+           <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
+         </View>
+       </View>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+         <View style={[
+       styles.container, 
+       { 
+         backgroundColor: theme.background.primary,
+         paddingTop: insets.top,
+         paddingBottom: insets.bottom,
+         paddingLeft: insets.left,
+         paddingRight: insets.right,
+       }
+     ]}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -170,7 +189,7 @@ export default function HomeScreen() {
         <HomeHeader />
 
         {/* Fellow Crawlers Section - Right under the "Crawls" title */}
-        <View style={[styles.section, { marginTop: 0 }]}>
+        <View style={[styles.section, { marginTop: 20 }]}>
           {friendsLoading ? (
             <ActivityIndicator size="small" color={theme.button.primary} style={{ marginVertical: 16 }} />
           ) : (
@@ -183,7 +202,7 @@ export default function HomeScreen() {
                   activeOpacity={0.8}
                 >
                   {friend.avatar_url ? (
-                    <Image source={{ uri: friend.avatar_url }} style={[styles.friendAvatar, { borderColor: theme.background.secondary }]} />
+                    <Image source={{ uri: friend.avatar_url }} style={[styles.friendAvatar, { borderColor: 'transparent' }]} />
                   ) : (
                     <View style={[styles.friendAvatar, styles.friendAvatarPlaceholder, { backgroundColor: theme.button.primary }]}>
                       <Text style={[styles.friendAvatarText, { color: theme.text.inverse }]}>
@@ -201,7 +220,7 @@ export default function HomeScreen() {
                   onPress={() => navigation.navigate('FriendsList')}
                   activeOpacity={0.8}
                 >
-                  <View style={[styles.friendAvatar, styles.viewAllButton, { backgroundColor: theme.button.primary, borderColor: theme.background.secondary }]}>
+                  <View style={[styles.friendAvatar, styles.viewAllButton, { backgroundColor: theme.button.primary, borderColor: 'transparent' }]}>
                     <Text style={[styles.viewAllButtonText, { color: theme.text.inverse }]}>+{friends.length - 3}</Text>
                   </View>
                   <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>View All</Text>
@@ -229,24 +248,10 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Crawl Library Button */}
-        <View style={[styles.section, { marginTop: 20 }]}>
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={[styles.fullWidthButton, { backgroundColor: theme.background.secondary }]}
-              onPress={() => navigation.navigate('CrawlLibrary')}
-            >
-              <Text style={[styles.fullWidthButtonText, { color: theme.text.primary }]}>Crawl Library</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-
-
         {/* In Progress Crawl Section */}
         {currentCrawl && currentCrawlDetails && (
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
+            <View style={[styles.sectionHeader, { paddingHorizontal: 20 }]}>
               <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Continue Crawling</Text>
             </View>
             <TouchableOpacity
@@ -290,6 +295,8 @@ export default function HomeScreen() {
           </View>
         )}
 
+
+
         {/* Featured Crawls Section */}
         <FeaturedCrawlsSection
           featuredCrawls={convertedFeaturedCrawls}
@@ -301,7 +308,7 @@ export default function HomeScreen() {
       </ScrollView>
 
 
-    </SafeAreaView>
+    </View>
   );
 }
 
