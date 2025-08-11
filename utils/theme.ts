@@ -60,6 +60,7 @@ export interface ColorTheme {
   special: {
     googleBlue: string;   // Google sign-in button
     avatarPlaceholder: string; // Avatar placeholder background
+    backButtonArrow: string; // Back button arrow color
   };
   
   // Status Bar Configuration
@@ -124,6 +125,7 @@ export const lightTheme: ColorTheme = {
   special: {
     googleBlue: '#4285F4',   // Google sign-in button
     avatarPlaceholder: '#e1e5e9', // Avatar placeholder background
+    backButtonArrow: '#ffffff', // Back button arrow color (white)
   },
   
   statusBar: {
@@ -187,6 +189,7 @@ export const darkTheme: ColorTheme = {
   special: {
     googleBlue: '#4285F4',   // Keep Google blue
     avatarPlaceholder: '#3a3a3a', // Dark avatar placeholder
+    backButtonArrow: '#ffffff', // Back button arrow color (white)
   },
   
   statusBar: {

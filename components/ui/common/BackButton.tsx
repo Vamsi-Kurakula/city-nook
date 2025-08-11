@@ -21,7 +21,7 @@ const BackButton: React.FC<BackButtonProps> = ({ onPress, style, testID }) => {
       ]}
       testID={testID}
     >
-      <Ionicons name="arrow-back" size={24} color={theme.text.tertiary} />
+      <Ionicons name="arrow-back" size={24} color={theme.special.backButtonArrow} />
     </TouchableOpacity>
   );
 };

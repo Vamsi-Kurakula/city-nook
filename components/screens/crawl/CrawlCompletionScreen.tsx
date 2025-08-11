@@ -31,7 +31,7 @@ const CrawlCompletionScreen: React.FC = () => {
       try {
         console.log('Processing crawl completion with data:', completionData);
         
-        const totalTimeMinutes = Math.round((completionData.completed.getTime() - completionData.started.getTime()) / 60000);
+        const totalTimeMinutes = Math.round((new Date(completionData.completed).getTime() - new Date(completionData.started).getTime()) / 60000);
         
         const token = await getToken({ template: 'supabase' });
         if (token) {
@@ -40,7 +40,7 @@ const CrawlCompletionScreen: React.FC = () => {
             userId: completionData.userId,
             crawlId: completionData.crawlId,
             isPublic: completionData.isPublic,
-            completedAt: completionData.completed.toISOString(),
+            completedAt: completionData.completed,
             totalTimeMinutes,
             token,
           });
