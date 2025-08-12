@@ -57,6 +57,9 @@ export default function RiddleStop({ stop, onComplete, isCompleted, userAnswer }
           value={answer}
           onChangeText={setAnswer}
           placeholder="Enter your answer..."
+          placeholderTextColor="#999"
+          selectionColor="#007AFF"
+          cursorColor="#007AFF"
           autoCapitalize="none"
           autoCorrect={false}
         />
@@ -122,6 +125,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     marginBottom: 16,
+    color: '#1a1a1a',
   },
   submitButton: {
     backgroundColor: '#007AFF',
