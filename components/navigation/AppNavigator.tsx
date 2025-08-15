@@ -58,7 +58,17 @@ export default function AppNavigator() {
       <Stack.Screen name="UserProfile" component={UserProfile} />
       <Stack.Screen name="CrawlDetail" component={CrawlDetailScreen} />
       <Stack.Screen name="CrawlSession" component={CrawlSessionScreen} options={{ headerShown: false, presentation: 'modal' }} />
-      <Stack.Screen name="CrawlMap" component={CrawlMapScreen} options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen 
+        name="CrawlMap" 
+        component={CrawlMapScreen} 
+        options={{ 
+          headerShown: false, 
+          presentation: 'modal',
+          unmountOnBlur: true,
+          cardStyle: { backgroundColor: '#000000' },
+          cardOverlayEnabled: false,
+        }} 
+      />
       <Stack.Screen name="CrawlStats" component={CrawlStatsScreen} />
       <Stack.Screen name="CrawlHistory" component={CrawlHistoryScreen} />
       <Stack.Screen name="CrawlHistoryDetail" component={CrawlHistoryDetailScreen} />
