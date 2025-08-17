@@ -134,17 +134,27 @@ export async function deleteCrawlProgress({ userId, token }: {
 }) {
   const supabase = getSupabaseClient(token);
   
-  const { error } = await supabase
+  console.log('Attempting to delete crawl progress for user:', userId);
+  
+  const { data, error } = await supabase
     .from('crawl_progress')
     .delete()
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .select();
 
   if (error) {
     console.error('Error deleting crawl progress:', error);
+    console.error('Error details:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    });
     return { error };
   }
 
-  return { error: null };
+  console.log('Successfully deleted crawl progress. Deleted records:', data);
+  return { data, error: null };
 }
 
 /**

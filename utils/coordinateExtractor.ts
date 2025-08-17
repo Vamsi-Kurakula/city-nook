@@ -138,16 +138,31 @@ export const extractAllCoordinates = async (stops: any[]): Promise<LocationCoord
   const validLocations: LocationCoordinates[] = [];
   
   for (const stop of stops) {
-    if (stop.location_link) {
-      const coords = await extractCoordinates(stop.location_link);
+    let coords = null;
+    
+    // First check for manual coordinates
+    if (stop.coordinates && Array.isArray(stop.coordinates) && stop.coordinates.length === 2) {
+      coords = {
+        latitude: stop.coordinates[0],
+        longitude: stop.coordinates[1]
+      };
+      console.log(`Using manual coordinates for Stop ${stop.stop_number}: ${coords.latitude}, ${coords.longitude}`);
+    }
+    // Fallback to extracting from location_link
+    else if (stop.location_link) {
+      coords = await extractCoordinates(stop.location_link);
       if (coords) {
-        validLocations.push({
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-          title: stop.title || `Stop ${stop.stop_number}`,
-          stopNumber: stop.stop_number,
-        });
+        console.log(`Extracted coordinates for Stop ${stop.stop_number}: ${coords.latitude}, ${coords.longitude}`);
       }
+    }
+    
+    if (coords) {
+      validLocations.push({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        title: stop.title || `Stop ${stop.stop_number}`,
+        stopNumber: stop.stop_number,
+      });
     }
   }
   

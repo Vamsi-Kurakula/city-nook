@@ -2,9 +2,9 @@ import 'dotenv/config';
 
 export default {
   expo: {
-    name: "City Crawler",
+    name: "Crawls",
     slug: "city-crawler",
-                version: "1.2.3",
+                version: "1.2.4",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -19,7 +19,7 @@ export default {
     ios: {
       bundleIdentifier: "com.vamsikurakula.citycrawler",
       supportsTablet: true,
-                    buildNumber: "123",
+                    buildNumber: "124",
       infoPlist: {
         NSLocationWhenInUseUsageDescription: "This app uses location to show your position on the crawl map.",
         NSAppTransportSecurity: {
@@ -51,7 +51,7 @@ export default {
     },
     android: {
       package: "com.vamsikurakula.citycrawler",
-                  versionCode: 123,
+                  versionCode: 124,
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"

@@ -46,10 +46,18 @@ const CrawlCompletionScreen: React.FC = () => {
           });
           
           // Delete the progress record since crawl is completed
-          await deleteCrawlProgress({
+          const deleteResult = await deleteCrawlProgress({
             userId: completionData.userId,
             token,
           });
+          
+          if (deleteResult.error) {
+            console.error('Failed to delete crawl progress:', deleteResult.error);
+            // Don't fail the entire completion process, just log the error
+            // The progress record will remain but the crawl is still completed
+          } else {
+            console.log('Crawl progress record successfully deleted');
+          }
         }
         
         console.log('Crawl completed and progress record deleted');

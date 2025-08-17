@@ -88,6 +88,10 @@ CREATE POLICY "Users can update their own crawl progress"
   ON crawl_progress
   FOR UPDATE USING (user_id = get_user_id_from_jwt());
 
+CREATE POLICY "Users can delete their own crawl progress"
+  ON crawl_progress
+  FOR DELETE USING (user_id = get_user_id_from_jwt());
+
 CREATE POLICY "Users can view their own crawl history"
   ON user_crawl_history
   FOR SELECT USING (user_id = get_user_id_from_jwt());

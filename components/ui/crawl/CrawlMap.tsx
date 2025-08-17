@@ -383,6 +383,7 @@ const CrawlMap: React.FC<CrawlMapProps> = ({
 
         // Save completion data
         const completionData = {
+          userId: user.id,
           crawlId: crawl?.id || 'unknown',
           isPublic: crawl?.is_public || false,
           currentStop: stops.length,
