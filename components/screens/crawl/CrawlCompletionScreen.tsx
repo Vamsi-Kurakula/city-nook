@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -18,10 +18,15 @@ const CrawlCompletionScreen: React.FC = () => {
   const { getToken } = useAuth();
   const [isProcessing, setIsProcessing] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const didSubmitRef = useRef(false);
 
   // Handle completion logic when component mounts
   useEffect(() => {
     const handleCompletion = async () => {
+      // Guard against double invocation (e.g., React strict mode/dev re-mount)
+      if (didSubmitRef.current) return;
+      didSubmitRef.current = true;
+
       if (!completionData) {
         console.log('No completion data provided, skipping completion logic');
         setIsProcessing(false);
@@ -30,8 +35,10 @@ const CrawlCompletionScreen: React.FC = () => {
 
       try {
         console.log('Processing crawl completion with data:', completionData);
-        
-        const totalTimeMinutes = Math.round((new Date(completionData.completed).getTime() - new Date(completionData.started).getTime()) / 60000);
+
+        const startedIso = completionData.started ?? completionData.startedAt;
+        const completedIso = completionData.completed ?? completionData.completedAt;
+        const totalTimeMinutes = Math.round((new Date(completedIso).getTime() - new Date(startedIso).getTime()) / 60000);
         
         const token = await getToken({ template: 'supabase' });
         if (token) {
@@ -40,7 +47,7 @@ const CrawlCompletionScreen: React.FC = () => {
             userId: completionData.userId,
             crawlId: completionData.crawlId,
             isPublic: completionData.isPublic,
-            completedAt: completionData.completed,
+            completedAt: completedIso,
             totalTimeMinutes,
             token,
           });

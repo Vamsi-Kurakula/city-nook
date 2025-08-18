@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "Crawls",
     slug: "city-crawler",
-                version: "1.2.4",
+                version: "1.2.5",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -19,7 +19,7 @@ export default {
     ios: {
       bundleIdentifier: "com.vamsikurakula.citycrawler",
       supportsTablet: true,
-                    buildNumber: "124",
+                    buildNumber: "125",
       infoPlist: {
         NSLocationWhenInUseUsageDescription: "This app uses location to show your position on the crawl map.",
         NSAppTransportSecurity: {
@@ -51,7 +51,7 @@ export default {
     },
     android: {
       package: "com.vamsikurakula.citycrawler",
-                  versionCode: 124,
+                  versionCode: 125,
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
