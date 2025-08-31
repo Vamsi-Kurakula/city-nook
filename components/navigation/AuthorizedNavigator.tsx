@@ -1,26 +1,26 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import WelcomeScreen from '../screens/auth/WelcomeScreen';
+import HomeScreen from '../screens/home/HomeScreen';
 import { useTheme } from '../context';
 
-export type UnauthorizedStackParamList = {
-  Welcome: undefined;
+export type AuthorizedStackParamList = {
+  Home: undefined;
 };
 
-const Stack = createStackNavigator<UnauthorizedStackParamList>();
+const Stack = createStackNavigator<AuthorizedStackParamList>();
 
-export default function UnauthorizedNavigator() {
+export default function AuthorizedNavigator() {
   const { theme } = useTheme();
   
   return (
     <Stack.Navigator
-      initialRouteName="Welcome"
+      initialRouteName="Home"
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: 'transparent' },
       }}
     >
-      <Stack.Screen name="Welcome" component={WelcomeScreen} />
+      <Stack.Screen name="Home" component={HomeScreen} />
     </Stack.Navigator>
   );
 }
