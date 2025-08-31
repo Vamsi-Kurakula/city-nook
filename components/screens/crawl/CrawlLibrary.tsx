@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, StyleSheet, ActivityIndicator, View, TouchableOpacity, Image } from 'react-native';
+import { Text, StyleSheet, ActivityIndicator, View, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp, useRoute } from '@react-navigation/native';
@@ -156,8 +156,43 @@ const CrawlLibrary: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
-        <ActivityIndicator size="large" color={theme.button.primary} style={{ marginTop: 40 }} />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+        <View style={styles.headerWrapper}>
+          <View style={styles.header}>
+            <View style={styles.headerTop}>
+              <View style={styles.headerLeft}>
+                <Text style={[styles.title, { color: theme.text.primary }]}>Crawl Library</Text>
+              </View>
+              <View style={styles.headerRight}>
+                <TouchableOpacity 
+                  style={styles.profileButton} 
+                  onPress={() => navigation.navigate('UserProfile')}
+                >
+                  {user?.imageUrl ? (
+                    <Image source={{ uri: user.imageUrl }} style={styles.profileImage} />
+                  ) : (
+                    <View style={[styles.profilePlaceholder, { backgroundColor: theme.special.avatarPlaceholder }]}>
+                      <Text style={[styles.profilePlaceholderText, { color: theme.text.secondary }]}>
+                        {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+          {/* Action buttons row */}
+          <View style={styles.actionRow}>
+            <BackButton onPress={() => navigation.navigate('Home')} />
+            <TouchableOpacity onPress={() => navigation.navigate('CrawlLibraryFilters', { minStops, maxDistanceMiles })} style={[styles.filtersButton, { backgroundColor: theme.background.tertiary }]}>
+              <Text style={[styles.filtersButtonText, { color: theme.button.primary }]}>Filters</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.button.primary} />
+          <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading crawls...</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -196,7 +231,7 @@ const CrawlLibrary: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <View style={styles.headerWrapper}>
         <View style={styles.header}>
           <View style={styles.headerTop}>
@@ -328,6 +363,36 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     marginBottom: 16,
     marginTop: 8,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  retryButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
   },
 });
 

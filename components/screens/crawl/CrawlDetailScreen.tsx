@@ -159,7 +159,7 @@ if (isLoading) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
       <View style={styles.header}>
         <BackButton onPress={() => navigation.navigate('Home')} />
       </View>

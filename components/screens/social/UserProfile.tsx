@@ -19,7 +19,14 @@ const UserProfile: React.FC = () => {
   const fetchPendingRequests = async () => {
     if (!user?.id) return;
     try {
-      const token = await getToken({ template: 'supabase' });
+      let token;
+      try {
+        token = await getToken({ template: 'supabase' });
+      } catch (tokenError) {
+        console.error('Error getting token:', tokenError);
+        return;
+      }
+      
       if (!token) {
         console.error('Failed to get authentication token');
         return;
@@ -29,17 +36,35 @@ const UserProfile: React.FC = () => {
       setPendingRequestsCount(requests.length);
     } catch (err) {
       console.error('Error fetching pending requests:', err);
+      // Don't crash the app if this fails
+      setPendingRequestsCount(0);
     }
   };
 
   useEffect(() => {
-    fetchPendingRequests();
+    // Add safety check for iOS
+    if (!user?.id) return;
+    
+    try {
+      fetchPendingRequests();
+    } catch (error) {
+      console.error('Error in useEffect:', error);
+      // Prevent crash
+    }
   }, [user?.id]);
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchPendingRequests();
-    }, [user?.id])
+      // Add safety check for iOS
+      if (!navigation || !user?.id) return;
+      
+      try {
+        fetchPendingRequests();
+      } catch (error) {
+        console.error('Error in useFocusEffect:', error);
+        // Prevent crash
+      }
+    }, [user?.id, navigation])
   );
 
   const handleSignOut = async () => {
@@ -77,19 +102,31 @@ const UserProfile: React.FC = () => {
   };
 
   const handleCrawlStats = () => {
-    navigation.dispatch(
-      CommonActions.navigate({
-        name: 'CrawlStats',
-      })
-    );
+    try {
+      navigation.dispatch(
+        CommonActions.navigate({
+          name: 'CrawlStats',
+        })
+      );
+    } catch (error) {
+      console.error('Navigation error to CrawlStats:', error);
+      // Fallback navigation
+      navigation.navigate('CrawlStats');
+    }
   };
 
   const handleCrawlHistory = () => {
-    navigation.dispatch(
-      CommonActions.navigate({
-        name: 'CrawlHistory',
-      })
-    );
+    try {
+      navigation.dispatch(
+        CommonActions.navigate({
+          name: 'CrawlHistory',
+        })
+      );
+    } catch (error) {
+      console.error('Navigation error to CrawlHistory:', error);
+      // Fallback navigation
+      navigation.navigate('CrawlHistory');
+    }
   };
 
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
@@ -159,7 +196,7 @@ const UserProfile: React.FC = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
         <View style={styles.content}>
           <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading profile...</Text>
         </View>
@@ -170,7 +207,7 @@ const UserProfile: React.FC = () => {
   // Show sign-in prompt if user is not authenticated
   if (!isSignedIn) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
         <View style={styles.signInContent}>
           <View style={styles.signInHeader}>
             <Text style={[styles.title, { color: theme.text.primary }]}>City Crawler</Text>
@@ -198,7 +235,7 @@ const UserProfile: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
       <View style={styles.header}>
         <BackButton onPress={() => navigation.goBack()} />
       </View>
@@ -252,7 +289,13 @@ const UserProfile: React.FC = () => {
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Social</Text>
-            <TouchableOpacity style={[styles.activityButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary, position: 'relative' }]} onPress={() => navigation.navigate('FriendsList')}>
+            <TouchableOpacity style={[styles.activityButton, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary, position: 'relative' }]} onPress={() => {
+              try {
+                navigation.navigate('FriendsList');
+              } catch (error) {
+                console.error('Navigation error to FriendsList:', error);
+              }
+            }}>
               <Text style={[styles.activityButtonText, { color: theme.text.primary }]}>👥 Friends</Text>
               {pendingRequestsCount > 0 && (
                 <View style={[styles.badge, { backgroundColor: theme.button.secondary }]}>
@@ -285,9 +328,21 @@ const UserProfile: React.FC = () => {
           <View style={styles.footer}>
             <Text style={[styles.footerText, { color: theme.text.secondary }]}>
               View our
-              <Text style={{ color: theme.button.primary }} onPress={() => navigation.navigate('PrivacyPolicy')}> Privacy Policy</Text>
+              <Text style={{ color: theme.button.primary }} onPress={() => {
+                try {
+                  navigation.navigate('PrivacyPolicy');
+                } catch (error) {
+                  console.error('Navigation error to PrivacyPolicy:', error);
+                }
+              }}> Privacy Policy</Text>
               {' '}and
-              <Text style={{ color: theme.button.primary }} onPress={() => navigation.navigate('TermsOfService')}> Terms of Service</Text>.
+              <Text style={{ color: theme.button.primary }} onPress={() => {
+                try {
+                  navigation.navigate('TermsOfService');
+                } catch (error) {
+                  console.error('Navigation error to TermsOfService:', error);
+                }
+              }}> Terms of Service</Text>.
             </Text>
           </View>
         </View>

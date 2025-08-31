@@ -15,6 +15,7 @@ import { useCrawlActions } from './hooks/useCrawlActions';
 import { getFriendsList } from '../../../utils/database/friendshipOperations';
 import { getPendingRequests } from '../../../utils/database/friendRequestOperations';
 import { SocialUserProfile } from '../../../types/social';
+import GradientBackground from '../../ui/common/GradientBackground';
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
@@ -144,162 +145,162 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-             <View style={[
-         styles.container, 
-         { 
-           backgroundColor: 'transparent',
-           paddingTop: insets.top,
-           paddingBottom: insets.bottom,
-           paddingLeft: insets.left,
-           paddingRight: insets.right,
-         }
-       ]}>
-         <HomeHeader />
-         <View style={styles.loadingContainer}>
-           <ActivityIndicator size="large" color={theme.button.primary} />
-           <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
-         </View>
-       </View>
+      <GradientBackground variant="page" style={styles.container}>
+        <View style={[
+          styles.loadingContainer, 
+          { 
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+            paddingLeft: insets.left,
+            paddingRight: insets.right,
+          }
+        ]}>
+          <HomeHeader />
+          <View style={styles.loadingContent}>
+            <ActivityIndicator size="large" color={theme.button.primary} />
+            <Text style={[styles.loadingText, { color: theme.text.secondary }]}>Loading...</Text>
+          </View>
+        </View>
+      </GradientBackground>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: 'transparent' }]}>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[theme.button.primary]}
-            tintColor={theme.button.primary}
-          />
-        }
-      >
-        <HomeHeader />
+    <GradientBackground variant="page" style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[theme.button.primary]}
+              tintColor={theme.button.primary}
+            />
+          }
+        >
+          <HomeHeader />
 
-        {/* Fellow Crawlers Section - Right under the "Crawls" title */}
-        <View style={[styles.section, { marginTop: 20 }]}>
-          {friendsLoading ? (
-            <ActivityIndicator size="small" color={theme.button.primary} style={{ marginVertical: 16 }} />
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.friendsScroll}>
-              {friends.slice(0, 3).map(friend => (
-                <TouchableOpacity
-                  key={friend.user_profile_id}
-                  style={styles.friendAvatarWrapper}
-                  onPress={() => navigation.navigate('FriendProfile', { friend })}
-                  activeOpacity={0.8}
-                >
-                  {friend.avatar_url ? (
-                    <Image source={{ uri: friend.avatar_url }} style={[styles.friendAvatar, { borderColor: 'transparent' }]} />
-                  ) : (
-                    <View style={[styles.friendAvatar, styles.friendAvatarPlaceholder, { backgroundColor: theme.button.primary }]}>
-                      <Text style={[styles.friendAvatarText, { color: theme.text.inverse }]}>
-                        {friend.full_name?.charAt(0) || friend.email?.charAt(0) || 'F'}
-                      </Text>
-                    </View>
-                  )}
-                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>{friend.full_name || 'Unknown'}</Text>
-                </TouchableOpacity>
-              ))}
-              {friends.length > 3 && (
-                <TouchableOpacity
-                  key="view-all-friends"
-                  style={[styles.friendAvatarWrapper, styles.viewAllButtonWrapper]}
-                  onPress={() => navigation.navigate('FriendsList')}
-                  activeOpacity={0.8}
-                >
-                  <View style={[styles.friendAvatar, styles.viewAllButton, { backgroundColor: theme.button.primary, borderColor: 'transparent' }]}>
-                    <Text style={[styles.viewAllButtonText, { color: theme.text.inverse }]}>+{friends.length - 3}</Text>
-                  </View>
-                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>View All</Text>
-                </TouchableOpacity>
-              )}
-              {friends.length < 3 && (
-                <TouchableOpacity
-                  key="add-friends"
-                  style={[styles.friendAvatarWrapper, styles.addFriendButtonWrapper]}
-                  onPress={() => navigation.navigate('AddFriends')}
-                  activeOpacity={0.8}
-                >
-                  <View style={[styles.friendAvatar, styles.addFriendButton, { backgroundColor: 'transparent', borderColor: theme.button.primary, borderWidth: 2 }]}>
-                    <Text style={[styles.addFriendButtonText, { color: theme.button.primary }]}>+</Text>
-                    {pendingRequestsCount > 0 && (
-                      <View style={[styles.badge, { backgroundColor: theme.button.secondary }]}>
-                        <Text style={[styles.badgeText, { color: theme.button.primary }]}>{pendingRequestsCount}</Text>
+          {/* Fellow Crawlers Section - Right under the "Crawls" title */}
+          <View style={[styles.section, { marginTop: 20 }]}>
+            {friendsLoading ? (
+              <ActivityIndicator size="small" color={theme.button.primary} style={{ marginVertical: 16 }} />
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.friendsScroll}>
+                {friends.slice(0, 3).map(friend => (
+                  <TouchableOpacity
+                    key={friend.user_profile_id}
+                    style={styles.friendAvatarWrapper}
+                    onPress={() => navigation.navigate('FriendProfile', { friend })}
+                    activeOpacity={0.8}
+                  >
+                    {friend.avatar_url ? (
+                      <Image source={{ uri: friend.avatar_url }} style={[styles.friendAvatar, { borderColor: 'transparent' }]} />
+                    ) : (
+                      <View style={[styles.friendAvatar, styles.friendAvatarPlaceholder, { backgroundColor: theme.button.primary }]}>
+                        <Text style={[styles.friendAvatarText, { color: theme.text.inverse }]}>
+                          {friend.full_name?.charAt(0) || friend.email?.charAt(0) || 'F'}
+                        </Text>
                       </View>
                     )}
-                  </View>
-                  <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>Add Friends</Text>
-                </TouchableOpacity>
-              )}
-            </ScrollView>
-          )}
-        </View>
-
-        {/* In Progress Crawl Section */}
-        {currentCrawl && currentCrawlDetails && (
-          <View style={styles.section}>
-            <View style={[styles.sectionHeader, { paddingHorizontal: 20 }]}>
-              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Continue Crawling</Text>
-            </View>
-            <TouchableOpacity
-              style={[
-                styles.continueCrawlCard,
-                {
-                  backgroundColor: theme.background.primary,
-                  borderColor: theme.background.secondary,
-                  borderWidth: 1,
-                  flexDirection: 'row',
-                  padding: 0,
-                  shadowColor: theme.shadow.primary,
-                },
-              ]}
-              onPress={() => handleInProgressCrawlPress(currentCrawl)}
-              activeOpacity={0.9}
-            >
-              {/* Left: Hero Image */}
-              <View style={styles.continueCrawlImageWrapper}>
-                <DatabaseImage
-                  heroImageUrl={currentCrawlDetails.hero_image_url}
-                  style={styles.continueCrawlImage}
-                  resizeMode="cover"
-                />
-              </View>
-              {/* Right: Info */}
-              <View style={styles.continueCrawlInfoWrapper}>
-                <View style={styles.continueCrawlInfoContent}>
-                  <Text style={[styles.crawlTitle, { color: theme.text.primary, marginBottom: 12 }]}>{currentCrawlDetails.name}</Text>
-                  <Text style={[styles.continueCrawlLabel, { color: theme.text.primary }]}>Currently At:</Text>
-                  <Text style={[styles.continueCrawlValue, { color: theme.text.primary }]}>
-                    {currentCrawlDetails.stops && currentCrawl.currentStep && currentCrawlDetails.stops[currentCrawl.currentStep - 1]?.location_name || 'N/A'}
-                  </Text>
-                  <Text style={[styles.continueCrawlLabel, { color: theme.text.primary, marginTop: 8 }]}>Stops Left:</Text>
-                  <Text style={[styles.continueCrawlValue, { color: theme.text.primary }]}>
-                    {currentCrawlDetails.stops ? currentCrawlDetails.stops.length - currentCrawl.currentStep + 1 : 'N/A'}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
+                    <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>{friend.full_name || 'Unknown'}</Text>
+                  </TouchableOpacity>
+                ))}
+                {friends.length > 3 && (
+                  <TouchableOpacity
+                    key="view-all-friends"
+                    style={[styles.friendAvatarWrapper, styles.viewAllButtonWrapper]}
+                    onPress={() => navigation.navigate('FriendsList')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.friendAvatar, styles.viewAllButton, { backgroundColor: theme.button.primary, borderColor: 'transparent' }]}>
+                      <Text style={[styles.viewAllButtonText, { color: theme.text.inverse }]}>+{friends.length - 3}</Text>
+                    </View>
+                    <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>View All</Text>
+                  </TouchableOpacity>
+                )}
+                {friends.length < 3 && (
+                  <TouchableOpacity
+                    key="add-friends"
+                    style={[styles.friendAvatarWrapper, styles.addFriendButtonWrapper]}
+                    onPress={() => navigation.navigate('AddFriends')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.friendAvatar, styles.addFriendButton, { backgroundColor: 'transparent', borderColor: theme.button.primary, borderWidth: 2 }]}>
+                      <Text style={[styles.addFriendButtonText, { color: theme.button.primary }]}>+</Text>
+                      {pendingRequestsCount > 0 && (
+                        <View style={[styles.badge, { backgroundColor: theme.button.secondary }]}>
+                          <Text style={[styles.badgeText, { color: theme.button.primary }]}>{pendingRequestsCount}</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={[styles.friendName, { color: theme.text.primary }]} numberOfLines={2}>Add Friends</Text>
+                  </TouchableOpacity>
+                )}
+              </ScrollView>
+            )}
           </View>
-        )}
 
+          {/* In Progress Crawl Section */}
+          {currentCrawl && currentCrawlDetails && (
+            <View style={styles.section}>
+              <View style={[styles.sectionHeader, { paddingHorizontal: 20 }]}>
+                <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Continue Crawling</Text>
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.continueCrawlCard,
+                  {
+                    backgroundColor: theme.background.primary,
+                    borderColor: theme.background.secondary,
+                    borderWidth: 1,
+                    flexDirection: 'row',
+                    padding: 0,
+                    shadowColor: theme.shadow.primary,
+                  },
+                ]}
+                onPress={() => handleInProgressCrawlPress(currentCrawl)}
+                activeOpacity={0.9}
+              >
+                {/* Left: Hero Image */}
+                <View style={styles.continueCrawlImageWrapper}>
+                  <DatabaseImage
+                    heroImageUrl={currentCrawlDetails.hero_image_url}
+                    style={styles.continueCrawlImage}
+                    resizeMode="cover"
+                  />
+                </View>
+                {/* Right: Info */}
+                <View style={styles.continueCrawlInfoWrapper}>
+                  <View style={styles.continueCrawlInfoContent}>
+                    <Text style={[styles.crawlTitle, { color: theme.text.primary, marginBottom: 12 }]}>{currentCrawlDetails.name}</Text>
+                    <Text style={[styles.continueCrawlLabel, { color: theme.text.primary }]}>Currently At:</Text>
+                    <Text style={[styles.continueCrawlValue, { color: theme.text.primary }]}>
+                      {currentCrawlDetails.stops && currentCrawl.currentStep && currentCrawlDetails.stops[currentCrawl.currentStep - 1]?.location_name || 'N/A'}
+                    </Text>
+                    <Text style={[styles.continueCrawlLabel, { color: theme.text.primary, marginTop: 8 }]}>Stops Left:</Text>
+                    <Text style={[styles.continueCrawlValue, { color: theme.text.primary }]}>
+                      {currentCrawlDetails.stops ? currentCrawlDetails.stops.length - currentCrawl.currentStep + 1 : 'N/A'}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
 
+          {/* Featured Crawls Section */}
+          <FeaturedCrawlsSection
+            featuredCrawls={convertedFeaturedCrawls}
+            onCrawlPress={handleFeaturedCrawlCardPress}
+            onCrawlStart={handleFeaturedCrawlCardStart}
+            onViewAllPress={handleViewAllFeaturedCrawls}
+          />
 
-        {/* Featured Crawls Section */}
-        <FeaturedCrawlsSection
-          featuredCrawls={convertedFeaturedCrawls}
-          onCrawlPress={handleFeaturedCrawlCardPress}
-          onCrawlStart={handleFeaturedCrawlCardStart}
-          onViewAllPress={handleViewAllFeaturedCrawls}
-        />
-
-      </ScrollView>
-
-
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </GradientBackground>
   );
 }
 
@@ -307,10 +308,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  safeArea: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
