@@ -7,14 +7,31 @@ export default {
                 version: "1.2.5",
     orientation: "portrait",
     icon: "./assets/icon.png",
-    userInterfaceStyle: "light",
+    userInterfaceStyle: "dark", // Force dark mode
     newArchEnabled: true,
-    scheme: "city-crawler",
+    scheme: "crawls",
     description: "Discover and explore cities through guided crawls and adventures",
     splash: {
       image: "./assets/splash-icon.png",
       resizeMode: "contain",
-      backgroundColor: "#ffffff"
+      backgroundColor: "#1a1a2e"
+    },
+    // Development splash screen (for bundling)
+    developmentClient: {
+      splashScreen: {
+        image: "./assets/splash-icon.png",
+        backgroundColor: "#1a1a2e"
+      }
+    },
+    // OAuth redirect and development settings
+    extra: {
+      eas: {
+        projectId: "f0e3027e-7d53-46eb-83e7-7a51334fa601"
+      },
+      // Force dark theme during development
+      developmentSplash: {
+        backgroundColor: "#1a1a2e"
+      }
     },
     ios: {
       bundleIdentifier: "com.vamsikurakula.citycrawler",
@@ -54,7 +71,7 @@ export default {
                   versionCode: 125,
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
-        backgroundColor: "#ffffff"
+        backgroundColor: "#1a1a2e"
       },
       edgeToEdgeEnabled: true,
       permissions: ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "android.permission.INTERNET"],
@@ -68,11 +85,6 @@ export default {
     },
     web: {
       favicon: "./assets/favicon.png"
-    },
-    extra: {
-      eas: {
-        projectId: "f0e3027e-7d53-46eb-83e7-7a51334fa601"
-      }
     },
     plugins: [
       [

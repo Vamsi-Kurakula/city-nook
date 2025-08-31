@@ -25,9 +25,8 @@
     "expo-linear-gradient": "^14.1.5",
     "expo-location": "~18.1.6",
     "expo-secure-store": "^14.2.3",
+    "expo-splash-screen": "^0.30.10",
     "expo-status-bar": "~2.2.3",
-    "expo-web-browser": "^14.2.0",
-    "js-yaml": "^4.1.0",
     "jwt-decode": "^4.0.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -41,7 +40,6 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "@types/js-yaml": "^4.0.9",
     "@types/react": "~19.0.10",
     "typescript": "~5.8.3"
   },
