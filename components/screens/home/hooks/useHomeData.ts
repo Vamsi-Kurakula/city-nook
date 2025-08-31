@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthContext } from '../../../context/AuthContext';
 import { useAuth } from '@clerk/clerk-expo';
 import { getCurrentCrawlProgress } from '../../../../utils/database/progressOperations';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface PublicCrawl {
   id: string;
@@ -48,6 +49,16 @@ export function useHomeData() {
       setLoading(false);
     }
   }, [user?.id]);
+
+  // Refresh data when screen comes into focus (fixes scroll lock issue)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user?.id) {
+        console.log('HomeData: Screen focused - refreshing data');
+        loadHomeData();
+      }
+    }, [user?.id])
+  );
 
   const loadHomeData = async () => {
     if (!user?.id) {

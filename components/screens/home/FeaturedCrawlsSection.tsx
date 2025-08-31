@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Platform } from 'react-native';
 import { Crawl } from '../../../types/crawl';
 import DatabaseImage from '../../ui/crawl/DatabaseImage';
 import { useTheme } from '../../context/ThemeContext';
@@ -18,11 +18,13 @@ export default function FeaturedCrawlsSection({
   onViewAllPress,
 }: FeaturedCrawlsSectionProps) {
   const { theme } = useTheme();
+
   const renderCrawlItem = ({ item }: { item: Crawl }) => {
     return (
       <TouchableOpacity
         style={[styles.crawlCard, { backgroundColor: theme.background.primary, borderColor: theme.background.secondary, shadowColor: theme.shadow.primary }]}
         onPress={() => onCrawlPress(item)}
+        activeOpacity={0.8}
       >
         <View style={[styles.crawlImageContainer, { backgroundColor: theme.background.tertiary }]}>
           <DatabaseImage 
@@ -57,7 +59,7 @@ export default function FeaturedCrawlsSection({
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Featured Crawls</Text>
-        <TouchableOpacity onPress={onViewAllPress}>
+        <TouchableOpacity onPress={onViewAllPress} activeOpacity={0.8}>
           <Text style={[styles.viewAllText, { color: theme.button.primary }]}>View All Crawls</Text>
         </TouchableOpacity>
       </View>
@@ -69,6 +71,26 @@ export default function FeaturedCrawlsSection({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.horizontalListContainer}
+        // Simple, clean configuration that works on both platforms
+        removeClippedSubviews={false}
+        initialNumToRender={3}
+        maxToRenderPerBatch={3}
+        windowSize={5}
+        scrollEventThrottle={16}
+        decelerationRate="normal"
+        snapToAlignment="start"
+        // Platform-specific optimizations
+        {...Platform.select({
+          android: {
+            overScrollMode: 'never',
+            nestedScrollEnabled: false,
+            scrollIndicatorInsets: { right: 1 },
+          },
+          ios: {
+            alwaysBounceHorizontal: false,
+            scrollIndicatorInsets: { right: 1 },
+          },
+        })}
       />
     </View>
   );

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Text, ActivityIndicator, Image, RefreshControl, Alert, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useNavigationState } from '@react-navigation/native';
 import { useAuthContext } from '../../context/AuthContext';
 import { useCrawlContext } from '../../context/CrawlContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -19,6 +19,7 @@ import GradientBackground from '../../ui/common/GradientBackground';
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
+  const navigationState = useNavigationState(state => state);
   const { user, isLoading } = useAuthContext();
   const { hasCrawlInProgress, getCurrentCrawlName } = useCrawlContext();
   const { theme } = useTheme();
@@ -41,12 +42,70 @@ export default function HomeScreen() {
     handleSignUpForCrawl,
   } = useCrawlActions();
 
+
+
   const [friends, setFriends] = React.useState<SocialUserProfile[]>([]);
   const [friendsLoading, setFriendsLoading] = React.useState(true);
   const [pendingRequestsCount, setPendingRequestsCount] = React.useState(0);
   const [refreshing, setRefreshing] = React.useState(false);
+  const scrollViewRef = React.useRef<ScrollView>(null);
+
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('HomeScreen focused - refreshing data');
+      
+      // Ensure refreshing state is reset when screen comes into focus
+      setRefreshing(false);
+      
+      // Refresh friends data when screen comes into focus
+      if (userId) {
+        loadFriendsData();
+      }
+      
+      // Simple scroll reset
+      setTimeout(() => {
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: false });
+        }
+      }, 100);
+    }, [userId])
+  );
 
 
+
+
+
+  // Helper to load friends data
+  const loadFriendsData = async () => {
+    if (!userId) return;
+    
+    console.log('Loading friends data...');
+    try {
+      setFriendsLoading(true);
+      const token = await getToken({ template: 'supabase' });
+      if (token) {
+        const [friendsResult, pending] = await Promise.all([
+          getFriendsList(userId, token),
+          getPendingRequests(userId, token)
+        ]);
+        setFriends(friendsResult);
+        setPendingRequestsCount(pending.length);
+        console.log('Friends data loaded successfully');
+      } else {
+        console.log('No JWT token available for loading friends data');
+        setFriends([]);
+        setPendingRequestsCount(0);
+      }
+    } catch (error) {
+      console.error('Error loading friends data:', error);
+      setFriends([]);
+      setPendingRequestsCount(0);
+    } finally {
+      setFriendsLoading(false);
+      console.log('Friends loading completed');
+    }
+  };
 
   // Helper to reload all home data and friends
   const onRefresh = async () => {
@@ -81,6 +140,11 @@ export default function HomeScreen() {
       window.dispatchEvent(new Event('homeDataRefresh'));
     }
     setRefreshing(false);
+    
+    // Safety timeout to ensure refreshing is reset
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
   };
 
   React.useEffect(() => {
@@ -169,19 +233,23 @@ export default function HomeScreen() {
     <GradientBackground variant="page" style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView
+          ref={scrollViewRef}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing}
+              refreshing={false}
               onRefresh={onRefresh}
               colors={[theme.button.primary]}
               tintColor={theme.button.primary}
+              progressViewOffset={0}
             />
           }
         >
           <HomeHeader />
+
+
 
           {/* Fellow Crawlers Section - Right under the "Crawls" title */}
           <View style={[styles.section, { marginTop: 20 }]}>
@@ -506,4 +574,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
+
 }); 
