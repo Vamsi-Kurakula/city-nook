@@ -24,13 +24,13 @@ This will guide you through setting up all required environment variables for yo
    ```
    EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_actual_key_here
    EXPO_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_actual_anon_key_here
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_your_new_publishable_key_here
    EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
    ```
 
 3. **For server-side operations** (migrations, etc.), also add:
    ```
-   SUPABASE_SERVICE_KEY=your_supabase_service_role_key_here
+   SUPABASE_SERVICE_KEY=sb_secret_your_new_service_role_key_here
    ```
 
 ### Authentication Setup (Clerk)
@@ -49,7 +49,10 @@ This will guide you through setting up all required environment variables for yo
 
 1. Go to [supabase.com](https://supabase.com) and create an account
 2. Create a new project
-3. Copy your project URL and anon key from Settings > API
+3. Copy your project URL and API keys from Settings > API
+   - **Note**: Supabase now uses new API key format:
+     - Public key: `sb_publishable_...` (replaces old anon key)
+     - Service role key: `sb_secret_...` (replaces old service_role key)
 4. Add the credentials to your `.env` file or `utils/config.ts`
 5. Run the SQL schema in Supabase SQL Editor:
    - Open your Supabase dashboard
@@ -84,7 +87,7 @@ You can also set environment variables in your Expo project dashboard:
    ```
    EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_your_production_key
    EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_your_production_key
    EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
    ```
 
