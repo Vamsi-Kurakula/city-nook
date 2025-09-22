@@ -1,24 +1,24 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth, useUser } from '@clerk/clerk-expo';
-import { useTheme, createButtonStyles, createTextStyles, spacing } from '../../context';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useTheme, createTextStyles, spacing } from '../../context';
+import { AuthorizedStackParamList } from '../../navigation/AuthorizedNavigator';
+
+type HomeScreenNavigationProp = StackNavigationProp<AuthorizedStackParamList, 'Home'>;
 
 export default function HomeScreen() {
-  const { signOut, isSignedIn } = useAuth();
+  const { isSignedIn } = useAuth();
   const { user } = useUser();
   const { theme } = useTheme();
+  const navigation = useNavigation<HomeScreenNavigationProp>();
   
-  const buttonStyles = createButtonStyles(theme);
   const textStyles = createTextStyles(theme);
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      console.log('User signed out successfully');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+  const handleProfilePress = () => {
+    navigation.navigate('Profile');
   };
 
   if (!isSignedIn) {
@@ -38,76 +38,20 @@ export default function HomeScreen() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[textStyles.title, { fontSize: 32, marginBottom: spacing.sm }]}>
-            Welcome back!
+          <Text style={[styles.headerTitle, { color: theme.text.primary }]}>
+            Crawls
           </Text>
-          <Text style={[textStyles.subtitle, { color: theme.text.secondary }]}>
-            {user?.emailAddresses?.[0]?.emailAddress || 'User'}
-          </Text>
-        </View>
-
-        {/* Quick Actions */}
-        <View style={styles.section}>
-          <Text style={[textStyles.subtitle, { fontSize: 18, marginBottom: spacing.md }]}>
-            Quick Actions
-          </Text>
-          
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: theme.button.primary }]}
-              activeOpacity={0.8}
-            >
-              <Text style={[textStyles.button, { color: theme.text.inverse }]}>
-                Start New Crawl
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: theme.button.secondary }]}
-              activeOpacity={0.8}
-            >
-              <Text style={[textStyles.button, { color: theme.text.inverse }]}>
-                View My Crawls
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: theme.button.tertiary }]}
-              activeOpacity={0.8}
-            >
-              <Text style={[textStyles.button, { color: theme.text.inverse }]}>
-                Explore Cities
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Recent Activity */}
-        <View style={styles.section}>
-          <Text style={[textStyles.subtitle, { fontSize: 18, marginBottom: spacing.md }]}>
-            Recent Activity
-          </Text>
-          
-          <View style={[styles.card, { backgroundColor: theme.background.secondary }]}>
-            <Text style={[textStyles.subtitle, { color: theme.text.primary, marginBottom: spacing.sm }]}>
-              No recent crawls yet
-            </Text>
-            <Text style={[textStyles.subtitle, { color: theme.text.tertiary, fontSize: 14 }]}>
-              Start your first crawl to see your activity here
-            </Text>
-          </View>
-        </View>
-
-        {/* Sign Out Button */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={[styles.signOutButton, { borderColor: theme.button.danger }]}
-            onPress={handleSignOut}
+          <TouchableOpacity 
+            style={styles.profileButton}
+            onPress={handleProfilePress}
             activeOpacity={0.8}
           >
-            <Text style={[textStyles.button, { color: theme.button.danger }]}>
-              Sign Out
-            </Text>
+            <Image
+              source={{ 
+                uri: user?.imageUrl || 'https://via.placeholder.com/50x50/666666/FFFFFF?text=U'
+              }}
+              style={styles.profileImage}
+            />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -132,41 +76,26 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: spacing.xl,
     marginBottom: spacing.xxl,
-  },
-  section: {
-    marginBottom: spacing.xxl,
-  },
-  actionButtons: {
-    gap: spacing.md,
-  },
-  actionButton: {
-    paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  card: {
-    padding: spacing.lg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+  headerTitle: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    textAlign: 'left',
   },
-  signOutButton: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: 12,
+  profileButton: {
+    padding: spacing.xs,
+  },
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     borderWidth: 2,
-    alignItems: 'center',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
 });
