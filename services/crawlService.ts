@@ -51,6 +51,30 @@ export async function getCrawlById(crawlId: string): Promise<CrawlDefinition | n
 }
 
 /**
+ * Fetches all public crawls from the database
+ * @returns Promise<CrawlDefinition[]> - Array of all public crawl definitions
+ */
+export async function getAllCrawls(): Promise<CrawlDefinition[]> {
+  try {
+    const { data, error } = await supabase
+      .from('crawl_definitions')
+      .select('*')
+      .eq('is_public', false)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching all crawls:', error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Failed to fetch all crawls:', error);
+    throw error;
+  }
+}
+
+/**
  * Gets the number of stops for a specific crawl
  * @param crawlId - The crawl definition ID
  * @returns Promise<number> - The number of stops

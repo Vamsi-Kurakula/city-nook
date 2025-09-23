@@ -84,9 +84,20 @@ export default function HomeScreen() {
 
         {/* Featured Crawls Section */}
         <View style={styles.featuredSection}>
-          <Text style={[textStyles.subtitle, { color: theme.text.primary, marginBottom: spacing.lg, textAlign: 'left' }]}>
-            Featured Crawls
-          </Text>
+          <View style={styles.sectionHeader}>
+            <Text style={[textStyles.subtitle, { color: theme.text.primary, textAlign: 'left' }]}>
+              Featured Crawls
+            </Text>
+            <TouchableOpacity 
+              style={styles.viewAllButton}
+              onPress={() => navigation.navigate('CrawlLibrary')}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.viewAllText, { color: theme.special.accent }]}>
+                View All Crawls
+              </Text>
+            </TouchableOpacity>
+          </View>
           
           {loading ? (
             <View style={styles.loadingContainer}>
@@ -162,6 +173,19 @@ const styles = StyleSheet.create({
   },
   featuredSection: {
     marginTop: spacing.lg,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  viewAllButton: {
+    padding: spacing.sm,
+  },
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   crawlListContent: {
     paddingLeft: spacing.lg,
