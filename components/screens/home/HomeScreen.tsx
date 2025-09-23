@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useTheme, createTextStyles, spacing } from '../../context';
 import { AuthorizedStackParamList } from '../../navigation/AuthorizedNavigator';
-import CrawlCard from '../../ui/CrawlCard';
+import FeaturedCrawlCard from '../../ui/FeaturedCrawlCard';
 import { CrawlDefinition } from '../../../types/crawl';
 import { getFeaturedCrawls } from '../../../services/crawlService';
 
@@ -97,8 +97,12 @@ export default function HomeScreen() {
           ) : featuredCrawls.length > 0 ? (
             <FlatList
               data={featuredCrawls}
-              renderItem={({ item }) => (
-                <CrawlCard crawl={item} onPress={handleCrawlPress} />
+              renderItem={({ item, index }) => (
+                <FeaturedCrawlCard 
+                  crawl={item} 
+                  onPress={handleCrawlPress}
+                  style={index === featuredCrawls.length - 1 ? { marginRight: spacing.lg } : {}}
+                />
               )}
               keyExtractor={(item) => item.crawl_definition_id}
               horizontal
@@ -161,7 +165,7 @@ const styles = StyleSheet.create({
   },
   crawlListContent: {
     paddingLeft: spacing.lg,
-    paddingRight: spacing.lg,
+    paddingRight: 0,
   },
   loadingContainer: {
     padding: spacing.xl,

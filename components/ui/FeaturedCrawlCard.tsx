@@ -1,14 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ViewStyle } from 'react-native';
 import { useTheme, createTextStyles, spacing } from '../context';
 import { CrawlDefinition } from '../../types/crawl';
 
-interface CrawlCardProps {
+interface FeaturedCrawlCardProps {
   crawl: CrawlDefinition;
   onPress: (crawl: CrawlDefinition) => void;
+  style?: ViewStyle;
 }
 
-export default function CrawlCard({ crawl, onPress }: CrawlCardProps) {
+export default function FeaturedCrawlCard({ crawl, onPress, style }: FeaturedCrawlCardProps) {
   const { theme } = useTheme();
   const textStyles = createTextStyles(theme);
 
@@ -26,7 +27,7 @@ export default function CrawlCard({ crawl, onPress }: CrawlCardProps) {
 
   return (
     <TouchableOpacity
-      style={[styles.card, { backgroundColor: theme.background.secondary }]}
+      style={[styles.card, { backgroundColor: theme.background.secondary }, style]}
       onPress={handlePress}
       activeOpacity={0.8}
     >
@@ -43,13 +44,15 @@ export default function CrawlCard({ crawl, onPress }: CrawlCardProps) {
 
       {/* Content */}
       <View style={styles.content}>
-        <Text style={[styles.cardTitle, { color: theme.text.primary }]} numberOfLines={2}>
-          {crawl.name}
-        </Text>
-        
-        <Text style={[textStyles.body, { color: theme.text.secondary }]} numberOfLines={3}>
-          {crawl.description}
-        </Text>
+        <View style={styles.textContent}>
+          <Text style={[styles.cardTitle, { color: theme.text.primary }]} numberOfLines={2}>
+            {crawl.name}
+          </Text>
+          
+          <Text style={[textStyles.body, { color: theme.text.secondary }]} numberOfLines={3}>
+            {crawl.description}
+          </Text>
+        </View>
 
         {/* Stats */}
         <View style={styles.statsContainer}>
@@ -92,14 +95,19 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    height: 160,
+    height: 140,
   },
   heroImage: {
     width: '100%',
     height: '100%',
   },
   content: {
-    padding: spacing.lg,
+    padding: spacing.md,
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  textContent: {
+    flex: 1,
   },
   cardTitle: {
     fontSize: 18,
@@ -111,7 +119,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: spacing.md,
-    marginBottom: spacing.sm,
   },
   statItem: {
     flex: 1,
