@@ -1,11 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useTheme, createTextStyles, spacing } from '../../context';
 import { AuthorizedStackParamList } from '../../navigation/AuthorizedNavigator';
+import CrawlCard from '../../ui/CrawlCard';
+import { CrawlDefinition } from '../../../types/crawl';
+import { getFeaturedCrawls } from '../../../services/crawlService';
 
 type HomeScreenNavigationProp = StackNavigationProp<AuthorizedStackParamList, 'Home'>;
 
@@ -16,9 +19,33 @@ export default function HomeScreen() {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   
   const textStyles = createTextStyles(theme);
+  const [featuredCrawls, setFeaturedCrawls] = useState<CrawlDefinition[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch featured crawls from database
+  useEffect(() => {
+    const fetchFeaturedCrawls = async () => {
+      try {
+        setLoading(true);
+        const crawls = await getFeaturedCrawls();
+        setFeaturedCrawls(crawls);
+      } catch (error) {
+        console.error('Failed to fetch featured crawls:', error);
+        setFeaturedCrawls([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedCrawls();
+  }, []);
 
   const handleProfilePress = () => {
     navigation.navigate('Profile');
+  };
+
+  const handleCrawlPress = (crawl: CrawlDefinition) => {
+    navigation.navigate('CrawlDetail', { crawl });
   };
 
   if (!isSignedIn) {
@@ -38,7 +65,7 @@ export default function HomeScreen() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: theme.text.primary }]}>
+          <Text style={[styles.headerTitle, { color: theme.text.primary, textAlign: 'left' }]}>
             Crawls
           </Text>
           <TouchableOpacity 
@@ -53,6 +80,38 @@ export default function HomeScreen() {
               style={styles.profileImage}
             />
           </TouchableOpacity>
+        </View>
+
+        {/* Featured Crawls Section */}
+        <View style={styles.featuredSection}>
+          <Text style={[textStyles.subtitle, { color: theme.text.primary, marginBottom: spacing.lg, textAlign: 'left' }]}>
+            Featured Crawls
+          </Text>
+          
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <Text style={[textStyles.body, { color: theme.text.secondary }]}>
+                Loading featured crawls...
+              </Text>
+            </View>
+          ) : featuredCrawls.length > 0 ? (
+            <FlatList
+              data={featuredCrawls}
+              renderItem={({ item }) => (
+                <CrawlCard crawl={item} onPress={handleCrawlPress} />
+              )}
+              keyExtractor={(item) => item.crawl_definition_id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.crawlListContent}
+            />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={[textStyles.body, { color: theme.text.secondary }]}>
+                No featured crawls available
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -81,7 +140,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.xl,
     marginBottom: spacing.xxl,
-    paddingHorizontal: spacing.lg,
   },
   headerTitle: {
     fontSize: 48,
@@ -97,5 +155,20 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  featuredSection: {
+    marginTop: spacing.lg,
+  },
+  crawlListContent: {
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.lg,
+  },
+  loadingContainer: {
+    padding: spacing.xl,
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    padding: spacing.xl,
+    alignItems: 'center',
   },
 });

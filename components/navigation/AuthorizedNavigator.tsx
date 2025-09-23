@@ -2,11 +2,14 @@ import React from 'react';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import HomeScreen from '../screens/home/HomeScreen';
 import { ProfileScreen } from '../screens/profile';
+import { CrawlDetailScreen } from '../screens/crawl';
 import { useTheme } from '../context';
+import { CrawlDefinition } from '../../types/crawl';
 
 export type AuthorizedStackParamList = {
   Home: undefined;
   Profile: undefined;
+  CrawlDetail: { crawl: CrawlDefinition };
 };
 
 const Stack = createStackNavigator<AuthorizedStackParamList>();
@@ -45,6 +48,10 @@ export default function AuthorizedNavigator() {
       <Stack.Screen 
         name="Profile" 
         component={ProfileScreen}
+      />
+      <Stack.Screen 
+        name="CrawlDetail" 
+        component={CrawlDetailScreen}
       />
     </Stack.Navigator>
   );
